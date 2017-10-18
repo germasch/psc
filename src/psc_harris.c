@@ -24,6 +24,7 @@
 
 struct psc_harris {
   double B0;
+  double Bguide;
   double LLy, LLz; // in d_i
   double nb;
   double mi_over_me;
@@ -43,6 +44,7 @@ struct psc_harris {
 #define VAR(x) (void *)offsetof(struct psc_harris, x)
 static struct param psc_harris_descr[] = {
   { "B0"            , VAR(B0)              , PARAM_DOUBLE(.5)     },
+  { "Bguide"        , VAR(Bguide)          , PARAM_DOUBLE(0.)     },
   { "mi_over_me"    , VAR(mi_over_me)      , PARAM_DOUBLE(40.)    },
   { "nb"            , VAR(nb)              , PARAM_DOUBLE(.3)     },
   { "LLy"           , VAR(LLy)             , PARAM_DOUBLE(50.)    },
@@ -156,12 +158,15 @@ psc_harris_init_field(struct psc *psc, double x[3], int m)
 {
   struct psc_harris *harris = to_psc_harris(psc);
 
+  double Bguide = harris->Bguide;
   double BB = harris->B0;
   double LLz = psc->domain.length[2], LLy = psc->domain.length[1];
   double LLL = harris->LLL;
   double AA = harris->AA;
 
   switch (m) {
+  case HX:
+    return Bguide;
   case HZ:
     return BB * tanh((x[1]) / LLL)
       - AA * M_PI/LLy * cos(2.*M_PI * (x[2] - .5 * LLz) / LLz) * sin(M_PI * x[1] / LLy);
