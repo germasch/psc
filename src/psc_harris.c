@@ -32,6 +32,7 @@ struct psc_harris {
   double lambda; // in d_i
   double pert;
   double eta0;
+  bool forcefree;
 
   // normalized quantities
   double LLL; // lambda in d_e
@@ -53,6 +54,7 @@ static struct param psc_harris_descr[] = {
   { "lambda"        , VAR(lambda)          , PARAM_DOUBLE(2.)     },
   { "pert"          , VAR(pert)            , PARAM_DOUBLE(.025)   },
   { "eta0"          , VAR(eta0)            , PARAM_DOUBLE(.0)     },
+  { "forcefree"     , VAR(forcefree)       , PARAM_BOOL(false)    }, 
   {},
 };
 #undef VAR
@@ -164,23 +166,38 @@ psc_harris_init_field(struct psc *psc, double x[3], int m)
   double LLL = harris->LLL;
   double AA = harris->AA;
 
+  double Bz0 = BB * tanh((x[1]) / LLL);
+  double Bz1 = - AA * M_PI/LLy * cos(2.*M_PI * (x[2] - .5 * LLz) / LLz) * sin(M_PI * x[1] / LLy);
+
+  double Jx0 = BB / LLL * (1./sqr(cosh(x[1] / LLL)));
+  double Jx1 = - AA * sqr(M_PI) * (1./sqr(LLy) + 4./sqr(LLz)) 
+    * cos(2.*M_PI * (x[2] - .5 *LLz) / LLz) * cos(M_PI * x[1] / LLy);
+
+  double Bx0 = Bguide;
+  double Jz0 = 0;
+
+  if (harris->forcefree) {
+    Bx0 = sqrt(sqr(Bguide) + sqr(BB) - sqr(Bz0));
+    Jz0 = Jx0 * Bz0 / Bx0;
+  }
+  
   switch (m) {
   case HX:
-    return Bguide;
+    return Bx0;
   case HZ:
-    return BB * tanh((x[1]) / LLL)
-      - AA * M_PI/LLy * cos(2.*M_PI * (x[2] - .5 * LLz) / LLz) * sin(M_PI * x[1] / LLy);
+    return Bz0 + Bz1;
 
   case HY:
     return AA * 2.*M_PI / LLz * sin(2.*M_PI * (x[2] - .5 * LLz) / LLz) * cos(M_PI * x[1] / LLy);
 
   case JXI:
-    return
-      BB / LLL * (1./sqr(cosh(x[1] / LLL)))
-      - AA * sqr(M_PI) * (1./sqr(LLy) + 4./sqr(LLz)) 
-      * cos(2.*M_PI * (x[2] - .5 *LLz) / LLz) * cos(M_PI * x[1] / LLy);
+    return Jx0 + Jx1;
 
-  default: return 0.;
+  case JZI:
+    return Jz0;
+
+  default:
+    return 0.;
   }
 }
 
@@ -201,12 +218,34 @@ psc_harris_init_npt(struct psc *psc, int pop, double x[3],
   double TTi = harris->Ti;
   double TTe = harris->Te;
 
+  double nn = 1. / sqr(cosh(x[1] / LLL));
+  double uix = 2. * TTi / BB / LLL;
+  double uex = -2. * TTe / BB / LLL;
+  double uiz = 0.;
+  double uez = 0.;
+
+  if (harris->forcefree) {
+    double Bz0 = BB * tanh((x[1]) / LLL);
+    double Jx0 = BB / LLL * (1./sqr(cosh(x[1] / LLL)));
+    double Bx0 = sqrt(sqr(harris->Bguide) + sqr(BB) - sqr(Bz0));
+    double Jz0 = Jx0 * Bz0 / Bx0;
+
+    nn = 1.;
+
+    uix =   Jx0 / (nn * (1 + 1./harris->Ti_over_Te));
+    uex = - Jx0 / (nn * (1 + harris->Ti_over_Te));
+    
+    uiz =   Jz0 / (nn * (1 + 1./harris->Ti_over_Te));
+    uez = - Jz0 / (nn * (1 + harris->Ti_over_Te));
+  }
+
   switch (pop) {
   case 0: // ion drifting
-    npt->n = 1. / sqr(cosh(x[1] / LLL));
+    npt->n = nn;
     npt->q = 1.;
     npt->m = harris->mi_over_me;
-    npt->p[0] = 2. * TTi / BB / LLL;
+    npt->p[0] = uix;
+    npt->p[2] = uiz;
     npt->T[0] = TTi;
     npt->T[1] = TTi;
     npt->T[2] = TTi;
@@ -222,10 +261,11 @@ psc_harris_init_npt(struct psc *psc, int pop, double x[3],
     npt->kind = KIND_ION;
     break;
   case 2: // electron drifting
-    npt->n = 1. / sqr(cosh(x[1] / LLL));
+    npt->n = nn;
     npt->q = -1.;
     npt->m = 1.;
-    npt->p[0] = -2. * TTe / BB / LLL;
+    npt->p[0] = uex;
+    npt->p[2] = uez;
     npt->T[0] = TTe;
     npt->T[1] = TTe;
     npt->T[2] = TTe;
