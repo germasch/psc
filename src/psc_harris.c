@@ -29,6 +29,8 @@ struct psc_harris {
   double nb;
   double mi_over_me;
   double Ti_over_Te;
+  double T0_over_Tb;
+  double Tib_over_Teb;
   double lambda; // in d_i
   double pert;
   double eta0;
@@ -38,6 +40,7 @@ struct psc_harris {
   double LLL; // lambda in d_e
   double AA; // perturbation amplitude (from pert)
   double Te, Ti;
+  double Teb, Tib;
 };
 
 #define to_psc_harris(psc) mrc_to_subobj(psc, struct psc_harris)
@@ -51,6 +54,8 @@ static struct param psc_harris_descr[] = {
   { "LLy"           , VAR(LLy)             , PARAM_DOUBLE(50.)    },
   { "LLz"           , VAR(LLz)             , PARAM_DOUBLE(200.)   },
   { "Ti_over_Te"    , VAR(Ti_over_Te)      , PARAM_DOUBLE(1.)     },
+  { "T0_over_Tb"    , VAR(T0_over_Tb)      , PARAM_DOUBLE(1.)     },
+  { "Tib_over_Teb"  , VAR(Tib_over_Teb)    , PARAM_DOUBLE(1.)     },
   { "lambda"        , VAR(lambda)          , PARAM_DOUBLE(2.)     },
   { "pert"          , VAR(pert)            , PARAM_DOUBLE(.025)   },
   { "eta0"          , VAR(eta0)            , PARAM_DOUBLE(.0)     },
@@ -111,6 +116,9 @@ psc_harris_setup(struct psc *psc)
   double T0 = sqr(harris->B0) / 2.;
   harris->Te = T0 / (1. + harris->Ti_over_Te);
   harris->Ti = T0 / (1. + 1./harris->Ti_over_Te);
+  double Tb = T0 / harris->T0_over_Tb;
+  harris->Teb = Tb / (1. + harris->Tib_over_Teb);
+  harris->Tib = Tb / (1. + 1./harris->Tib_over_Teb);
   
   double d_i = sqrt(harris->mi_over_me);
   psc->domain.corner[1] = -.5 * harris->LLy * d_i;
@@ -215,12 +223,12 @@ psc_harris_init_npt(struct psc *psc, int pop, double x[3],
   double BB = harris->B0;
   double LLL = harris->LLL;
   double nnb = harris->nb;
-  double TTi = harris->Ti;
-  double TTe = harris->Te;
+  double Ti = harris->Ti, Te = harris->Te;
+  double Tib = harris->Tib, Teb = harris->Teb;
 
   double nn = 1. / sqr(cosh(x[1] / LLL));
-  double uix = 2. * TTi / BB / LLL;
-  double uex = -2. * TTe / BB / LLL;
+  double uix = 2. * Ti / BB / LLL;
+  double uex = -2. * Te / BB / LLL;
   double uiz = 0.;
   double uez = 0.;
 
@@ -246,18 +254,18 @@ psc_harris_init_npt(struct psc *psc, int pop, double x[3],
     npt->m = harris->mi_over_me;
     npt->p[0] = uix;
     npt->p[2] = uiz;
-    npt->T[0] = TTi;
-    npt->T[1] = TTi;
-    npt->T[2] = TTi;
+    npt->T[0] = Ti;
+    npt->T[1] = Ti;
+    npt->T[2] = Ti;
     npt->kind = KIND_ION;
     break;
   case 1: // ion bg
     npt->n = nnb;
     npt->q = 1.;
     npt->m = harris->mi_over_me;
-    npt->T[0] = TTi;
-    npt->T[1] = TTi;
-    npt->T[2] = TTi;
+    npt->T[0] = Tib;
+    npt->T[1] = Tib;
+    npt->T[2] = Tib;
     npt->kind = KIND_ION;
     break;
   case 2: // electron drifting
@@ -266,18 +274,18 @@ psc_harris_init_npt(struct psc *psc, int pop, double x[3],
     npt->m = 1.;
     npt->p[0] = uex;
     npt->p[2] = uez;
-    npt->T[0] = TTe;
-    npt->T[1] = TTe;
-    npt->T[2] = TTe;
+    npt->T[0] = Te;
+    npt->T[1] = Te;
+    npt->T[2] = Te;
     npt->kind = KIND_ELECTRON;
     break;
   case 3: // electron bg
     npt->n = nnb;
     npt->q = -1.;
     npt->m = 1.;
-    npt->T[0] = TTe;
-    npt->T[1] = TTe;
-    npt->T[2] = TTe;
+    npt->T[0] = Teb;
+    npt->T[1] = Teb;
+    npt->T[2] = Teb;
     npt->kind = KIND_ELECTRON;
     break;
   default:
