@@ -35,6 +35,7 @@ struct psc_harris {
   double pert;
   double eta0;
   bool forcefree;
+  int nicell_bg; // # particles that correspond to a density of nb;
 
   // normalized quantities
   double LLL; // lambda in d_e
@@ -59,7 +60,8 @@ static struct param psc_harris_descr[] = {
   { "lambda"        , VAR(lambda)          , PARAM_DOUBLE(2.)     },
   { "pert"          , VAR(pert)            , PARAM_DOUBLE(.025)   },
   { "eta0"          , VAR(eta0)            , PARAM_DOUBLE(.0)     },
-  { "forcefree"     , VAR(forcefree)       , PARAM_BOOL(false)    }, 
+  { "forcefree"     , VAR(forcefree)       , PARAM_BOOL(false)    },
+  { "nicell_bg"     , VAR(nicell_bg)       , PARAM_INT(0)         },
   {},
 };
 #undef VAR
@@ -225,6 +227,7 @@ psc_harris_init_npt(struct psc *psc, int pop, double x[3],
   double nnb = harris->nb;
   double Ti = harris->Ti, Te = harris->Te;
   double Tib = harris->Tib, Teb = harris->Teb;
+  int particles_per_cell_bg = harris->nicell_bg / nnb;
 
   double nn = 1. / sqr(cosh(x[1] / LLL));
   double uix = 2. * Ti / BB / LLL;
@@ -267,6 +270,7 @@ psc_harris_init_npt(struct psc *psc, int pop, double x[3],
     npt->T[1] = Tib;
     npt->T[2] = Tib;
     npt->kind = KIND_ION;
+    npt->particles_per_cell = particles_per_cell_bg;
     break;
   case 2: // electron drifting
     npt->n = nn;
@@ -287,6 +291,7 @@ psc_harris_init_npt(struct psc *psc, int pop, double x[3],
     npt->T[1] = Teb;
     npt->T[2] = Teb;
     npt->kind = KIND_ELECTRON;
+    npt->particles_per_cell = particles_per_cell_bg;
     break;
   default:
     assert(0);
