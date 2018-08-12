@@ -465,9 +465,6 @@ struct PscHarris : Psc<PscConfig>, PscHarrisParams
   
     psc_->ibn[0] = psc_->ibn[1] = psc_->ibn[2] = 1;
 
-    // -- set up MaterialList
-    material_list_.reset(new MaterialList{sim_->material_list_});
-
     // ----------------------------------------------------------------------
     // -- Base class remaining init FIXME mv to end
     
@@ -624,13 +621,17 @@ struct PscHarris : Psc<PscConfig>, PscHarrisParams
     
     mpi_printf(comm, "Setting up materials.\n");
     
-    define_material(sim->material_list_, "vacuum", 1., 1., 0., 0.);
+    // -- set up MaterialList
+    material_list_.reset(new MaterialList{});
+
+    define_material(*material_list_, "vacuum", 1., 1., 0., 0.);
 #if 0
     struct material *resistive =
-      define_material(sim->material_list_, "resistive", 1., 1., 1., 0.);
+      define_material(*material_list_, "resistive", 1., 1., 1., 0.);
 #endif
-    
-    assert(!sim->material_list_.empty());
+
+    // FIXME, mv
+    assert(!material_list_->empty());
     
     // Note: define_material defaults to isotropic materials with mu=1,sigma=0
     // Tensor electronic, magnetic and conductive materials are supported
