@@ -28,7 +28,7 @@ struct BndParticlesCommon : BndParticlesBase
   // ----------------------------------------------------------------------
   // ctor
 
-  BndParticlesCommon(struct mrc_domain *domain, const Grid_t& grid)
+  BndParticlesCommon(const Grid_t& grid)
     : ddcp{},
       balance_generation_cnt_{-1}
   {
@@ -49,7 +49,7 @@ struct BndParticlesCommon : BndParticlesBase
   void reset()
   {
     delete ddcp;
-    ddcp = new ddcp_t{ppsc->mrc_domain_};
+    ddcp = new ddcp_t{ppsc->mrc_domain_.domain_};
     balance_generation_cnt_ = psc_balance_generation_cnt;
   }
 
