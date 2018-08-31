@@ -17,8 +17,8 @@ option(USE_VPIC "Interface with VPIC" OFF)
 if(USE_VPIC)
   add_library(VPIC::VPIC INTERFACE IMPORTED)
   set_target_properties(VPIC::VPIC PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "/Users/kai/build/vpic/src"
-    INTERFACE_LINK_LIBRARIES "/Users/kai/build/vpic/build/libvpic.a"
+    INTERFACE_INCLUDE_DIRECTORIES "/home/space/kai/src/vpic/src"
+    INTERFACE_LINK_LIBRARIES "/home/space/kai/src/vpic/build/libvpic.a;-ldl"
   )
 endif()
 

@@ -4,6 +4,7 @@
 
 #include <array>
 #include <memory>
+#include <initializer_list>
 #include <cassert>
 
 // ======================================================================
