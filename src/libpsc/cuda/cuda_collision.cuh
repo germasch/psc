@@ -3,6 +3,7 @@
 
 #include "cuda_mparticles.cuh"
 #include "cuda_mparticles_sort.cuh"
+#include "cuda_base.cuh"
 // FIXME, horrible hack...
 #define DEVICE __device__
 #include "binary_collision.hxx"
@@ -87,9 +88,8 @@ void RngStateCuda::init(dim3 dim_grid)
 {
   int n_threads = dim_grid.x * THREADS_PER_BLOCK;
   
-  cudaError_t ierr;
-  ierr = cudaMalloc(&rngs_, n_threads * sizeof(*rngs_));
-  cudaCheck(ierr);
+  rngs_ = (RngStateCuda::Rng*) myCudaMalloc(n_threads * sizeof(*rngs_));
+  mem_cuda_collision_curand = n_threads * sizeof(curandState);
   
   k_curand_setup<<<dim_grid, THREADS_PER_BLOCK>>>(*this);
   cuda_sync_if_enabled();

@@ -72,5 +72,30 @@ cuda_base_init(void)
 	   "Unknown");
 #endif
   }
+// ----------------------------------------------------------------------
+// myCudaMalloc
+
+void* myCudaMalloc(size_t len)
+{
+  void* rv;
+  cudaError_t ierr;
+  ierr = cudaMalloc(&rv, len);
+  cudaCheck(ierr);
+  mprintf("myCudaMalloc %ld\n", len);
+
+  return rv;
+}
+
+// ----------------------------------------------------------------------
+// myCudaFree
+
+void myCudaFree(void *ptr)
+{
+  cudaError_t ierr;
+  ierr = cudaFree(ptr);
+  mprintf("myCudaFree\n");
+  cudaCheck(ierr);
+}
+
 }
 	   
