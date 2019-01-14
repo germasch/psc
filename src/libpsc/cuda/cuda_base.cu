@@ -81,7 +81,7 @@ void* myCudaMalloc(size_t len)
   cudaError_t ierr;
   ierr = cudaMalloc(&rv, len);
   cudaCheck(ierr);
-  mprintf("myCudaMalloc %ld\n", len);
+  //mprintf("myCudaMalloc %ld\n", len);
 
   return rv;
 }
@@ -93,8 +93,8 @@ void myCudaFree(void *ptr)
 {
   cudaError_t ierr;
   ierr = cudaFree(ptr);
-  mprintf("myCudaFree\n");
   cudaCheck(ierr);
+  //mprintf("myCudaFree\n");
 }
 
 }
