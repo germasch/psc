@@ -30,6 +30,16 @@ cuda_mparticles<BS>::cuda_mparticles(const Grid_t& grid)
 }
 
 // ----------------------------------------------------------------------
+// dtor
+
+template<typename BS>
+cuda_mparticles<BS>::~cuda_mparticles()
+{
+  mem_cuda_mparticles = 0;
+  mem_cuda_mparticles_alt = 0;
+}
+
+// ----------------------------------------------------------------------
 // resize
 //
 // the goal here is to have d_xi4, d_pxi4, d_bidx and d_id always
@@ -41,6 +51,7 @@ void cuda_mparticles<BS>::resize(uint n_prts)
   cuda_mparticles_base<BS>::resize(n_prts);
   this->by_block_.d_idx.resize(n_prts);
   this->by_block_.d_id.resize(n_prts);
+  mem_cuda_mparticles = n_prts * (32 + 32 + 4 + 4);
 }
 
 // ----------------------------------------------------------------------

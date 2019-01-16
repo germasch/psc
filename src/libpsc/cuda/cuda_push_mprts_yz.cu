@@ -515,6 +515,7 @@ void CudaPushParticles_<Config>::push_mprts_ab(CudaMparticles* cmprts, struct cu
   dim3 dimGrid = Block::dimGrid(*cmprts);
 
   if (REORDER) {
+    mem_cuda_mparticles_alt = cmprts->n_prts * 8 * sizeof(float);
     cmprts->alt_storage.resize(cmprts->n_prts);
     cmprts->by_block_.d_idx.resize(cmprts->n_prts);
   }

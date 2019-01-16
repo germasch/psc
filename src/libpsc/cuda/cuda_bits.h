@@ -33,4 +33,14 @@ static inline int cuda_float_as_int(float f)
   return u.i;
 };
 
+void cuda_mem_status(const char *s);
+
+extern size_t mem_cuda_mparticles;
+extern size_t mem_cuda_mparticles_alt;
+extern size_t mem_cuda_mfields;
+extern size_t mem_cuda_heating_curand;
+extern size_t mem_cuda_collision_curand;
+extern size_t mem_cuda_bnd_maps;
+extern size_t mem_cuda_bndp;
+
 #endif

@@ -38,12 +38,21 @@ cuda_bndp<CudaMparticles, DIM>::cuda_bndp(const Grid_t& grid)
   d_spine_cnts.resize(1 + n_blocks * (CUDA_BND_STRIDE + 1));
   d_spine_sums.resize(1 + n_blocks * (CUDA_BND_STRIDE + 1));
 
+  mem_cuda_bndp += (1 + n_blocks * (CUDA_BND_STRIDE + 1)) * sizeof(uint) * 2;
+
   bpatch.resize(n_patches());
   bufs_.reserve(n_patches());
   for (int p = 0; p < n_patches(); p++) {
     bufs_.push_back(&bpatch[p].buf);
   }
 }
+
+template<typename CudaMparticles, typename DIM>
+cuda_bndp<CudaMparticles, DIM>::~cuda_bndp()
+{
+  mem_cuda_bndp -= (1 + n_blocks * (CUDA_BND_STRIDE + 1)) * sizeof(uint) * 2;
+}
+
 
 // ----------------------------------------------------------------------
 // prep

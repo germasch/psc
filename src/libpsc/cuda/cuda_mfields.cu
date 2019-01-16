@@ -25,6 +25,12 @@ cuda_mfields::cuda_mfields(const Grid_t& grid, int _n_fields, const Int3& ibn)
     grid_(grid)
 {
   cuda_base_init();
+  mem_cuda_mfields += n_fields * n_cells * sizeof(float);
+}
+
+cuda_mfields::~cuda_mfields()
+{
+  mem_cuda_mfields -= n_fields * n_cells * sizeof(float);
 }
 
 // ----------------------------------------------------------------------

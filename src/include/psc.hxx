@@ -11,6 +11,7 @@
 #include <output_particles.hxx>
 #include <output_fields_c.hxx>
 #include "../libpsc/vpic/fields_item_vpic.hxx"
+#include "../libpsc/cuda/cuda_bits.h" // FIXME tmp
 
 #ifdef VPIC
 #include "../libpsc/vpic/vpic_iface.h"
@@ -458,7 +459,9 @@ struct Psc
     auto& mflds = *mflds_;
 
     if (balance_interval > 0 && timestep % balance_interval == 0) {
+      cuda_mem_status("bef balance");
       (*balance_)(grid_, mprts);
+      cuda_mem_status("aft balance");
     }
 
     if (sort_interval > 0 && timestep % sort_interval == 0) {
@@ -566,7 +569,10 @@ struct Psc
       checks_->gauss(mprts, mflds);
       prof_stop(pr_checks);
     }
-    
+
+    char s[100];
+    sprintf(s, "end of step %d", timestep);
+    cuda_mem_status(s);
     //psc_push_particles_prep(psc->push_particles, psc->particles, psc->flds);
   }
 

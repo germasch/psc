@@ -213,6 +213,7 @@ struct cuda_mparticles : cuda_mparticles_base<_BS>
   using Patch = ConstPatchCuda<cuda_mparticles>;
 
   cuda_mparticles(const Grid_t& grid);
+  ~cuda_mparticles();
 
   InjectorBuffered<cuda_mparticles> injector() { return {*this}; }
   ConstAccessorCuda_<cuda_mparticles> accessor() { return {*this}; }

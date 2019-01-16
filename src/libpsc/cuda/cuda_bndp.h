@@ -41,6 +41,7 @@ struct cuda_bndp : cuda_mparticles_indexer<typename CudaMparticles::BS>
   using cuda_mparticles_indexer<BS>::b_mx;
 
   cuda_bndp(const Grid_t& grid);
+  ~cuda_bndp();
   
   void prep(CudaMparticles* cmprts);
   void post(CudaMparticles* cmprts);

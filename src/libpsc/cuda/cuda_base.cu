@@ -1,5 +1,13 @@
 
 #include <cstdio>
+#include <cassert>
+#include <cuda_bits.h>
+#include <mrc_common.h>
+
+// ----------------------------------------------------------------------
+// cuda_base_init
+
+static size_t used_base;
 
 void
 cuda_base_init(void)
@@ -72,6 +80,15 @@ cuda_base_init(void)
 	   "Unknown");
 #endif
   }
+  size_t free_byte, total_byte;
+  cudaError_t ierr;
+  ierr = cudaMemGetInfo(&free_byte, &total_byte);
+  cudaCheck(ierr);
+  used_base = total_byte - free_byte;
+  mprintf("MEM: used_base = %ld\n", used_base);
+  cuda_mem_status("init");
+}
+
 // ----------------------------------------------------------------------
 // myCudaMalloc
 
@@ -97,5 +114,31 @@ void myCudaFree(void *ptr)
   //mprintf("myCudaFree\n");
 }
 
+size_t mem_cuda_mparticles;
+size_t mem_cuda_mparticles_alt;
+size_t mem_cuda_mfields;
+size_t mem_cuda_heating_curand;
+size_t mem_cuda_collision_curand;
+size_t mem_cuda_bnd_maps;
+size_t mem_cuda_bndp;
+
+void cuda_mem_status(const char *msg)
+{
+  const double MB = 1024.*1024.;
+  static size_t last_used;
+  cudaError_t ierr;
+  size_t free_byte, total_byte, used_byte;
+  ierr = cudaMemGetInfo(&free_byte, &total_byte);
+  cudaCheck(ierr);
+  used_byte = total_byte - free_byte - used_base;
+  size_t accounted = mem_cuda_mparticles + mem_cuda_mfields + mem_cuda_mparticles_alt +
+    mem_cuda_heating_curand + mem_cuda_collision_curand +
+    mem_cuda_bnd_maps;
+  mprintf("MEM: change %ld used %.3g MB (acc: %.3g MB) free %.3g MB (%s)\n", used_byte - last_used, used_byte / MB, accounted / MB, free_byte / MB, msg);
+  last_used = used_byte;
+
+  mprintf("MEM: cuda_mparticles: %.3f MB alt %.3f MB\n", mem_cuda_mparticles / MB, mem_cuda_mparticles_alt / MB);
+  mprintf("MEM: cuda_mfields: %.3f MB\n", mem_cuda_mfields / MB);
+  mprintf("MEM: curand: heating %.3f MB collision %.3f MB\n", mem_cuda_heating_curand / MB, mem_cuda_collision_curand / MB);
+  mprintf("MEM: bnd: maps %.3f MB bndp %.3f MB\n", mem_cuda_bnd_maps / MB, mem_cuda_bndp / MB);
 }
-	   

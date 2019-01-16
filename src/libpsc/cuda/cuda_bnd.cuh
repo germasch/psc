@@ -140,6 +140,19 @@ struct CudaBnd
       d_local_buf.resize(local_buf.size());
       d_send_buf.resize(send_buf.size());
       d_recv_buf.resize(recv_buf.size());
+
+      size_t len = 
+	(d_send.size() + d_recv.size() + d_local_send.size() + d_local_recv.size()) * sizeof(int) +
+	(d_local_buf.size() + d_send_buf.size() + d_recv_buf.size()) * sizeof(real_t);
+      mem_cuda_bnd_maps += len;
+    }
+
+    ~Maps()
+    {
+      size_t len = 
+	(d_send.size() + d_recv.size() + d_local_send.size() + d_local_recv.size()) * sizeof(int) +
+	(d_local_buf.size() + d_send_buf.size() + d_recv_buf.size()) * sizeof(real_t);
+      mem_cuda_bnd_maps -= len;
     }
     
     Maps(const Maps&) = delete;
