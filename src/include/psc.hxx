@@ -463,6 +463,7 @@ struct Psc
 
     if (sort_interval > 0 && timestep % sort_interval == 0) {
       mpi_printf(comm, "***** Sorting...\n");
+      mprintf("Sorting\n");
       prof_start(pr_sort);
       (*sort_)(mprts);
       prof_stop(pr_sort);
@@ -482,23 +483,27 @@ struct Psc
 
     if (checks_->continuity_every_step > 0 && timestep % checks_->continuity_every_step == 0) {
       mpi_printf(comm, "***** Checking continuity...\n");
+      mprintf("Checking continuity\n");
       prof_start(pr_checks);
       checks_->continuity_before_particle_push(mprts);
       prof_stop(pr_checks);
     }
 
+    mprintf("Pushing particles\n");
     // === particle propagation p^{n} -> p^{n+1}, x^{n+1/2} -> x^{n+3/2}
     prof_start(pr_push_prts);
     pushp_->push_mprts(mprts, mflds);
     prof_stop(pr_push_prts);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1/2}, j^{n+1}
 
+    mprintf("Pushing fields\n");
     // === field propagation B^{n+1/2} -> B^{n+1}
     prof_start(pr_push_flds);
     pushf_->push_H(mflds, .5, DIM{});
     prof_stop(pr_push_flds);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1}, j^{n+1}
 
+    mprintf("Bndp\n");
     prof_start(pr_bndp);
     (*bndp_)(mprts);
     prof_stop(pr_bndp);
