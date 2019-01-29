@@ -178,10 +178,13 @@ struct DParticleIndexer
       return CUDA_BND_S_OOB;
     } else {
       int bidx = (p * b_mx_[2] + block_pos_z) * b_mx_[1] + block_pos_y;
+      return bidx;
+#if 0
       int b_diff = bid - bidx + b_mx_[1] + 1;
       int d1 = b_diff % b_mx_[1];
       int d2 = b_diff / b_mx_[1];
       return d2 * 3 + d1;
+#endif
     }
   }
   
