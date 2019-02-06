@@ -78,6 +78,12 @@ struct Engine
     var.put(*this, datum, launch);
   }
 
+  template<class T>
+  void put(T& var, const typename T::value_type& datum, const Mode launch = Mode::Deferred)
+  {
+    var.put(*this, datum, launch);
+  }
+
   void close()
   {
     engine_.Close();
@@ -151,6 +157,8 @@ void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val,
 template<typename T>
 struct Grid_<T>::Adios2
 {
+  using value_type = Grid_<T>;
+  
   Adios2(kg::IO& io)
     : var_ldims_{"grid.ldims", io},
       var_dt_{"grid.dt", io},

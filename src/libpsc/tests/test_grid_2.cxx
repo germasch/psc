@@ -106,7 +106,7 @@ TEST(Grid, adios2_write)
   auto var_grid = Grid_t::Adios2(io_writer);
 
   auto writer = io_writer.open("test.bp", adios2::Mode::Write);
-  var_grid.put(writer, grid);
+  writer.put(var_grid, grid);
   writer.close();
 }
 
