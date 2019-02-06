@@ -9,7 +9,6 @@
 #include <vector>
 #include <cstring>
 #include <cmath>
-#include <adios2.h>
 
 namespace kg {
 struct IO;
@@ -74,8 +73,6 @@ struct Grid_
   
   struct Kind;
   using Kinds = std::vector<Kind>;
-
-  struct Adios2;
 
   struct Patch
   {

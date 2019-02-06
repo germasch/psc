@@ -103,7 +103,7 @@ TEST(Grid, adios2_write)
 
   auto ad = adios2::ADIOS(MPI_COMM_WORLD, adios2::DebugON);
   auto io_writer = kg::IO(ad, "io_writer");
-  auto var_grid = Grid_t::Adios2(io_writer);
+  auto var_grid = VariableGrid<Grid_t::real_t>(io_writer);
 
   auto writer = io_writer.open("test.bp", adios2::Mode::Write);
   writer.put(var_grid, grid);

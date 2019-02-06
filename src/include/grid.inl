@@ -153,11 +153,14 @@ void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val,
 };
   
 template<typename T>
-struct Grid_<T>::Adios2
+struct VariableGrid
 {
-  using value_type = Grid_<T>;
+  using Grid = Grid_<T>;
+  using value_type = Grid;
+  using real_t = typename Grid::real_t;
+  using Real3 = typename Grid::Real3;
   
-  Adios2(kg::IO& io)
+  VariableGrid(kg::IO& io)
     : var_ldims_{"grid.ldims", io},
       var_dt_{"grid.dt", io},
       var_domain_gdims_{"grid.domain.gdims", io},
@@ -168,7 +171,7 @@ struct Grid_<T>::Adios2
       var_domain_dx_{"grid.domain.dx", io}
   {}
 
-  void put(kg::Engine& writer, const Grid_& grid, const kg::Mode launch = kg::Mode::Deferred)
+  void put(kg::Engine& writer, const Grid_<T>& grid, const kg::Mode launch = kg::Mode::Deferred)
   {
     writer.put(var_ldims_, grid.ldims);
     writer.put(var_dt_, grid.dt);
