@@ -5,15 +5,28 @@ namespace kg
 struct Engine
 {
   Engine(adios2::Engine engine)
-    : engine{engine}
+    : engine_{engine}
   {}
+
+  template<typename T>
+  void put(adios2::Variable<T> variable, const T *data, const adios2::Mode launch = adios2::Mode::Deferred)
+  {
+    engine_.Put(variable, data, launch);
+  }
+
+  template <class T>
+  void put(adios2::Variable<T> variable, const T &datum, const adios2::Mode launch = adios2::Mode::Deferred)
+  {
+    engine_.Put(variable, datum, launch);
+  }
 
   void close()
   {
-    engine.Close();
+    engine_.Close();
   }
-  
-  adios2::Engine engine;
+
+private:
+  adios2::Engine engine_;
 };
 
 struct IO
@@ -53,10 +66,10 @@ struct ScalarWriter
     MPI_Comm_rank(comm, &mpi_rank_);
   }
 
-  void put(adios2::Engine& writer, T val)
+  void put(kg::Engine& writer, T val)
   {
     if (mpi_rank_ == 0) {
-      writer.Put(var_, val);
+      writer.put(var_, val);
     }
   }
 
@@ -74,11 +87,11 @@ struct Vec3Writer
     MPI_Comm_rank(comm, &mpi_rank_);
   }
 
-  void put(adios2::Engine& writer, const Vec3<T>& val)
+  void put(kg::Engine& writer, const Vec3<T>& val)
   {
     if (mpi_rank_ == 0) {
       var_.SetSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
-      writer.Put(var_, val.data());
+      writer.put(var_, val.data());
     }
   }
 
@@ -109,15 +122,15 @@ struct Grid_<T>::Adios2
 
   void put(kg::Engine& writer, const Grid_& grid)
   {
-    w_ldims_.put(writer.engine, grid.ldims);
-    w_dt_.put(writer.engine, grid.dt);
+    w_ldims_.put(writer, grid.ldims);
+    w_dt_.put(writer, grid.dt);
     
-    w_domain_gdims_.put(writer.engine, grid.domain.gdims);
-    w_domain_length_.put(writer.engine, grid.domain.length);
-    w_domain_corner_.put(writer.engine, grid.domain.corner);
-    w_domain_np_.put(writer.engine, grid.domain.np);
-    w_domain_ldims_.put(writer.engine, grid.domain.ldims);
-    w_domain_dx_.put(writer.engine, grid.domain.dx);
+    w_domain_gdims_.put(writer, grid.domain.gdims);
+    w_domain_length_.put(writer, grid.domain.length);
+    w_domain_corner_.put(writer, grid.domain.corner);
+    w_domain_np_.put(writer, grid.domain.np);
+    w_domain_ldims_.put(writer, grid.domain.ldims);
+    w_domain_dx_.put(writer, grid.domain.dx);
   }
   
 private:
