@@ -49,6 +49,8 @@ struct VariableGlobalSingleValue
   VariableGlobalSingleValue(const std::string& name, IO& io);
   
   void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
+
+  explicit operator bool() const { return static_cast<bool>(var_); }
   
 private:
   Variable<T> var_;
@@ -63,6 +65,8 @@ struct VariableGlobalSingleValue<Vec3<T>>
   
   void put(Engine& writer, const Vec3<T>& val, const Mode launch = Mode::Deferred);
   
+  explicit operator bool() const { return static_cast<bool>(var_); }
+
 private:
   Variable<T> var_;
 };
@@ -169,7 +173,12 @@ struct IO
 			     const Dims &start = Dims(), const Dims &count = Dims(),
 			     const bool constantDims = false)
   {
-    return io_.DefineVariable<T>(name, shape, start, count, constantDims);
+    auto var = io_.InquireVariable<T>(name);
+    if (var) {
+      return var;
+    } else {
+      return io_.DefineVariable<T>(name, shape, start, count, constantDims);
+    }
   }
   
   template<typename T,
@@ -270,6 +279,12 @@ struct kg::Variable<Grid_t::Domain>
     writer.put(var_np_, domain.np);
     writer.put(var_ldims_, domain.ldims);
     writer.put(var_dx_, domain.dx);
+  }
+
+  explicit operator bool() const
+  {
+    return (var_gdims_ && var_length_ && var_corner_ &&
+	    var_np_ && var_ldims_ && var_dx_);
   }
 
 private:

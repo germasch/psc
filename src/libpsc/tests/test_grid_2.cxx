@@ -116,6 +116,8 @@ TEST(Grid, adios2_write)
 
     auto io_reader = kg::IO(ad, "io_reader");
     auto reader = io_reader.open("test.bp", kg::Mode::Read);
+    auto var_domain = io_reader.defineVariable<Grid_t::Domain>("grid.domain");
+    assert(bool(var_domain));
     auto var_dt = io_reader.inquireVariable<double>("grid.dt");
     assert(bool(var_dt));
     reader.get(var_dt, dt);
