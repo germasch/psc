@@ -151,45 +151,42 @@ void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val,
 template<typename T>
 struct Grid_<T>::Adios2
 {
-  using RealWriter = kg::VariableGlobalSingleValue<real_t>;
-  using Real3Writer = kg::Vec3Writer<Real3>;
-  
   Adios2(const Grid_& grid, kg::IO& io)
     : grid_{grid},
-      w_ldims_{"grid.ldims", io},
-      w_dt_{"grid.dt", io},
-      w_domain_gdims_{"grid.domain.gdims", io},
-      w_domain_length_{"grid.domain.length", io},
-      w_domain_corner_{"grid.domain.corner", io},
-      w_domain_np_{"grid.domain.np", io},
-      w_domain_ldims_{"grid.domain.ldims", io},
-      w_domain_dx_{"grid.domain.dx", io}
+      var_ldims_{"grid.ldims", io},
+      var_dt_{"grid.dt", io},
+      var_domain_gdims_{"grid.domain.gdims", io},
+      var_domain_length_{"grid.domain.length", io},
+      var_domain_corner_{"grid.domain.corner", io},
+      var_domain_np_{"grid.domain.np", io},
+      var_domain_ldims_{"grid.domain.ldims", io},
+      var_domain_dx_{"grid.domain.dx", io}
   {}
 
   void put(kg::Engine& writer, const Grid_& grid)
   {
-    writer.put(w_ldims_, grid.ldims);
-    writer.put(w_dt_, grid.dt);
+    writer.put(var_ldims_, grid.ldims);
+    writer.put(var_dt_, grid.dt);
     
-    writer.put(w_domain_gdims_, grid.domain.gdims);
-    writer.put(w_domain_length_, grid.domain.length);
-    writer.put(w_domain_corner_, grid.domain.corner);
-    writer.put(w_domain_np_, grid.domain.np);
-    writer.put(w_domain_ldims_, grid.domain.ldims);
-    writer.put(w_domain_dx_, grid.domain.dx);
+    writer.put(var_domain_gdims_, grid.domain.gdims);
+    writer.put(var_domain_length_, grid.domain.length);
+    writer.put(var_domain_corner_, grid.domain.corner);
+    writer.put(var_domain_np_, grid.domain.np);
+    writer.put(var_domain_ldims_, grid.domain.ldims);
+    writer.put(var_domain_dx_, grid.domain.dx);
   }
   
 private:
   const Grid_& grid_;
-  kg::Int3Writer w_ldims_;
-  RealWriter w_dt_;
+  kg::VariableGlobalSingleValue<Int3> var_ldims_;
+  kg::VariableGlobalSingleValue<real_t> var_dt_;
 
-  kg::Int3Writer w_domain_gdims_;
-  Real3Writer w_domain_length_;
-  Real3Writer w_domain_corner_;
-  kg::Int3Writer w_domain_np_;
-  kg::Int3Writer w_domain_ldims_;
-  Real3Writer w_domain_dx_;
+  kg::VariableGlobalSingleValue<Int3> var_domain_gdims_;
+  kg::VariableGlobalSingleValue<Real3> var_domain_length_;
+  kg::VariableGlobalSingleValue<Real3> var_domain_corner_;
+  kg::VariableGlobalSingleValue<Int3> var_domain_np_;
+  kg::VariableGlobalSingleValue<Int3> var_domain_ldims_;
+  kg::VariableGlobalSingleValue<Real3> var_domain_dx_;
 };
 
 template<typename T>
