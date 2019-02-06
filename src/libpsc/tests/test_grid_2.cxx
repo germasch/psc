@@ -102,10 +102,10 @@ TEST(Grid, adios2_write)
   auto grid = Grid_t{domain, bc, kinds, norm, dt, n_patches};
 
   auto ad = adios2::ADIOS(MPI_COMM_WORLD, adios2::DebugON);
-  auto io_writer = ad.DeclareIO("io_writer");
-  auto grid_checkpoint = grid.checkpoint(io_writer);
+  auto io_writer = PscIO(ad, "io_writer");
+  auto grid_checkpoint = grid.checkpoint(io_writer.io);
 
-  auto writer = io_writer.Open("test.bp", adios2::Mode::Write);
+  auto writer = io_writer.io.Open("test.bp", adios2::Mode::Write);
   grid_checkpoint.put(writer, grid);
   writer.Close();
 }

@@ -1,4 +1,14 @@
 
+struct PscIO
+{
+  PscIO(adios2::ADIOS& ad, const char* name)
+    : io{ad.DeclareIO(name)}
+  {
+  }
+
+  adios2::IO io;
+};
+
 template<typename T>
 struct ScalarWriter
 {
