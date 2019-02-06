@@ -1,13 +1,14 @@
 
-struct Int3Writer
+template<typename T>
+struct Vec3Writer
 {
-  Int3Writer(const std::string& name, adios2::IO& io, MPI_Comm comm)
+  Vec3Writer(const std::string& name, adios2::IO& io, MPI_Comm comm)
   {
-    var_ = io.DefineVariable<int>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
+    var_ = io.DefineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
     MPI_Comm_rank(comm, &mpi_rank_);
   }
 
-  void put(adios2::Engine& writer, const Int3& val)
+  void put(adios2::Engine& writer, const Vec3<T>& val)
   {
     if (mpi_rank_ == 0) {
       var_.SetSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
@@ -16,9 +17,11 @@ struct Int3Writer
   }
 
 private:
-  adios2::Variable<int> var_;
+  adios2::Variable<T> var_;
   int mpi_rank_;
 };
+
+using Int3Writer = Vec3Writer<int>;
 
 template<typename T>
 struct Grid_<T>::Adios2
