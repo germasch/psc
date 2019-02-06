@@ -16,6 +16,19 @@ private:
   adios2::Variable<T> var_;
 };
 
+template<typename T>
+struct Vec3Writer
+{
+  Vec3Writer(const std::string& name, kg::IO& io, MPI_Comm comm);
+
+  void put(kg::Engine& writer, const Vec3<T>& val);
+
+private:
+  adios2::Variable<T> var_;
+};
+
+using Int3Writer = Vec3Writer<int>;
+
 struct Engine
 {
   Engine(adios2::Engine engine, MPI_Comm comm)
@@ -38,6 +51,12 @@ struct Engine
 
   template<class T>
   void put(ScalarWriter<T>& var, const T& datum, const adios2::Mode launch = adios2::Mode::Deferred)
+  {
+    var.put(*this, datum);
+  }
+
+  template<class T>
+  void put(Vec3Writer<T>& var, const Vec3<T>& datum, const adios2::Mode launch = adios2::Mode::Deferred)
   {
     var.put(*this, datum);
   }
@@ -83,26 +102,19 @@ private:
 };
 
 template<typename T>
-struct Vec3Writer
+Vec3Writer<T>::Vec3Writer(const std::string& name, kg::IO& io, MPI_Comm comm)
 {
-  Vec3Writer(const std::string& name, kg::IO& io, MPI_Comm comm)
-  {
-    var_ = io.defineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
+  var_ = io.defineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
+}
+
+template<typename T>
+void Vec3Writer<T>::put(kg::Engine& writer, const Vec3<T>& val)
+{
+  if (writer.mpiRank() == 0) {
+    var_.SetSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+    writer.put(var_, val.data());
   }
-
-  void put(kg::Engine& writer, const Vec3<T>& val)
-  {
-    if (writer.mpiRank() == 0) {
-      var_.SetSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
-      writer.put(var_, val.data());
-    }
-  }
-
-private:
-  adios2::Variable<T> var_;
-};
-
-using Int3Writer = Vec3Writer<int>;
+}
 
 // ======================================================================
 
@@ -142,15 +154,15 @@ struct Grid_<T>::Adios2
 
   void put(kg::Engine& writer, const Grid_& grid)
   {
-    w_ldims_.put(writer, grid.ldims);
+    writer.put(w_ldims_, grid.ldims);
     writer.put(w_dt_, grid.dt);
     
-    w_domain_gdims_.put(writer, grid.domain.gdims);
-    w_domain_length_.put(writer, grid.domain.length);
-    w_domain_corner_.put(writer, grid.domain.corner);
-    w_domain_np_.put(writer, grid.domain.np);
-    w_domain_ldims_.put(writer, grid.domain.ldims);
-    w_domain_dx_.put(writer, grid.domain.dx);
+    writer.put(w_domain_gdims_, grid.domain.gdims);
+    writer.put(w_domain_length_, grid.domain.length);
+    writer.put(w_domain_corner_, grid.domain.corner);
+    writer.put(w_domain_np_, grid.domain.np);
+    writer.put(w_domain_ldims_, grid.domain.ldims);
+    writer.put(w_domain_dx_, grid.domain.dx);
   }
   
 private:
