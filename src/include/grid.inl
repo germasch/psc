@@ -153,13 +153,13 @@ void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val,
 };
   
 template<typename Grid>
-struct VariableGrid
+struct Variable
 {
   using value_type = Grid;
   using real_t = typename Grid::real_t;
   using Real3 = typename Grid::Real3;
   
-  VariableGrid(kg::IO& io)
+  Variable(kg::IO& io)
     : var_ldims_{"grid.ldims", io},
       var_dt_{"grid.dt", io},
       var_domain_gdims_{"grid.domain.gdims", io},
