@@ -89,25 +89,40 @@ TEST(Grid, Kinds)
 
 TEST(Grid, adios2_write)
 {
-  auto domain = Grid_t::Domain{{8, 4, 2},
-			       {80.,  40., 20.}, {-40., -20., 0.},
-			       {2, 2, 1}};
-  auto offs = std::vector<Int3>{{0, 0, 0}, {4, 0, 0}};
-  auto bc = GridBc{};
-  auto kinds = Grid_t::Kinds{};
-  auto norm = Grid_t::Normalization{};
-  double dt = .1;
-  int n_patches = -1;
-
-  auto grid = Grid_t{domain, bc, kinds, norm, dt, n_patches};
-
   auto ad = adios2::ADIOS(MPI_COMM_WORLD, adios2::DebugON);
-  auto io_writer = kg::IO(ad, "io_writer");
-  auto var_grid = io_writer.defineVariable<Grid_t>("grid");
 
-  auto writer = io_writer.open("test.bp", adios2::Mode::Write);
-  writer.put(var_grid, grid);
-  writer.close();
+  {
+    auto domain = Grid_t::Domain{{8, 4, 2},
+				 {80.,  40., 20.}, {-40., -20., 0.},
+				 {2, 2, 1}};
+    auto offs = std::vector<Int3>{{0, 0, 0}, {4, 0, 0}};
+    auto bc = GridBc{};
+    auto kinds = Grid_t::Kinds{};
+    auto norm = Grid_t::Normalization{};
+    double dt = .1;
+    int n_patches = -1;
+    auto grid = Grid_t{domain, bc, kinds, norm, dt, n_patches};
+
+    auto io_writer = kg::IO(ad, "io_writer");
+    auto var_grid = io_writer.defineVariable<Grid_t>("grid");
+    
+    auto writer = io_writer.open("test.bp", kg::Mode::Write);
+    writer.put(var_grid, grid);
+    writer.close();
+  }
+
+  {
+    double dt;
+
+    auto io_reader = kg::IO(ad, "io_reader");
+    auto reader = io_reader.open("test.bp", kg::Mode::Read);
+    auto var_dt = io_reader.inquireVariable<double>("grid.dt");
+    assert(bool(var_dt));
+    reader.get(var_dt, dt);
+    reader.close();
+
+    EXPECT_EQ(dt, .1);
+  }
 }
 
 // ======================================================================

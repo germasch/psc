@@ -27,6 +27,10 @@ struct Variable
 
   void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
   void put(Engine& writer, const T* val, const Mode launch = Mode::Deferred);
+
+  void get(Engine& reader, T& datum, const Mode launch = Mode::Deferred);
+
+  explicit operator bool() const { return static_cast<bool>(var_); }
   
   void setSelection(const Box<Dims>& selection)
   {
@@ -68,6 +72,9 @@ using Vec3Writer = VariableGlobalSingleValue<T>;
 
 using Int3Writer = Vec3Writer<Int3>;
 
+// ======================================================================
+// Engine
+
 struct Engine
 {
   Engine(adios2::Engine engine, MPI_Comm comm)
@@ -76,6 +83,9 @@ struct Engine
     MPI_Comm_rank(comm, &mpi_rank_);
   }
 
+  // ----------------------------------------------------------------------
+  // put for adios2 variables
+  
   template<typename T>
   void put(adios2::Variable<T> variable, const T* data, const Mode launch = Mode::Deferred)
   {
@@ -87,6 +97,9 @@ struct Engine
   {
     engine_.Put(variable, datum, launch);
   }
+  
+  // ----------------------------------------------------------------------
+  // put in general
   
   template<class T>
   void put(T& variable, const typename T::value_type* data, const Mode launch = Mode::Deferred)
@@ -100,6 +113,27 @@ struct Engine
     variable.put(*this, datum, launch);
   }
 
+  // ----------------------------------------------------------------------
+  // get for adios2 variables
+  
+  template<typename T>
+  void get(adios2::Variable<T> variable, T& datum, const Mode launch = Mode::Deferred)
+  {
+    engine_.Get(variable, datum, launch);
+  }
+  
+  // ----------------------------------------------------------------------
+  // get in general
+  
+  template <class T>
+  void get(T& variable, typename T::value_type& datum, const Mode launch = Mode::Deferred)
+  {
+    variable.get(*this, datum, launch);
+  }
+
+  // ----------------------------------------------------------------------
+  // close
+  
   void close()
   {
     engine_.Close();
@@ -111,6 +145,9 @@ private:
   adios2::Engine engine_;
   int mpi_rank_;
 };
+
+// ======================================================================
+// IO
 
 struct IO
 {
@@ -144,6 +181,12 @@ struct IO
     return {name, *this};
   }
 
+  template <class T>
+  Variable<T> inquireVariable(const std::string &name)
+  {
+    return io_.InquireVariable<T>(name);
+  }
+  
 private:
   adios2::IO io_;
 };
@@ -152,15 +195,21 @@ private:
 // implementations
 
 template<typename T>
-void Variable<T>::put(Engine& writer, const T val, const Mode launch)
+void Variable<T>::put(Engine& writer, const T datum, const Mode launch)
 {
-  writer.put(var_, val, launch);
+  writer.put(var_, datum, launch);
 }
   
 template<typename T>
-void Variable<T>::put(Engine& writer, const T* val, const Mode launch)
+void Variable<T>::put(Engine& writer, const T* data, const Mode launch)
 {
-  writer.put(var_, val, launch);
+  writer.put(var_, data, launch);
+}
+
+template<typename T>
+void Variable<T>::get(Engine& reader, T& datum, const Mode launch)
+{
+  reader.get(var_, datum, launch);
 }
   
 template<typename T>
