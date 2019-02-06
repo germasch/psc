@@ -11,6 +11,8 @@
 #include <cmath>
 #include <adios2.h>
 
+struct PscIO; // FIXME
+
 ///Possible boundary conditions for fields
 enum {
   BND_FLD_OPEN,
@@ -169,7 +171,7 @@ struct Grid_
     }
   }
 
-  Adios2 checkpoint(adios2::IO& io);
+  Adios2 writer(PscIO& io);
   
   Int3 ldims;
   Domain domain;

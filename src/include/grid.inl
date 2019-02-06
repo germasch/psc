@@ -2,19 +2,24 @@
 struct PscIO
 {
   PscIO(adios2::ADIOS& ad, const char* name)
-    : io{ad.DeclareIO(name)}
+    : io_{ad.DeclareIO(name)}
+  {}
+
+  
+  adios2::Engine open(const std::string &name, const adios2::Mode mode)
   {
+    return io_.Open(name, mode);
   }
 
-  adios2::IO io;
+  adios2::IO io_;
 };
 
 template<typename T>
 struct ScalarWriter
 {
-  ScalarWriter(const std::string& name, adios2::IO& io, MPI_Comm comm)
+  ScalarWriter(const std::string& name, PscIO& io, MPI_Comm comm)
   {
-    var_ = io.DefineVariable<T>(name);
+    var_ = io.io_.DefineVariable<T>(name);
     MPI_Comm_rank(comm, &mpi_rank_);
   }
 
@@ -33,9 +38,9 @@ private:
 template<typename T>
 struct Vec3Writer
 {
-  Vec3Writer(const std::string& name, adios2::IO& io, MPI_Comm comm)
+  Vec3Writer(const std::string& name, PscIO& io, MPI_Comm comm)
   {
-    var_ = io.DefineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
+    var_ = io.io_.DefineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
     MPI_Comm_rank(comm, &mpi_rank_);
   }
 
@@ -60,7 +65,7 @@ struct Grid_<T>::Adios2
   using RealWriter = ScalarWriter<real_t>;
   using Real3Writer = Vec3Writer<real_t>;
   
-  Adios2(const Grid_& grid, adios2::IO& io)
+  Adios2(const Grid_& grid, PscIO& io)
     : grid_{grid},
       w_ldims_{"grid.ldims", io, MPI_COMM_WORLD}, // FIXME hardcoded comm
       w_dt_{"grid.dt", io, MPI_COMM_WORLD},
@@ -99,7 +104,7 @@ private:
 };
 
 template<typename T>
-auto Grid_<T>::checkpoint(adios2::IO& io) -> Adios2
+auto Grid_<T>::writer(PscIO& io) -> Adios2
 {
   return {*this, io};
 }
