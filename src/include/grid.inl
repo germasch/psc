@@ -29,25 +29,26 @@ template<typename T>
 struct VariableGlobalSingleValue
 {
   VariableGlobalSingleValue(const std::string& name, IO& io);
-
+  
   void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
-
+  
+private:
+  Variable<T> var_;
+};
+  
+template<typename T>
+struct VariableGlobalSingleValue<Vec3<T>>
+{
+  VariableGlobalSingleValue(const std::string& name, IO& io);
+  
+  void put(Engine& writer, const Vec3<T>& val, const Mode launch = Mode::Deferred);
+  
 private:
   Variable<T> var_;
 };
 
 template<typename T>
-struct Vec3Writer
-{
-  using var_type = typename T::value_type;
-  
-  Vec3Writer(const std::string& name, IO& io);
-
-  void put(Engine& writer, const T& val, const Mode launch = Mode::Deferred);
-
-private:
-  Variable<var_type> var_;
-};
+using Vec3Writer = VariableGlobalSingleValue<T>;
 
 using Int3Writer = Vec3Writer<Int3>;
 
@@ -73,12 +74,6 @@ struct Engine
   
   template<class T>
   void put(VariableGlobalSingleValue<T>& var, const T& datum, const Mode launch = Mode::Deferred)
-  {
-    var.put(*this, datum, launch);
-  }
-
-  template<class T>
-  void put(Vec3Writer<T>& var, const T& datum, const Mode launch = Mode::Deferred)
   {
     var.put(*this, datum, launch);
   }
@@ -123,20 +118,6 @@ private:
 
 // ======================================================================
 // implementations
-  
-template<typename T>
-Vec3Writer<T>::Vec3Writer(const std::string& name, IO& io)
-  : var_{io.defineVariable<var_type>(name, {3}, {0}, {0})}  // adios2 FIXME {3} {} {} gives no error, but problems
-{}
-
-template<typename T>
-void Vec3Writer<T>::put(Engine& writer, const T& val, const Mode launch)
-{
-  if (writer.mpiRank() == 0) {
-    var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
-    writer.put(var_, val.data(), launch);
-  }
-}
 
 template<typename T>
 VariableGlobalSingleValue<T>::VariableGlobalSingleValue(const std::string& name, IO& io)
@@ -150,9 +131,23 @@ void VariableGlobalSingleValue<T>::put(Engine& writer, T val, const Mode launch)
     writer.put(var_, val, launch);
   }
 }
+
+template<typename T>
+VariableGlobalSingleValue<Vec3<T>>::VariableGlobalSingleValue(const std::string& name, IO& io)
+  : var_{io.defineVariable<T>(name, {3}, {0}, {0})} // adios2 FIXME {3} {} {} gives no error, but problems
+{}
   
+template<typename T>
+void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val, const Mode launch)
+{
+  if (writer.mpiRank() == 0) {
+    var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+    writer.put(var_, val.data(), launch);
+  }
 };
 
+};
+  
 template<typename T>
 struct Grid_<T>::Adios2
 {
