@@ -102,7 +102,7 @@ TEST(Grid, adios2_write)
   auto grid = Grid_t{domain, bc, kinds, norm, dt, n_patches};
 
   auto ad = adios2::ADIOS(MPI_COMM_WORLD, adios2::DebugON);
-  auto io_writer = PscIO(ad, "io_writer");
+  auto io_writer = kg::IO(ad, "io_writer");
   auto grid_checkpoint = grid.writer(io_writer);
 
   auto writer = io_writer.open("test.bp", adios2::Mode::Write);

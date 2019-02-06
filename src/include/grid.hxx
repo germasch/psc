@@ -11,7 +11,9 @@
 #include <cmath>
 #include <adios2.h>
 
-struct PscIO; // FIXME
+namespace kg {
+struct IO;
+};
 
 ///Possible boundary conditions for fields
 enum {
@@ -171,7 +173,7 @@ struct Grid_
     }
   }
 
-  Adios2 writer(PscIO& io);
+  Adios2 writer(kg::IO& io);
   
   Int3 ldims;
   Domain domain;

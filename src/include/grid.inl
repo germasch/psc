@@ -1,9 +1,12 @@
 
-struct PscIO
+namespace kg
+{
+  
+struct IO
 {
   using Dims = adios2::Dims;
   
-  PscIO(adios2::ADIOS& ad, const char* name)
+  IO(adios2::ADIOS& ad, const char* name)
     : io_{ad.DeclareIO(name)}
   {}
 
@@ -25,10 +28,12 @@ private:
   adios2::IO io_;
 };
 
+};
+
 template<typename T>
 struct ScalarWriter
 {
-  ScalarWriter(const std::string& name, PscIO& io, MPI_Comm comm)
+  ScalarWriter(const std::string& name, kg::IO& io, MPI_Comm comm)
   {
     var_ = io.defineVariable<T>(name);
     MPI_Comm_rank(comm, &mpi_rank_);
@@ -49,7 +54,7 @@ private:
 template<typename T>
 struct Vec3Writer
 {
-  Vec3Writer(const std::string& name, PscIO& io, MPI_Comm comm)
+  Vec3Writer(const std::string& name, kg::IO& io, MPI_Comm comm)
   {
     var_ = io.defineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
     MPI_Comm_rank(comm, &mpi_rank_);
@@ -76,7 +81,7 @@ struct Grid_<T>::Adios2
   using RealWriter = ScalarWriter<real_t>;
   using Real3Writer = Vec3Writer<real_t>;
   
-  Adios2(const Grid_& grid, PscIO& io)
+  Adios2(const Grid_& grid, kg::IO& io)
     : grid_{grid},
       w_ldims_{"grid.ldims", io, MPI_COMM_WORLD}, // FIXME hardcoded comm
       w_dt_{"grid.dt", io, MPI_COMM_WORLD},
@@ -115,7 +120,7 @@ private:
 };
 
 template<typename T>
-auto Grid_<T>::writer(PscIO& io) -> Adios2
+auto Grid_<T>::writer(kg::IO& io) -> Adios2
 {
   return {*this, io};
 }
