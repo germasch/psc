@@ -28,6 +28,8 @@ struct Variable
 template<typename T>
 struct VariableGlobalSingleValue
 {
+  using value_type = T;
+  
   VariableGlobalSingleValue(const std::string& name, IO& io);
   
   void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
@@ -39,6 +41,8 @@ private:
 template<typename T>
 struct VariableGlobalSingleValue<Vec3<T>>
 {
+  using value_type = Vec3<T>;
+  
   VariableGlobalSingleValue(const std::string& name, IO& io);
   
   void put(Engine& writer, const Vec3<T>& val, const Mode launch = Mode::Deferred);
@@ -73,15 +77,9 @@ struct Engine
   }
   
   template<class T>
-  void put(VariableGlobalSingleValue<T>& var, const T& datum, const Mode launch = Mode::Deferred)
+  void put(T& variable, const typename T::value_type& datum, const Mode launch = Mode::Deferred)
   {
-    var.put(*this, datum, launch);
-  }
-
-  template<class T>
-  void put(T& var, const typename T::value_type& datum, const Mode launch = Mode::Deferred)
-  {
-    var.put(*this, datum, launch);
+    variable.put(*this, datum, launch);
   }
 
   void close()
