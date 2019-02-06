@@ -112,7 +112,10 @@ TEST(Grid, adios2_write)
   }
 
   {
+    using Real3 = Grid_t::Real3;
+    
     double dt;
+    Grid_t::Domain domain;
 
     auto io_reader = kg::IO(ad, "io_reader");
     auto reader = io_reader.open("test.bp", kg::Mode::Read);
@@ -121,9 +124,12 @@ TEST(Grid, adios2_write)
     auto var_dt = io_reader.inquireVariable<double>("grid.dt");
     assert(bool(var_dt));
     reader.get(var_dt, dt);
+    reader.get(var_domain, domain);
     reader.close();
 
     EXPECT_EQ(dt, .1);
+    EXPECT_EQ(domain.gdims, Int3({8, 4, 2}));
+    EXPECT_EQ(domain.length, Real3({80., 40., 20.}));
   }
 }
 

@@ -25,10 +25,11 @@ struct Variable
     : var_{var}
   {}
 
-  void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
-  void put(Engine& writer, const T* val, const Mode launch = Mode::Deferred);
+  void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred);
+  void put(Engine& writer, const T* data, const Mode launch = Mode::Deferred);
 
   void get(Engine& reader, T& datum, const Mode launch = Mode::Deferred);
+  void get(Engine& reader, T* data, const Mode launch = Mode::Deferred);
 
   explicit operator bool() const { return static_cast<bool>(var_); }
   
@@ -64,6 +65,7 @@ struct VariableGlobalSingleValue<Vec3<T>>
   VariableGlobalSingleValue(const std::string& name, IO& io);
   
   void put(Engine& writer, const Vec3<T>& val, const Mode launch = Mode::Deferred);
+  void get(Engine& reader, Vec3<T>& val, const Mode launch = Mode::Deferred);
   
   explicit operator bool() const { return static_cast<bool>(var_); }
 
@@ -126,6 +128,12 @@ struct Engine
     engine_.Get(variable, datum, launch);
   }
   
+  template<typename T>
+  void get(adios2::Variable<T> variable, T* data, const Mode launch = Mode::Deferred)
+  {
+    engine_.Get(variable, data, launch);
+  }
+  
   // ----------------------------------------------------------------------
   // get in general
   
@@ -133,6 +141,12 @@ struct Engine
   void get(T& variable, typename T::value_type& datum, const Mode launch = Mode::Deferred)
   {
     variable.get(*this, datum, launch);
+  }
+
+  template <class T>
+  void get(T& variable, typename T::value_type* data, const Mode launch = Mode::Deferred)
+  {
+    variable.get(*this, data, launch);
   }
 
   // ----------------------------------------------------------------------
@@ -222,6 +236,12 @@ void Variable<T>::get(Engine& reader, T& datum, const Mode launch)
 }
   
 template<typename T>
+void Variable<T>::get(Engine& reader, T* data, const Mode launch)
+{
+  reader.get(var_, data, launch);
+}
+  
+template<typename T>
 VariableGlobalSingleValue<T>::VariableGlobalSingleValue(const std::string& name, IO& io)
   : var_{io.defineVariable<T>(name)}
 {}
@@ -246,6 +266,13 @@ void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val,
     var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
     writer.put(var_, val.data(), launch);
   }
+};
+
+template<typename T>
+void VariableGlobalSingleValue<Vec3<T>>::get(Engine& reader, Vec3<T>& val, const Mode launch)
+{
+  var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+  reader.get(var_, val.data(), launch);
 };
 
 };
@@ -273,12 +300,22 @@ struct kg::Variable<Grid_t::Domain>
 
   void put(kg::Engine& writer, const Grid::Domain& domain, const kg::Mode launch = kg::Mode::Deferred)
   {
-    writer.put(var_gdims_, domain.gdims);
-    writer.put(var_length_, domain.length);
-    writer.put(var_corner_, domain.corner);
-    writer.put(var_np_, domain.np);
-    writer.put(var_ldims_, domain.ldims);
-    writer.put(var_dx_, domain.dx);
+    writer.put(var_gdims_, domain.gdims, launch);
+    writer.put(var_length_, domain.length, launch);
+    writer.put(var_corner_, domain.corner, launch);
+    writer.put(var_np_, domain.np, launch);
+    writer.put(var_ldims_, domain.ldims, launch);
+    writer.put(var_dx_, domain.dx, launch);
+  }
+
+  void get(Engine& reader, Grid::Domain& domain, const Mode launch = Mode::Deferred)
+  {
+    reader.get(var_gdims_, domain.gdims, launch);
+    reader.get(var_length_, domain.length, launch);
+    reader.get(var_corner_, domain.corner, launch);
+    reader.get(var_np_, domain.np, launch);
+    reader.get(var_ldims_, domain.ldims, launch);
+    reader.get(var_dx_, domain.dx, launch);
   }
 
   explicit operator bool() const

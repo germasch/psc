@@ -240,6 +240,9 @@ struct Grid_
 template<class T>
 struct Grid_<T>::Domain
 {
+  Domain()
+  {}
+  
   Domain(Int3 gdims, Real3 length, Real3 corner = {0., 0., 0.}, Int3 np = {1, 1, 1})
     : gdims(gdims), length(length), corner(corner), np(np)
   {
@@ -261,7 +264,6 @@ struct Grid_<T>::Domain
   Real3 length;	///<The physical size of the simulation-box 
   Real3 corner;
   Int3 np;		///<Number of patches in each dimension
-  
   Int3 ldims;
   Real3 dx;
 };
