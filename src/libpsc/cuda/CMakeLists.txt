@@ -45,6 +45,10 @@ target_compile_features(psccuda
   PUBLIC cxx_std_11
   )
 
+if (ADIOS2_FOUND)
+  target_link_libraries(psccuda adios2::adios2)
+endif()
+
 macro(add_cuda_test name)
   if(GTEST_FOUND)
     add_executable(${name} tests/${name}.cu)

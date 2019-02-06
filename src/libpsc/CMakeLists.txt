@@ -30,6 +30,10 @@ if (USE_CUDA)
   target_include_directories(psc PRIVATE vpic) # FIXME!
 endif()
 
+if (ADIOS2_FOUND)
+  target_link_libraries(psc PUBLIC adios2::adios2)
+endif()
+
 add_subdirectory(vpic)
 target_link_libraries(psc PUBLIC pscvpic)
 

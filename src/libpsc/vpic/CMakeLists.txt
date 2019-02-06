@@ -21,6 +21,10 @@ target_link_libraries(pscvpic
   )
 endif()
 
+if (ADIOS2_FOUND)
+  target_link_libraries(pscvpic adios2::adios2)
+endif()
+
 target_compile_features(pscvpic
   PUBLIC cxx_std_11
   )
