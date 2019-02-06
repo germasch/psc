@@ -10,6 +10,11 @@ using Box = adios2::Box<T>;
 struct IO;
 struct Engine;
 
+// ======================================================================
+// Variable
+//
+// This general version handles T being one of the base adios2 types (only!)
+  
 template<typename T>
 struct Variable
 {
@@ -175,9 +180,10 @@ void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val,
 
 };
   
-template<typename Grid>
-struct Variable
+template<typename T>
+struct kg::Variable<Grid_<T>>
 {
+  using Grid = Grid_<T>;
   using value_type = Grid;
   using real_t = typename Grid::real_t;
   using Real3 = typename Grid::Real3;
