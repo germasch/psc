@@ -107,7 +107,7 @@ TEST(Grid, adios2_write)
 
   auto writer = io_writer.open("test.bp", adios2::Mode::Write);
   grid_checkpoint.put(writer, grid);
-  writer.Close();
+  writer.close();
 }
 
 // ======================================================================

@@ -1,7 +1,21 @@
 
 namespace kg
 {
+
+struct Engine
+{
+  Engine(adios2::Engine engine)
+    : engine{engine}
+  {}
+
+  void close()
+  {
+    engine.Close();
+  }
   
+  adios2::Engine engine;
+};
+
 struct IO
 {
   using Dims = adios2::Dims;
@@ -11,7 +25,7 @@ struct IO
   {}
 
   
-  adios2::Engine open(const std::string& name, const adios2::Mode mode)
+  Engine open(const std::string& name, const adios2::Mode mode)
   {
     return io_.Open(name, mode);
   }
@@ -93,17 +107,17 @@ struct Grid_<T>::Adios2
       w_domain_dx_{"grid.domain.dx", io, MPI_COMM_WORLD}
   {}
 
-  void put(adios2::Engine& writer, const Grid_& grid)
+  void put(kg::Engine& writer, const Grid_& grid)
   {
-    w_ldims_.put(writer, grid.ldims);
-    w_dt_.put(writer, grid.dt);
+    w_ldims_.put(writer.engine, grid.ldims);
+    w_dt_.put(writer.engine, grid.dt);
     
-    w_domain_gdims_.put(writer, grid.domain.gdims);
-    w_domain_length_.put(writer, grid.domain.length);
-    w_domain_corner_.put(writer, grid.domain.corner);
-    w_domain_np_.put(writer, grid.domain.np);
-    w_domain_ldims_.put(writer, grid.domain.ldims);
-    w_domain_dx_.put(writer, grid.domain.dx);
+    w_domain_gdims_.put(writer.engine, grid.domain.gdims);
+    w_domain_length_.put(writer.engine, grid.domain.length);
+    w_domain_corner_.put(writer.engine, grid.domain.corner);
+    w_domain_np_.put(writer.engine, grid.domain.np);
+    w_domain_ldims_.put(writer.engine, grid.domain.ldims);
+    w_domain_dx_.put(writer.engine, grid.domain.dx);
   }
   
 private:
