@@ -4,9 +4,11 @@ namespace kg
 
 struct Engine
 {
-  Engine(adios2::Engine engine)
+  Engine(adios2::Engine engine, MPI_Comm comm)
     : engine_{engine}
-  {}
+  {
+    MPI_Comm_rank(comm, &mpi_rank_);
+  }
 
   template<typename T>
   void put(adios2::Variable<T> variable, const T *data, const adios2::Mode launch = adios2::Mode::Deferred)
@@ -25,8 +27,11 @@ struct Engine
     engine_.Close();
   }
 
+  int mpiRank() const { return mpi_rank_; }
+
 private:
   adios2::Engine engine_;
+  int mpi_rank_;
 };
 
 struct IO
@@ -40,7 +45,10 @@ struct IO
   
   Engine open(const std::string& name, const adios2::Mode mode)
   {
-    return io_.Open(name, mode);
+     // FIXME, assumes that the ADIOS2 object underlying io_ was created on MPI_COMM_WORLD
+    auto comm = MPI_COMM_WORLD;
+    
+    return {io_.Open(name, mode), comm};
   }
 
   template<typename T>
@@ -63,19 +71,17 @@ struct ScalarWriter
   ScalarWriter(const std::string& name, kg::IO& io, MPI_Comm comm)
   {
     var_ = io.defineVariable<T>(name);
-    MPI_Comm_rank(comm, &mpi_rank_);
   }
 
   void put(kg::Engine& writer, T val)
   {
-    if (mpi_rank_ == 0) {
+    if (writer.mpiRank() == 0) {
       writer.put(var_, val);
     }
   }
 
 private:
   adios2::Variable<T> var_;
-  int mpi_rank_;
 };
 
 template<typename T>
@@ -84,12 +90,11 @@ struct Vec3Writer
   Vec3Writer(const std::string& name, kg::IO& io, MPI_Comm comm)
   {
     var_ = io.defineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
-    MPI_Comm_rank(comm, &mpi_rank_);
   }
 
   void put(kg::Engine& writer, const Vec3<T>& val)
   {
-    if (mpi_rank_ == 0) {
+    if (writer.mpiRank() == 0) {
       var_.SetSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
       writer.put(var_, val.data());
     }
@@ -97,7 +102,6 @@ struct Vec3Writer
 
 private:
   adios2::Variable<T> var_;
-  int mpi_rank_;
 };
 
 using Int3Writer = Vec3Writer<int>;
