@@ -191,7 +191,47 @@ void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val,
 };
 
 };
-  
+
+// FIXME, this should be templated by Grid_<T>::Domain, but can't do that...
+
+template<>
+struct kg::Variable<Grid_t::Domain>
+{
+  using Grid = Grid_t;
+  using value_type = typename Grid::Domain;
+  using is_adios_variable = std::false_type;
+
+  using real_t = typename Grid::real_t;
+  using Real3 = typename Grid::Real3;
+
+  Variable(const std::string& name, kg::IO& io)
+    : var_gdims_{name + ".gdims", io},
+      var_length_{name + ".length", io},
+      var_corner_{name + ".corner", io},
+      var_np_{name + ".np", io},
+      var_ldims_{name + ".ldims", io},
+      var_dx_{name + ".dx", io}
+  {}
+
+  void put(kg::Engine& writer, const Grid::Domain& domain, const kg::Mode launch = kg::Mode::Deferred)
+  {
+    writer.put(var_gdims_, domain.gdims);
+    writer.put(var_length_, domain.length);
+    writer.put(var_corner_, domain.corner);
+    writer.put(var_np_, domain.np);
+    writer.put(var_ldims_, domain.ldims);
+    writer.put(var_dx_, domain.dx);
+  }
+
+private:
+  kg::VariableGlobalSingleValue<Int3> var_gdims_;
+  kg::VariableGlobalSingleValue<Real3> var_length_;
+  kg::VariableGlobalSingleValue<Real3> var_corner_;
+  kg::VariableGlobalSingleValue<Int3> var_np_;
+  kg::VariableGlobalSingleValue<Int3> var_ldims_;
+  kg::VariableGlobalSingleValue<Real3> var_dx_;
+};  
+
 template<typename T>
 struct kg::Variable<Grid_<T>>
 {
@@ -203,38 +243,21 @@ struct kg::Variable<Grid_<T>>
   using Real3 = typename Grid::Real3;
   
   Variable(const std::string& name, kg::IO& io)
-    : var_ldims_{"grid.ldims", io},
-      var_dt_{"grid.dt", io},
-      var_domain_gdims_{"grid.domain.gdims", io},
-      var_domain_length_{"grid.domain.length", io},
-      var_domain_corner_{"grid.domain.corner", io},
-      var_domain_np_{"grid.domain.np", io},
-      var_domain_ldims_{"grid.domain.ldims", io},
-      var_domain_dx_{"grid.domain.dx", io}
+    : var_ldims_{name + ".ldims", io},
+      var_domain_{name + ".domain", io},
+      var_dt_{name + ".dt", io}
   {}
 
   void put(kg::Engine& writer, const Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
   {
     writer.put(var_ldims_, grid.ldims);
+    writer.put(var_domain_, grid.domain);
     writer.put(var_dt_, grid.dt);
-    
-    writer.put(var_domain_gdims_, grid.domain.gdims);
-    writer.put(var_domain_length_, grid.domain.length);
-    writer.put(var_domain_corner_, grid.domain.corner);
-    writer.put(var_domain_np_, grid.domain.np);
-    writer.put(var_domain_ldims_, grid.domain.ldims);
-    writer.put(var_domain_dx_, grid.domain.dx);
   }
   
 private:
   kg::VariableGlobalSingleValue<Int3> var_ldims_;
+  kg::Variable<typename Grid::Domain> var_domain_;
   kg::VariableGlobalSingleValue<real_t> var_dt_;
-
-  kg::VariableGlobalSingleValue<Int3> var_domain_gdims_;
-  kg::VariableGlobalSingleValue<Real3> var_domain_length_;
-  kg::VariableGlobalSingleValue<Real3> var_domain_corner_;
-  kg::VariableGlobalSingleValue<Int3> var_domain_np_;
-  kg::VariableGlobalSingleValue<Int3> var_domain_ldims_;
-  kg::VariableGlobalSingleValue<Real3> var_domain_dx_;
 };
 
