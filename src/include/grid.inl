@@ -152,10 +152,9 @@ void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val,
 
 };
   
-template<typename T>
+template<typename Grid>
 struct VariableGrid
 {
-  using Grid = Grid_<T>;
   using value_type = Grid;
   using real_t = typename Grid::real_t;
   using Real3 = typename Grid::Real3;
@@ -171,7 +170,7 @@ struct VariableGrid
       var_domain_dx_{"grid.domain.dx", io}
   {}
 
-  void put(kg::Engine& writer, const Grid_<T>& grid, const kg::Mode launch = kg::Mode::Deferred)
+  void put(kg::Engine& writer, const Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
   {
     writer.put(var_ldims_, grid.ldims);
     writer.put(var_dt_, grid.dt);
