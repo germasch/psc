@@ -4,6 +4,21 @@ namespace kg
 
 struct IO;
 struct Engine;
+
+template<typename T>
+struct Variable
+{
+  Variable(adios2::Variable<T> var)
+    : var_{var}
+  {}
+
+  void setSelection(const adios2::Box<adios2::Dims>& selection)
+  {
+    var_.SetSelection(selection);
+  }
+  
+  adios2::Variable<T> var_;
+};
   
 template<typename T>
 struct ScalarWriter
@@ -13,7 +28,7 @@ struct ScalarWriter
   void put(Engine& writer, T val);
 
 private:
-  adios2::Variable<T> var_;
+  Variable<T> var_;
 };
 
 template<typename T>
@@ -24,7 +39,7 @@ struct Vec3Writer
   void put(Engine& writer, const Vec3<T>& val);
 
 private:
-  adios2::Variable<T> var_;
+  Variable<T> var_;
 };
 
 using Int3Writer = Vec3Writer<int>;
@@ -43,12 +58,24 @@ struct Engine
     engine_.Put(variable, data, launch);
   }
 
-  template <class T>
+  template<typename T>
   void put(adios2::Variable<T> variable, const T& datum, const adios2::Mode launch = adios2::Mode::Deferred)
   {
     engine_.Put(variable, datum, launch);
   }
 
+  template<typename T>
+  void put(Variable<T> variable, const T* data, const adios2::Mode launch = adios2::Mode::Deferred)
+  {
+    engine_.Put(variable.var_, data, launch);
+  }
+  
+  template<typename T>
+  void put(Variable<T> variable, const T& datum, const adios2::Mode launch = adios2::Mode::Deferred)
+  {
+    engine_.Put(variable.var_, datum, launch);
+  }
+  
   template<class T>
   void put(ScalarWriter<T>& var, const T& datum, const adios2::Mode launch = adios2::Mode::Deferred)
   {
@@ -90,9 +117,9 @@ struct IO
   }
 
   template<typename T>
-  adios2::Variable<T> defineVariable(const std::string &name, const Dims &shape = Dims(),
-				     const Dims &start = Dims(), const Dims &count = Dims(),
-				     const bool constantDims = false)
+  Variable<T> defineVariable(const std::string &name, const Dims &shape = Dims(),
+			     const Dims &start = Dims(), const Dims &count = Dims(),
+			     const bool constantDims = false)
   {
     return io_.DefineVariable<T>(name, shape, start, count, constantDims);
   }
@@ -106,24 +133,22 @@ private:
   
 template<typename T>
 Vec3Writer<T>::Vec3Writer(const std::string& name, IO& io)
-{
-  var_ = io.defineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
-}
+  : var_{io.defineVariable<T>(name, {3}, {0}, {0})}  // adios2 FIXME {3} {} {} gives no error, but problems
+{}
 
 template<typename T>
 void Vec3Writer<T>::put(Engine& writer, const Vec3<T>& val)
 {
   if (writer.mpiRank() == 0) {
-    var_.SetSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+    var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
     writer.put(var_, val.data());
   }
 }
 
 template<typename T>
 ScalarWriter<T>::ScalarWriter(const std::string& name, IO& io)
-{
-  var_ = io.defineVariable<T>(name);
-}
+  : var_{io.defineVariable<T>(name)}
+{}
   
 template<typename T>
 void ScalarWriter<T>::put(Engine& writer, T val)
