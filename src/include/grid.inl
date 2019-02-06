@@ -19,9 +19,9 @@ private:
 template<typename T>
 struct Vec3Writer
 {
-  Vec3Writer(const std::string& name, kg::IO& io);
+  Vec3Writer(const std::string& name, IO& io);
 
-  void put(kg::Engine& writer, const Vec3<T>& val);
+  void put(Engine& writer, const Vec3<T>& val);
 
 private:
   adios2::Variable<T> var_;
@@ -105,13 +105,13 @@ private:
 // implementations
   
 template<typename T>
-Vec3Writer<T>::Vec3Writer(const std::string& name, kg::IO& io)
+Vec3Writer<T>::Vec3Writer(const std::string& name, IO& io)
 {
   var_ = io.defineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
 }
 
 template<typename T>
-void Vec3Writer<T>::put(kg::Engine& writer, const Vec3<T>& val)
+void Vec3Writer<T>::put(Engine& writer, const Vec3<T>& val)
 {
   if (writer.mpiRank() == 0) {
     var_.SetSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
