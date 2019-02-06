@@ -13,10 +13,15 @@ struct Engine;
 template<typename T>
 struct Variable
 {
+  using value_type = T;
+  
   Variable(adios2::Variable<T> var)
     : var_{var}
   {}
 
+  void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
+  void put(Engine& writer, const T* val, const Mode launch = Mode::Deferred);
+  
   void setSelection(const Box<Dims>& selection)
   {
     var_.SetSelection(selection);
@@ -65,17 +70,23 @@ struct Engine
   }
 
   template<typename T>
-  void put(Variable<T> variable, const T* data, const Mode launch = Mode::Deferred)
+  void put(adios2::Variable<T> variable, const T* data, const Mode launch = Mode::Deferred)
   {
-    engine_.Put(variable.var_, data, launch);
+    engine_.Put(variable, data, launch);
   }
   
   template<typename T>
-  void put(Variable<T> variable, const T& datum, const Mode launch = Mode::Deferred)
+  void put(adios2::Variable<T> variable, const T& datum, const Mode launch = Mode::Deferred)
   {
-    engine_.Put(variable.var_, datum, launch);
+    engine_.Put(variable, datum, launch);
   }
   
+  template<class T>
+  void put(T& variable, const typename T::value_type* data, const Mode launch = Mode::Deferred)
+  {
+    variable.put(*this, data, launch);
+  }
+
   template<class T>
   void put(T& variable, const typename T::value_type& datum, const Mode launch = Mode::Deferred)
   {
@@ -123,6 +134,18 @@ private:
 // ======================================================================
 // implementations
 
+template<typename T>
+void Variable<T>::put(Engine& writer, const T val, const Mode launch)
+{
+  writer.put(var_, val, launch);
+}
+  
+template<typename T>
+void Variable<T>::put(Engine& writer, const T* val, const Mode launch)
+{
+  writer.put(var_, val, launch);
+}
+  
 template<typename T>
 VariableGlobalSingleValue<T>::VariableGlobalSingleValue(const std::string& name, IO& io)
   : var_{io.defineVariable<T>(name)}
