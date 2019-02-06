@@ -25,6 +25,8 @@ endif()
 find_package(MPI REQUIRED)
 add_definitions(-DOMPI_SKIP_MPICXX)
 
+find_package(ADIOS2)
+
 find_package(GTest)
 
 configure_file (
