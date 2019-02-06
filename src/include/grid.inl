@@ -132,6 +132,14 @@ struct IO
     return io_.DefineVariable<T>(name, shape, start, count, constantDims);
   }
 
+  template<typename T>
+  Variable<T> defineVariable2(const std::string &name, const Dims &shape = Dims(),
+			      const Dims &start = Dims(), const Dims &count = Dims(),
+			      const bool constantDims = false)
+  {
+    return {name, *this};
+  }
+
 private:
   adios2::IO io_;
 };
@@ -188,7 +196,7 @@ struct kg::Variable<Grid_<T>>
   using real_t = typename Grid::real_t;
   using Real3 = typename Grid::Real3;
   
-  Variable(kg::IO& io)
+  Variable(const std::string& name, kg::IO& io)
     : var_ldims_{"grid.ldims", io},
       var_dt_{"grid.dt", io},
       var_domain_gdims_{"grid.domain.gdims", io},
