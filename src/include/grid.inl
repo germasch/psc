@@ -39,15 +39,17 @@ private:
 template<typename T>
 struct Vec3Writer
 {
+  using var_type = typename T::value_type;
+  
   Vec3Writer(const std::string& name, IO& io);
 
-  void put(Engine& writer, const Vec3<T>& val, const Mode launch = Mode::Deferred);
+  void put(Engine& writer, const T& val, const Mode launch = Mode::Deferred);
 
 private:
-  Variable<T> var_;
+  Variable<var_type> var_;
 };
 
-using Int3Writer = Vec3Writer<int>;
+using Int3Writer = Vec3Writer<Int3>;
 
 struct Engine
 {
@@ -76,7 +78,7 @@ struct Engine
   }
 
   template<class T>
-  void put(Vec3Writer<T>& var, const Vec3<T>& datum, const Mode launch = Mode::Deferred)
+  void put(Vec3Writer<T>& var, const T& datum, const Mode launch = Mode::Deferred)
   {
     var.put(*this, datum, launch);
   }
@@ -124,11 +126,11 @@ private:
   
 template<typename T>
 Vec3Writer<T>::Vec3Writer(const std::string& name, IO& io)
-  : var_{io.defineVariable<T>(name, {3}, {0}, {0})}  // adios2 FIXME {3} {} {} gives no error, but problems
+  : var_{io.defineVariable<var_type>(name, {3}, {0}, {0})}  // adios2 FIXME {3} {} {} gives no error, but problems
 {}
 
 template<typename T>
-void Vec3Writer<T>::put(Engine& writer, const Vec3<T>& val, const Mode launch)
+void Vec3Writer<T>::put(Engine& writer, const T& val, const Mode launch)
 {
   if (writer.mpiRank() == 0) {
     var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
@@ -155,7 +157,7 @@ template<typename T>
 struct Grid_<T>::Adios2
 {
   using RealWriter = kg::VariableGlobalSingleValue<real_t>;
-  using Real3Writer = kg::Vec3Writer<real_t>;
+  using Real3Writer = kg::Vec3Writer<Real3>;
   
   Adios2(const Grid_& grid, kg::IO& io)
     : grid_{grid},
