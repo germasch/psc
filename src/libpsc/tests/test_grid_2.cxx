@@ -103,10 +103,10 @@ TEST(Grid, adios2_write)
 
   auto ad = adios2::ADIOS(MPI_COMM_WORLD, adios2::DebugON);
   auto io_writer = kg::IO(ad, "io_writer");
-  auto grid_checkpoint = grid.writer(io_writer);
+  auto var_grid = Grid_t::Adios2(io_writer);
 
   auto writer = io_writer.open("test.bp", adios2::Mode::Write);
-  grid_checkpoint.put(writer, grid);
+  var_grid.put(writer, grid);
   writer.close();
 }
 

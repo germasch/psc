@@ -151,9 +151,8 @@ void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val,
 template<typename T>
 struct Grid_<T>::Adios2
 {
-  Adios2(const Grid_& grid, kg::IO& io)
-    : grid_{grid},
-      var_ldims_{"grid.ldims", io},
+  Adios2(kg::IO& io)
+    : var_ldims_{"grid.ldims", io},
       var_dt_{"grid.dt", io},
       var_domain_gdims_{"grid.domain.gdims", io},
       var_domain_length_{"grid.domain.length", io},
@@ -163,7 +162,7 @@ struct Grid_<T>::Adios2
       var_domain_dx_{"grid.domain.dx", io}
   {}
 
-  void put(kg::Engine& writer, const Grid_& grid)
+  void put(kg::Engine& writer, const Grid_& grid, const kg::Mode launch = kg::Mode::Deferred)
   {
     writer.put(var_ldims_, grid.ldims);
     writer.put(var_dt_, grid.dt);
@@ -177,7 +176,6 @@ struct Grid_<T>::Adios2
   }
   
 private:
-  const Grid_& grid_;
   kg::VariableGlobalSingleValue<Int3> var_ldims_;
   kg::VariableGlobalSingleValue<real_t> var_dt_;
 
@@ -188,10 +186,4 @@ private:
   kg::VariableGlobalSingleValue<Int3> var_domain_ldims_;
   kg::VariableGlobalSingleValue<Real3> var_domain_dx_;
 };
-
-template<typename T>
-auto Grid_<T>::writer(kg::IO& io) -> Adios2
-{
-  return {*this, io};
-}
 

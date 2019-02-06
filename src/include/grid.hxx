@@ -173,8 +173,6 @@ struct Grid_
     }
   }
 
-  Adios2 writer(kg::IO& io);
-  
   Int3 ldims;
   Domain domain;
   GridBc bc;
