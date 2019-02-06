@@ -42,7 +42,6 @@ struct IO
     : io_{ad.DeclareIO(name)}
   {}
 
-  
   Engine open(const std::string& name, const adios2::Mode mode)
   {
      // FIXME, assumes that the ADIOS2 object underlying io_ was created on MPI_COMM_WORLD
@@ -61,8 +60,6 @@ struct IO
 
 private:
   adios2::IO io_;
-};
-
 };
 
 template<typename T>
@@ -106,11 +103,13 @@ private:
 
 using Int3Writer = Vec3Writer<int>;
 
+};
+
 template<typename T>
 struct Grid_<T>::Adios2
 {
-  using RealWriter = ScalarWriter<real_t>;
-  using Real3Writer = Vec3Writer<real_t>;
+  using RealWriter = kg::ScalarWriter<real_t>;
+  using Real3Writer = kg::Vec3Writer<real_t>;
   
   Adios2(const Grid_& grid, kg::IO& io)
     : grid_{grid},
@@ -139,14 +138,14 @@ struct Grid_<T>::Adios2
   
 private:
   const Grid_& grid_;
-  Int3Writer w_ldims_;
+  kg::Int3Writer w_ldims_;
   RealWriter w_dt_;
 
-  Int3Writer w_domain_gdims_;
+  kg::Int3Writer w_domain_gdims_;
   Real3Writer w_domain_length_;
   Real3Writer w_domain_corner_;
-  Int3Writer w_domain_np_;
-  Int3Writer w_domain_ldims_;
+  kg::Int3Writer w_domain_np_;
+  kg::Int3Writer w_domain_ldims_;
   Real3Writer w_domain_dx_;
 };
 
