@@ -1,16 +1,27 @@
 
 struct PscIO
 {
+  using Dims = adios2::Dims;
+  
   PscIO(adios2::ADIOS& ad, const char* name)
     : io_{ad.DeclareIO(name)}
   {}
 
   
-  adios2::Engine open(const std::string &name, const adios2::Mode mode)
+  adios2::Engine open(const std::string& name, const adios2::Mode mode)
   {
     return io_.Open(name, mode);
   }
 
+  template<typename T>
+  adios2::Variable<T> defineVariable(const std::string &name, const Dims &shape = Dims(),
+				     const Dims &start = Dims(), const Dims &count = Dims(),
+				     const bool constantDims = false)
+  {
+    return io_.DefineVariable<T>(name, shape, start, count, constantDims);
+  }
+
+private:
   adios2::IO io_;
 };
 
@@ -19,7 +30,7 @@ struct ScalarWriter
 {
   ScalarWriter(const std::string& name, PscIO& io, MPI_Comm comm)
   {
-    var_ = io.io_.DefineVariable<T>(name);
+    var_ = io.defineVariable<T>(name);
     MPI_Comm_rank(comm, &mpi_rank_);
   }
 
@@ -40,7 +51,7 @@ struct Vec3Writer
 {
   Vec3Writer(const std::string& name, PscIO& io, MPI_Comm comm)
   {
-    var_ = io.io_.DefineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
+    var_ = io.defineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
     MPI_Comm_rank(comm, &mpi_rank_);
   }
 
