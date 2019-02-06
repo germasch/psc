@@ -9,6 +9,7 @@
 #include <vector>
 #include <cstring>
 #include <cmath>
+#include <adios2.h>
 
 ///Possible boundary conditions for fields
 enum {
@@ -69,7 +70,9 @@ struct Grid_
   
   struct Kind;
   using Kinds = std::vector<Kind>;
-  
+
+  struct Adios2;
+
   struct Patch
   {
     Patch(const Int3& _off, const Real3& _xb, const Real3& _xe, const Real3& dx)
@@ -165,6 +168,8 @@ struct Grid_
       }
     }
   }
+
+  Adios2 checkpoint(adios2::IO& io);
   
   Int3 ldims;
   Domain domain;
