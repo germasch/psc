@@ -2,6 +2,11 @@
 namespace kg
 {
 
+using Mode = adios2::Mode;
+using Dims = adios2::Dims;
+template<typename T>
+using Box = adios2::Box<T>;
+  
 struct IO;
 struct Engine;
 
@@ -12,7 +17,7 @@ struct Variable
     : var_{var}
   {}
 
-  void setSelection(const adios2::Box<adios2::Dims>& selection)
+  void setSelection(const Box<Dims>& selection)
   {
     var_.SetSelection(selection);
   }
@@ -25,7 +30,7 @@ struct ScalarWriter
 {
   ScalarWriter(const std::string& name, IO& io);
 
-  void put(Engine& writer, T val);
+  void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
 
 private:
   Variable<T> var_;
@@ -36,7 +41,7 @@ struct Vec3Writer
 {
   Vec3Writer(const std::string& name, IO& io);
 
-  void put(Engine& writer, const Vec3<T>& val);
+  void put(Engine& writer, const Vec3<T>& val, const Mode launch = Mode::Deferred);
 
 private:
   Variable<T> var_;
@@ -53,39 +58,27 @@ struct Engine
   }
 
   template<typename T>
-  void put(adios2::Variable<T> variable, const T* data, const adios2::Mode launch = adios2::Mode::Deferred)
-  {
-    engine_.Put(variable, data, launch);
-  }
-
-  template<typename T>
-  void put(adios2::Variable<T> variable, const T& datum, const adios2::Mode launch = adios2::Mode::Deferred)
-  {
-    engine_.Put(variable, datum, launch);
-  }
-
-  template<typename T>
-  void put(Variable<T> variable, const T* data, const adios2::Mode launch = adios2::Mode::Deferred)
+  void put(Variable<T> variable, const T* data, const Mode launch = Mode::Deferred)
   {
     engine_.Put(variable.var_, data, launch);
   }
   
   template<typename T>
-  void put(Variable<T> variable, const T& datum, const adios2::Mode launch = adios2::Mode::Deferred)
+  void put(Variable<T> variable, const T& datum, const Mode launch = Mode::Deferred)
   {
     engine_.Put(variable.var_, datum, launch);
   }
   
   template<class T>
-  void put(ScalarWriter<T>& var, const T& datum, const adios2::Mode launch = adios2::Mode::Deferred)
+  void put(ScalarWriter<T>& var, const T& datum, const Mode launch = Mode::Deferred)
   {
-    var.put(*this, datum);
+    var.put(*this, datum, launch);
   }
 
   template<class T>
-  void put(Vec3Writer<T>& var, const Vec3<T>& datum, const adios2::Mode launch = adios2::Mode::Deferred)
+  void put(Vec3Writer<T>& var, const Vec3<T>& datum, const Mode launch = Mode::Deferred)
   {
-    var.put(*this, datum);
+    var.put(*this, datum, launch);
   }
 
   void close()
@@ -102,8 +95,6 @@ private:
 
 struct IO
 {
-  using Dims = adios2::Dims;
-  
   IO(adios2::ADIOS& ad, const char* name)
     : io_{ad.DeclareIO(name)}
   {}
@@ -137,11 +128,11 @@ Vec3Writer<T>::Vec3Writer(const std::string& name, IO& io)
 {}
 
 template<typename T>
-void Vec3Writer<T>::put(Engine& writer, const Vec3<T>& val)
+void Vec3Writer<T>::put(Engine& writer, const Vec3<T>& val, const Mode launch)
 {
   if (writer.mpiRank() == 0) {
     var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
-    writer.put(var_, val.data());
+    writer.put(var_, val.data(), launch);
   }
 }
 
@@ -151,10 +142,10 @@ ScalarWriter<T>::ScalarWriter(const std::string& name, IO& io)
 {}
   
 template<typename T>
-void ScalarWriter<T>::put(Engine& writer, T val)
+void ScalarWriter<T>::put(Engine& writer, T val, const Mode launch)
 {
   if (writer.mpiRank() == 0) {
-    writer.put(var_, val);
+    writer.put(var_, val, launch);
   }
 }
   
