@@ -14,11 +14,12 @@ struct Engine;
 // Variable
 //
 // This general version handles T being one of the base adios2 types (only!)
-  
+
 template<typename T>
 struct Variable
 {
   using value_type = T;
+  using is_adios_variable = std::true_type;
   
   Variable(adios2::Variable<T> var)
     : var_{var}
@@ -39,6 +40,7 @@ template<typename T>
 struct VariableGlobalSingleValue
 {
   using value_type = T;
+  using is_adios_variable = std::false_type;
   
   VariableGlobalSingleValue(const std::string& name, IO& io);
   
@@ -124,18 +126,20 @@ struct IO
     return {io_.Open(name, mode), comm};
   }
 
-  template<typename T>
+  template<typename T,
+	   typename std::enable_if<Variable<T>::is_adios_variable::value, int>::type = 0>
   Variable<T> defineVariable(const std::string &name, const Dims &shape = Dims(),
 			     const Dims &start = Dims(), const Dims &count = Dims(),
 			     const bool constantDims = false)
   {
     return io_.DefineVariable<T>(name, shape, start, count, constantDims);
   }
-
-  template<typename T>
-  Variable<T> defineVariable2(const std::string &name, const Dims &shape = Dims(),
-			      const Dims &start = Dims(), const Dims &count = Dims(),
-			      const bool constantDims = false)
+  
+  template<typename T,
+	   typename std::enable_if<!Variable<T>::is_adios_variable::value, int>::type = 0>
+  Variable<T> defineVariable(const std::string &name, const Dims &shape = Dims(),
+		 const Dims &start = Dims(), const Dims &count = Dims(),
+		 const bool constantDims = false)
   {
     return {name, *this};
   }
@@ -193,6 +197,8 @@ struct kg::Variable<Grid_<T>>
 {
   using Grid = Grid_<T>;
   using value_type = Grid;
+  using is_adios_variable = std::false_type;
+
   using real_t = typename Grid::real_t;
   using Real3 = typename Grid::Real3;
   
