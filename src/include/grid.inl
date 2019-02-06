@@ -2,6 +2,20 @@
 namespace kg
 {
 
+struct IO;
+struct Engine;
+  
+template<typename T>
+struct ScalarWriter
+{
+  ScalarWriter(const std::string& name, IO& io, MPI_Comm comm);
+
+  void put(Engine& writer, T val);
+
+private:
+  adios2::Variable<T> var_;
+};
+
 struct Engine
 {
   Engine(adios2::Engine engine, MPI_Comm comm)
@@ -11,15 +25,21 @@ struct Engine
   }
 
   template<typename T>
-  void put(adios2::Variable<T> variable, const T *data, const adios2::Mode launch = adios2::Mode::Deferred)
+  void put(adios2::Variable<T> variable, const T* data, const adios2::Mode launch = adios2::Mode::Deferred)
   {
     engine_.Put(variable, data, launch);
   }
 
   template <class T>
-  void put(adios2::Variable<T> variable, const T &datum, const adios2::Mode launch = adios2::Mode::Deferred)
+  void put(adios2::Variable<T> variable, const T& datum, const adios2::Mode launch = adios2::Mode::Deferred)
   {
     engine_.Put(variable, datum, launch);
+  }
+
+  template<class T>
+  void put(ScalarWriter<T>& var, const T& datum, const adios2::Mode launch = adios2::Mode::Deferred)
+  {
+    var.put(*this, datum);
   }
 
   void close()
@@ -63,25 +83,6 @@ private:
 };
 
 template<typename T>
-struct ScalarWriter
-{
-  ScalarWriter(const std::string& name, kg::IO& io, MPI_Comm comm)
-  {
-    var_ = io.defineVariable<T>(name);
-  }
-
-  void put(kg::Engine& writer, T val)
-  {
-    if (writer.mpiRank() == 0) {
-      writer.put(var_, val);
-    }
-  }
-
-private:
-  adios2::Variable<T> var_;
-};
-
-template<typename T>
 struct Vec3Writer
 {
   Vec3Writer(const std::string& name, kg::IO& io, MPI_Comm comm)
@@ -103,6 +104,22 @@ private:
 
 using Int3Writer = Vec3Writer<int>;
 
+// ======================================================================
+
+template<typename T>
+ScalarWriter<T>::ScalarWriter(const std::string& name, IO& io, MPI_Comm comm)
+{
+  var_ = io.defineVariable<T>(name);
+}
+  
+template<typename T>
+void ScalarWriter<T>::put(Engine& writer, T val)
+{
+  if (writer.mpiRank() == 0) {
+    writer.put(var_, val);
+  }
+}
+  
 };
 
 template<typename T>
@@ -126,7 +143,7 @@ struct Grid_<T>::Adios2
   void put(kg::Engine& writer, const Grid_& grid)
   {
     w_ldims_.put(writer, grid.ldims);
-    w_dt_.put(writer, grid.dt);
+    writer.put(w_dt_, grid.dt);
     
     w_domain_gdims_.put(writer, grid.domain.gdims);
     w_domain_length_.put(writer, grid.domain.length);
