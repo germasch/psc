@@ -8,7 +8,7 @@ struct Engine;
 template<typename T>
 struct ScalarWriter
 {
-  ScalarWriter(const std::string& name, IO& io, MPI_Comm comm);
+  ScalarWriter(const std::string& name, IO& io);
 
   void put(Engine& writer, T val);
 
@@ -19,7 +19,7 @@ private:
 template<typename T>
 struct Vec3Writer
 {
-  Vec3Writer(const std::string& name, kg::IO& io, MPI_Comm comm);
+  Vec3Writer(const std::string& name, kg::IO& io);
 
   void put(kg::Engine& writer, const Vec3<T>& val);
 
@@ -101,8 +101,11 @@ private:
   adios2::IO io_;
 };
 
+// ======================================================================
+// implementations
+  
 template<typename T>
-Vec3Writer<T>::Vec3Writer(const std::string& name, kg::IO& io, MPI_Comm comm)
+Vec3Writer<T>::Vec3Writer(const std::string& name, kg::IO& io)
 {
   var_ = io.defineVariable<T>(name, {3}, {0}, {0});  // adios2 FIXME {3} {} {} gives no error, but problems
 }
@@ -116,10 +119,8 @@ void Vec3Writer<T>::put(kg::Engine& writer, const Vec3<T>& val)
   }
 }
 
-// ======================================================================
-
 template<typename T>
-ScalarWriter<T>::ScalarWriter(const std::string& name, IO& io, MPI_Comm comm)
+ScalarWriter<T>::ScalarWriter(const std::string& name, IO& io)
 {
   var_ = io.defineVariable<T>(name);
 }
@@ -142,14 +143,14 @@ struct Grid_<T>::Adios2
   
   Adios2(const Grid_& grid, kg::IO& io)
     : grid_{grid},
-      w_ldims_{"grid.ldims", io, MPI_COMM_WORLD}, // FIXME hardcoded comm
-      w_dt_{"grid.dt", io, MPI_COMM_WORLD},
-      w_domain_gdims_{"grid.domain.gdims", io, MPI_COMM_WORLD},
-      w_domain_length_{"grid.domain.length", io, MPI_COMM_WORLD},
-      w_domain_corner_{"grid.domain.corner", io, MPI_COMM_WORLD},
-      w_domain_np_{"grid.domain.np", io, MPI_COMM_WORLD},
-      w_domain_ldims_{"grid.domain.ldims", io, MPI_COMM_WORLD},
-      w_domain_dx_{"grid.domain.dx", io, MPI_COMM_WORLD}
+      w_ldims_{"grid.ldims", io},
+      w_dt_{"grid.dt", io},
+      w_domain_gdims_{"grid.domain.gdims", io},
+      w_domain_length_{"grid.domain.length", io},
+      w_domain_corner_{"grid.domain.corner", io},
+      w_domain_np_{"grid.domain.np", io},
+      w_domain_ldims_{"grid.domain.ldims", io},
+      w_domain_dx_{"grid.domain.dx", io}
   {}
 
   void put(kg::Engine& writer, const Grid_& grid)
