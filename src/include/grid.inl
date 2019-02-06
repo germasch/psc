@@ -26,9 +26,9 @@ struct Variable
 };
   
 template<typename T>
-struct ScalarWriter
+struct VariableGlobalSingleValue
 {
-  ScalarWriter(const std::string& name, IO& io);
+  VariableGlobalSingleValue(const std::string& name, IO& io);
 
   void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
 
@@ -70,7 +70,7 @@ struct Engine
   }
   
   template<class T>
-  void put(ScalarWriter<T>& var, const T& datum, const Mode launch = Mode::Deferred)
+  void put(VariableGlobalSingleValue<T>& var, const T& datum, const Mode launch = Mode::Deferred)
   {
     var.put(*this, datum, launch);
   }
@@ -137,12 +137,12 @@ void Vec3Writer<T>::put(Engine& writer, const Vec3<T>& val, const Mode launch)
 }
 
 template<typename T>
-ScalarWriter<T>::ScalarWriter(const std::string& name, IO& io)
+VariableGlobalSingleValue<T>::VariableGlobalSingleValue(const std::string& name, IO& io)
   : var_{io.defineVariable<T>(name)}
 {}
   
 template<typename T>
-void ScalarWriter<T>::put(Engine& writer, T val, const Mode launch)
+void VariableGlobalSingleValue<T>::put(Engine& writer, T val, const Mode launch)
 {
   if (writer.mpiRank() == 0) {
     writer.put(var_, val, launch);
@@ -154,7 +154,7 @@ void ScalarWriter<T>::put(Engine& writer, T val, const Mode launch)
 template<typename T>
 struct Grid_<T>::Adios2
 {
-  using RealWriter = kg::ScalarWriter<real_t>;
+  using RealWriter = kg::VariableGlobalSingleValue<real_t>;
   using Real3Writer = kg::Vec3Writer<real_t>;
   
   Adios2(const Grid_& grid, kg::IO& io)
