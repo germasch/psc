@@ -299,6 +299,34 @@ private:
 };
 
 // ======================================================================
+// VariableByPatch
+
+template<typename T>
+struct VariableByPatch
+{
+  using value_type = T;
+  using is_adios_variable = std::false_type;
+
+  VariableByPatch(const std::string& name, kg::IO& io)
+    : var_{io.defineVariable<typename T::value_type>(name, {1}, {0}, {1})}
+  {}
+  
+  void put(kg::Engine& writer, const value_type* data, const Grid_t& grid,
+	   const kg::Mode launch = kg::Mode::Deferred)
+  {
+    size_t patches_n_local = grid.n_patches();
+    size_t patches_n_global = grid.nGlobalPatches();
+    size_t patches_start = grid.localPatchInfo(0).global_patch;
+    var_.setShape({patches_n_global, 3});
+    var_.setSelection({{patches_start, 0}, {patches_n_local, 3}});
+    writer.put(var_, data[0].data(), launch);
+  }
+  
+private:
+  kg::Variable<typename T::value_type> var_;
+};
+  
+// ======================================================================
 // Variable<Grid_t::Domain>
 
 // FIXME, this should be templated by Grid_<T>::Domain, but can't do that...
@@ -483,7 +511,9 @@ struct kg::Variable<Grid_<T>>
       var_norm_{name + ".norm", io},
       var_dt_{name + ".dt", io},
       var_patches_n_local_{name + ".patches.n_local", io},
-      var_patches_off_{io.defineVariable<int>(name + ".patches.off", {0}, {0}, {0})}
+      var_patches_off_{name + ".patches.off", io},
+      var_patches_xb_{name + ".patches.xb", io},
+      var_patches_xe_{name + ".patches.xe", io}
   {}
 
   void put(kg::Engine& writer, const Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
@@ -497,20 +527,19 @@ struct kg::Variable<Grid_<T>>
     size_t patches_n_local = grid.patches.size();
     writer.put(var_patches_n_local_, patches_n_local);
 
-    auto patches_off = std::vector<int>(patches_n_local);
+    auto patches_off = std::vector<Int3>(patches_n_local);
+    auto patches_xb = std::vector<Real3>(patches_n_local);
+    auto patches_xe = std::vector<Real3>(patches_n_local);
     for (int p = 0; p < patches_n_local; p++) {
       auto& patch = grid.patches[p];
-      mprintf("patch off %d %d %d\n", patch.off[0], patch.off[1], patch.off[2]);
-      patches_off[p] = patch.off[0];
+      patches_off[p] = patch.off;
+      patches_xb[p] = patch.xb;
+      patches_xe[p] = patch.xe;
     }
 
-    size_t patches_n_global = grid.nGlobalPatches();
-    size_t patches_start = grid.localPatchInfo(0).global_patch;
-    mprintf("n_global %zu start %zu\n", patches_n_global, patches_start);
-    var_patches_off_.setShape({patches_n_global});
-    var_patches_off_.setSelection({{patches_start}, {patches_n_local}});
-    writer.put(var_patches_off_, patches_off.data(), launch);
-
+    var_patches_off_.put(writer, patches_off.data(), grid, launch);
+    var_patches_xb_.put(writer, patches_xb.data(), grid, launch);
+    var_patches_xe_.put(writer, patches_xe.data(), grid, launch);
     writer.performPuts();
   }
   
@@ -536,6 +565,8 @@ private:
   kg::VariableGlobalSingleValue<real_t> var_dt_;
 
   kg::VariableLocalSingleValue<int> var_patches_n_local_; // FIXME, should be size_t, adios2 bug?
-  kg::Variable<int> var_patches_off_;
+  VariableByPatch<Int3> var_patches_off_;
+  VariableByPatch<Real3> var_patches_xb_;
+  VariableByPatch<Real3> var_patches_xe_;
 };
 
