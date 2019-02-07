@@ -94,6 +94,14 @@ struct Engine
   }
   
   // ----------------------------------------------------------------------
+  // performGets
+  
+  void performGets()
+  {
+    engine_.PerformGets();
+  }
+  
+  // ----------------------------------------------------------------------
   // close
   
   void close()
@@ -352,9 +360,10 @@ struct VariableByPatch<Vec3<T>>
 	   const kg::Mode launch = kg::Mode::Deferred)
   {
     size_t patches_n_local = grid.n_patches();
-#if 0
     size_t patches_n_global = grid.nGlobalPatches();
     size_t patches_start = grid.localPatchInfo(0).global_patch;
+    assert(var_.shape() == kg::Dims({patches_n_global, 3}));
+#if 0
     var_.setShape({patches_n_global, 3});
     var_.setSelection({{patches_start, 0}, {patches_n_local, 3}});
     reader.get(var_, data[0].data(), launch);
@@ -595,8 +604,10 @@ struct kg::Variable<Grid_<T>>
     reader.get(var_patches_n_local_, patches_n_local, launch);
     printf("patches_n_local %d\n", patches_n_local);
 
-    grid.patches.resize(patches_n_local);
+    reader.performGets();
+    grid.mrc_domain_ = grid.make_mrc_domain(grid.domain, grid.bc, patches_n_local);
 
+    grid.patches.resize(patches_n_local);
     auto patches_off = std::vector<Int3>(patches_n_local);
     var_patches_off_.get(reader, patches_off.data(), grid, launch);
   }
