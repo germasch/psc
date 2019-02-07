@@ -254,6 +254,35 @@ private:
   Variable<T> var_;
 };
 
+// ======================================================================
+// VariableLocalSingleValue
+
+template<typename T>
+struct VariableLocalSingleValue
+{
+  using value_type = T;
+  using is_adios_variable = std::false_type;
+
+  VariableLocalSingleValue(const std::string& name, IO& io)
+    : var_{io.defineVariable<T>(name, {adios2::LocalValueDim})}
+  {}
+  
+  void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred)
+  {
+    writer.put(var_, datum, launch);
+  }
+  
+  void get(Engine& reader, T& val, const Mode launch = Mode::Deferred)
+  {
+    reader.get(var_, val, launch);
+  }
+
+  explicit operator bool() const { return static_cast<bool>(var_); }
+  
+private:
+  Variable<T> var_;
+};
+  
 };
 
 // ======================================================================
