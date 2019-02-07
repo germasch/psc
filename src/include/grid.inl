@@ -10,74 +10,8 @@ using Box = adios2::Box<T>;
 struct IO;
 struct Engine;
 
-// ======================================================================
-// Variable
-//
-// This general version handles T being one of the base adios2 types (only!)
-
 template<typename T>
-struct Variable
-{
-  using value_type = T;
-  using is_adios_variable = std::true_type;
-  
-  Variable(adios2::Variable<T> var)
-    : var_{var}
-  {}
-
-  void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred);
-  void put(Engine& writer, const T* data, const Mode launch = Mode::Deferred);
-
-  void get(Engine& reader, T& datum, const Mode launch = Mode::Deferred);
-  void get(Engine& reader, T* data, const Mode launch = Mode::Deferred);
-
-  explicit operator bool() const { return static_cast<bool>(var_); }
-  
-  void setSelection(const Box<Dims>& selection)
-  {
-    var_.SetSelection(selection);
-  }
-  
-  adios2::Variable<T> var_;
-};
-  
-template<typename T>
-struct VariableGlobalSingleValue
-{
-  using value_type = T;
-  using is_adios_variable = std::false_type;
-  
-  VariableGlobalSingleValue(const std::string& name, IO& io);
-  
-  void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
-  void get(Engine& reader, T& val, const Mode launch = Mode::Deferred);
-
-  explicit operator bool() const { return static_cast<bool>(var_); }
-  
-private:
-  Variable<T> var_;
-};
-  
-template<typename T>
-struct VariableGlobalSingleValue<Vec3<T>>
-{
-  using value_type = Vec3<T>;
-  
-  VariableGlobalSingleValue(const std::string& name, IO& io);
-  
-  void put(Engine& writer, const Vec3<T>& val, const Mode launch = Mode::Deferred);
-  void get(Engine& reader, Vec3<T>& val, const Mode launch = Mode::Deferred);
-  
-  explicit operator bool() const { return static_cast<bool>(var_); }
-
-private:
-  Variable<T> var_;
-};
-
-template<typename T>
-using Vec3Writer = VariableGlobalSingleValue<T>;
-
-using Int3Writer = Vec3Writer<Int3>;
+struct Variable;
 
 // ======================================================================
 // Engine
@@ -216,70 +150,108 @@ private:
 };
 
 // ======================================================================
-// implementations
+// Variable
+//
+// This general version handles T being one of the base adios2 types (only!)
 
 template<typename T>
-void Variable<T>::put(Engine& writer, const T datum, const Mode launch)
+struct Variable
 {
-  writer.put(var_, datum, launch);
-}
+  using value_type = T;
+  using is_adios_variable = std::true_type;
   
-template<typename T>
-void Variable<T>::put(Engine& writer, const T* data, const Mode launch)
-{
-  writer.put(var_, data, launch);
-}
+  Variable(adios2::Variable<T> var)
+    : var_{var}
+  {}
 
-template<typename T>
-void Variable<T>::get(Engine& reader, T& datum, const Mode launch)
-{
-  reader.get(var_, datum, launch);
-}
-  
-template<typename T>
-void Variable<T>::get(Engine& reader, T* data, const Mode launch)
-{
-  reader.get(var_, data, launch);
-}
-  
-template<typename T>
-VariableGlobalSingleValue<T>::VariableGlobalSingleValue(const std::string& name, IO& io)
-  : var_{io.defineVariable<T>(name)}
-{}
-  
-template<typename T>
-void VariableGlobalSingleValue<T>::put(Engine& writer, T val, const Mode launch)
-{
-  if (writer.mpiRank() == 0) {
-    writer.put(var_, val, launch);
+  void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred)
+  {
+    writer.put(var_, datum, launch);
   }
-}
-
-template<typename T>
-void VariableGlobalSingleValue<T>::get(Engine& reader, T& val, const Mode launch)
-{
-  reader.get(var_, val, launch);
-}
-
-template<typename T>
-VariableGlobalSingleValue<Vec3<T>>::VariableGlobalSingleValue(const std::string& name, IO& io)
-  : var_{io.defineVariable<T>(name, {3}, {0}, {0})} // adios2 FIXME {3} {} {} gives no error, but problems
-{}
   
-template<typename T>
-void VariableGlobalSingleValue<Vec3<T>>::put(Engine& writer, const Vec3<T>& val, const Mode launch)
-{
-  if (writer.mpiRank() == 0) {
-    var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
-    writer.put(var_, val.data(), launch);
+  void put(Engine& writer, const T* data, const Mode launch = Mode::Deferred)
+  {
+    writer.put(var_, data, launch);
   }
+  
+  void get(Engine& reader, T& datum, const Mode launch = Mode::Deferred)
+  {
+    reader.get(var_, datum, launch);
+  }
+
+  void get(Engine& reader, T* data, const Mode launch = Mode::Deferred)
+  {
+    reader.get(var_, data, launch);
+  }
+
+  explicit operator bool() const { return static_cast<bool>(var_); }
+  
+  void setSelection(const Box<Dims>& selection)
+  {
+    var_.SetSelection(selection);
+  }
+  
+  adios2::Variable<T> var_;
 };
+  
+// ======================================================================
+// VariableGlobalSingleValue
 
 template<typename T>
-void VariableGlobalSingleValue<Vec3<T>>::get(Engine& reader, Vec3<T>& val, const Mode launch)
+struct VariableGlobalSingleValue
 {
-  var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
-  reader.get(var_, val.data(), launch);
+  using value_type = T;
+  using is_adios_variable = std::false_type;
+
+  VariableGlobalSingleValue(const std::string& name, IO& io)
+    : var_{io.defineVariable<T>(name)}
+  {}
+  
+  void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred)
+  {
+    if (writer.mpiRank() == 0) {
+      writer.put(var_, datum, launch);
+    }
+  }
+  
+  void get(Engine& reader, T& val, const Mode launch = Mode::Deferred)
+  {
+    reader.get(var_, val, launch);
+  }
+
+  explicit operator bool() const { return static_cast<bool>(var_); }
+  
+private:
+  Variable<T> var_;
+};
+  
+template<typename T>
+struct VariableGlobalSingleValue<Vec3<T>>
+{
+  using value_type = Vec3<T>;
+  
+  VariableGlobalSingleValue(const std::string& name, IO& io)
+    : var_{io.defineVariable<T>(name, {3}, {0}, {0})} // adios2 FIXME {3} {} {} gives no error, but problems
+  {}
+
+  void put(Engine& writer, const Vec3<T>& vec3, const Mode launch = Mode::Deferred)
+  {
+    if (writer.mpiRank() == 0) {
+      var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+      writer.put(var_, vec3.data(), launch);
+    }
+  };
+
+  void get(Engine& reader, Vec3<T>& vec3, const Mode launch = Mode::Deferred)
+  {
+    var_.setSelection({{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+    reader.get(var_, vec3.data(), launch);
+  };
+  
+  explicit operator bool() const { return static_cast<bool>(var_); }
+
+private:
+  Variable<T> var_;
 };
 
 };
