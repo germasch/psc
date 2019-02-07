@@ -256,6 +256,9 @@ private:
 
 };
 
+// ======================================================================
+// Variable<Grid_t::Domain>
+
 // FIXME, this should be templated by Grid_<T>::Domain, but can't do that...
 
 template<>
@@ -310,7 +313,54 @@ private:
   kg::VariableGlobalSingleValue<Int3> var_np_;
   kg::VariableGlobalSingleValue<Int3> var_ldims_;
   kg::VariableGlobalSingleValue<Real3> var_dx_;
-};  
+};
+
+// ======================================================================
+// Variable<GridBc>
+
+template<>
+struct kg::Variable<GridBc>
+{
+  using value_type = GridBc;
+  using is_adios_variable = std::false_type;
+
+  Variable(const std::string& name, kg::IO& io)
+    : var_fld_lo_{name + ".fld_lo", io},
+      var_fld_hi_{name + ".fld_hi", io},
+      var_prt_lo_{name + ".prt_lo", io},
+      var_prt_hi_{name + ".prt_hi", io}
+  {}
+
+  void put(kg::Engine& writer, const GridBc& bc, const kg::Mode launch = kg::Mode::Deferred)
+  {
+    writer.put(var_fld_lo_, bc.fld_lo, launch);
+    writer.put(var_fld_hi_, bc.fld_hi, launch);
+    writer.put(var_prt_lo_, bc.prt_lo, launch);
+    writer.put(var_prt_hi_, bc.prt_hi, launch);
+  }
+
+  void get(Engine& reader, GridBc& bc, const Mode launch = Mode::Deferred)
+  {
+    reader.get(var_fld_lo_, bc.fld_lo, launch);
+    reader.get(var_fld_hi_, bc.fld_hi, launch);
+    reader.get(var_prt_lo_, bc.prt_lo, launch);
+    reader.get(var_prt_hi_, bc.prt_hi, launch);
+  }
+
+  explicit operator bool() const
+  {
+    return (var_fld_lo_ && var_fld_hi_ && var_prt_lo_ && var_prt_hi_);
+  }
+
+private:
+  kg::VariableGlobalSingleValue<Int3> var_fld_lo_;
+  kg::VariableGlobalSingleValue<Int3> var_fld_hi_;
+  kg::VariableGlobalSingleValue<Int3> var_prt_lo_;
+  kg::VariableGlobalSingleValue<Int3> var_prt_hi_;
+};
+
+// ======================================================================
+// Variable<Grid_<T>>
 
 template<typename T>
 struct kg::Variable<Grid_<T>>
@@ -325,6 +375,7 @@ struct kg::Variable<Grid_<T>>
   Variable(const std::string& name, kg::IO& io)
     : var_ldims_{name + ".ldims", io},
       var_domain_{name + ".domain", io},
+      var_bc_{name + ".bc", io},
       var_dt_{name + ".dt", io}
   {}
 
@@ -332,6 +383,7 @@ struct kg::Variable<Grid_<T>>
   {
     writer.put(var_ldims_, grid.ldims);
     writer.put(var_domain_, grid.domain);
+    writer.put(var_bc_, grid.bc);
     writer.put(var_dt_, grid.dt);
   }
   
@@ -339,6 +391,7 @@ struct kg::Variable<Grid_<T>>
   {
     reader.get(var_ldims_, grid.ldims);
     reader.get(var_domain_, grid.domain);
+    reader.get(var_bc_, grid.bc);
     reader.get(var_dt_, grid.dt);
   }
   
@@ -350,6 +403,7 @@ struct kg::Variable<Grid_<T>>
 private:
   kg::VariableGlobalSingleValue<Int3> var_ldims_;
   kg::Variable<typename Grid::Domain> var_domain_;
+  kg::Variable<GridBc> var_bc_;
   kg::VariableGlobalSingleValue<real_t> var_dt_;
 };
 
