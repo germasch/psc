@@ -473,20 +473,20 @@ struct kg::Variable<Grid_<T>>
 
   void put(kg::Engine& writer, const Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
   {
-    writer.put(var_ldims_, grid.ldims);
-    writer.put(var_domain_, grid.domain);
-    writer.put(var_bc_, grid.bc);
-    writer.put(var_norm_, grid.norm);
-    writer.put(var_dt_, grid.dt);
+    writer.put(var_ldims_, grid.ldims, launch);
+    writer.put(var_domain_, grid.domain, launch);
+    writer.put(var_bc_, grid.bc, launch);
+    writer.put(var_norm_, grid.norm, launch);
+    writer.put(var_dt_, grid.dt, launch);
   }
   
   void get(kg::Engine& reader, Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
   {
-    reader.get(var_ldims_, grid.ldims);
-    reader.get(var_domain_, grid.domain);
-    reader.get(var_bc_, grid.bc);
-    reader.get(var_norm_, grid.norm);
-    reader.get(var_dt_, grid.dt);
+    reader.get(var_ldims_, grid.ldims, launch);
+    reader.get(var_domain_, grid.domain, launch);
+    reader.get(var_bc_, grid.bc, launch);
+    reader.get(var_norm_, grid.norm, launch);
+    reader.get(var_dt_, grid.dt, launch);
   }
   
   explicit operator bool() const
