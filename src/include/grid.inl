@@ -360,6 +360,68 @@ private:
 };
 
 // ======================================================================
+// Variable<Normalization>
+
+template<>
+struct kg::Variable<Grid_t::Normalization>
+{
+  using value_type = Grid_t::Normalization;
+  using is_adios_variable = std::false_type;
+
+  using real_t = Grid_t::real_t;
+
+  Variable(const std::string& name, kg::IO& io)
+    : var_cc_{name + ".cc", io},
+      var_fnqs_{name + ".fnqs", io},
+      var_eta_{name + ".eta", io},
+      var_beta_{name + ".beta", io},
+      var_cori_{name + ".cori", io},
+      var_b0_{name + ".b0", io},
+      var_rho0_{name + ".rho0", io},
+      var_phi0_{name + ".phi0", io},
+      var_a0_{name + ".a0", io}
+  {}
+
+  void put(kg::Engine& writer, const Grid_t::Normalization& norm, const kg::Mode launch = kg::Mode::Deferred)
+  {
+     writer.put(var_cc_, norm.cc, launch);
+     writer.put(var_fnqs_, norm.fnqs, launch);
+     writer.put(var_eta_, norm.eta, launch);
+     writer.put(var_beta_, norm.beta, launch);
+     writer.put(var_cori_, norm.cori, launch);
+     writer.put(var_b0_, norm.b0, launch);
+     writer.put(var_rho0_, norm.rho0, launch);
+     writer.put(var_phi0_, norm.phi0, launch);
+     writer.put(var_a0_, norm.a0, launch);
+  }
+
+  void get(Engine& reader, Grid_t::Normalization& norm, const Mode launch = Mode::Deferred)
+  {
+     reader.get(var_cc_, norm.cc, launch);
+     reader.get(var_fnqs_, norm.fnqs, launch);
+     reader.get(var_eta_, norm.eta, launch);
+     reader.get(var_beta_, norm.beta, launch);
+     reader.get(var_cori_, norm.cori, launch);
+     reader.get(var_b0_, norm.b0, launch);
+     reader.get(var_rho0_, norm.rho0, launch);
+     reader.get(var_phi0_, norm.phi0, launch);
+     reader.get(var_a0_, norm.a0, launch);
+  }
+
+private:
+  kg::VariableGlobalSingleValue<real_t> var_cc_;
+  kg::VariableGlobalSingleValue<real_t> var_fnqs_;
+  kg::VariableGlobalSingleValue<real_t> var_eta_;
+  kg::VariableGlobalSingleValue<real_t> var_beta_;
+  kg::VariableGlobalSingleValue<real_t> var_cori_;
+
+  kg::VariableGlobalSingleValue<real_t> var_b0_;
+  kg::VariableGlobalSingleValue<real_t> var_rho0_;
+  kg::VariableGlobalSingleValue<real_t> var_phi0_;
+  kg::VariableGlobalSingleValue<real_t> var_a0_;
+};
+
+// ======================================================================
 // Variable<Grid_<T>>
 
 template<typename T>
@@ -376,6 +438,7 @@ struct kg::Variable<Grid_<T>>
     : var_ldims_{name + ".ldims", io},
       var_domain_{name + ".domain", io},
       var_bc_{name + ".bc", io},
+      var_norm_{name + ".norm", io},
       var_dt_{name + ".dt", io}
   {}
 
@@ -384,6 +447,7 @@ struct kg::Variable<Grid_<T>>
     writer.put(var_ldims_, grid.ldims);
     writer.put(var_domain_, grid.domain);
     writer.put(var_bc_, grid.bc);
+    writer.put(var_norm_, grid.norm);
     writer.put(var_dt_, grid.dt);
   }
   
@@ -392,6 +456,7 @@ struct kg::Variable<Grid_<T>>
     reader.get(var_ldims_, grid.ldims);
     reader.get(var_domain_, grid.domain);
     reader.get(var_bc_, grid.bc);
+    reader.get(var_norm_, grid.norm);
     reader.get(var_dt_, grid.dt);
   }
   
@@ -404,6 +469,7 @@ private:
   kg::VariableGlobalSingleValue<Int3> var_ldims_;
   kg::Variable<typename Grid::Domain> var_domain_;
   kg::Variable<GridBc> var_bc_;
+  kg::Variable<typename Grid::Normalization> var_norm_;
   kg::VariableGlobalSingleValue<real_t> var_dt_;
 };
 
