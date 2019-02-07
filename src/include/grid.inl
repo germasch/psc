@@ -468,7 +468,8 @@ struct kg::Variable<Grid_<T>>
       var_domain_{name + ".domain", io},
       var_bc_{name + ".bc", io},
       var_norm_{name + ".norm", io},
-      var_dt_{name + ".dt", io}
+      var_dt_{name + ".dt", io},
+      var_patches_n_local_{name + ".patches.n_local", io}
   {}
 
   void put(kg::Engine& writer, const Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
@@ -478,6 +479,9 @@ struct kg::Variable<Grid_<T>>
     writer.put(var_bc_, grid.bc, launch);
     writer.put(var_norm_, grid.norm, launch);
     writer.put(var_dt_, grid.dt, launch);
+
+    int patches_n_local = grid.patches.size();
+    writer.put(var_patches_n_local_, patches_n_local);
   }
   
   void get(kg::Engine& reader, Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
@@ -500,5 +504,7 @@ private:
   kg::Variable<GridBc> var_bc_;
   kg::Variable<typename Grid::Normalization> var_norm_;
   kg::VariableGlobalSingleValue<real_t> var_dt_;
+
+  kg::VariableLocalSingleValue<int> var_patches_n_local_;
 };
 
