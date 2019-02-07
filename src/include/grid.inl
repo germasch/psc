@@ -22,6 +22,7 @@ struct Engine
     : engine_{engine}
   {
     MPI_Comm_rank(comm, &mpi_rank_);
+    MPI_Comm_size(comm, &mpi_size_);
   }
 
   // ----------------------------------------------------------------------
@@ -101,10 +102,12 @@ struct Engine
   }
 
   int mpiRank() const { return mpi_rank_; }
+  int mpiSize() const { return mpi_size_; }
 
 private:
   adios2::Engine engine_;
   int mpi_rank_;
+  int mpi_size_;
 };
 
 // ======================================================================
@@ -203,7 +206,13 @@ struct Variable
   {
     var_.SetShape(shape);
   }
-  
+
+  Dims shape() const
+  {
+    return var_.Shape();
+  }
+
+private:
   adios2::Variable<T> var_;
 };
   
@@ -287,7 +296,21 @@ struct VariableLocalSingleValue
   
   void get(Engine& reader, T& val, const Mode launch = Mode::Deferred)
   {
-    reader.get(var_, val, launch);
+    auto shape = var_.shape();
+    assert(shape.size() == 1);
+    auto dim0 = shape[0];
+    assert(dim0 == reader.mpiSize());
+    
+    // FIXME, setSelection doesn't work, so read the whole thing
+    std::vector<T> vals(shape[0]);
+    reader.get(var_, vals.data(), launch);
+    //for (auto val : vals) mprintf("val %d\n", val);
+    val = vals[reader.mpiRank()];
+  }
+
+  Dims shape() const
+  {
+    return var_.shape();
   }
 
   explicit operator bool() const { return static_cast<bool>(var_); }
@@ -323,6 +346,19 @@ struct VariableByPatch<Vec3<T>>
     var_.setShape({patches_n_global, 3});
     var_.setSelection({{patches_start, 0}, {patches_n_local, 3}});
     writer.put(var_, data[0].data(), launch);
+  }
+  
+  void get(kg::Engine& reader, value_type* data, const Grid_t& grid,
+	   const kg::Mode launch = kg::Mode::Deferred)
+  {
+    size_t patches_n_local = grid.n_patches();
+#if 0
+    size_t patches_n_global = grid.nGlobalPatches();
+    size_t patches_start = grid.localPatchInfo(0).global_patch;
+    var_.setShape({patches_n_global, 3});
+    var_.setSelection({{patches_start, 0}, {patches_n_local, 3}});
+    reader.get(var_, data[0].data(), launch);
+#endif
   }
   
 private:
@@ -529,7 +565,7 @@ struct kg::Variable<Grid_<T>>
 
     size_t patches_n_local = grid.patches.size();
     writer.put(var_patches_n_local_, patches_n_local);
-
+ 
     auto patches_off = std::vector<Int3>(patches_n_local);
     auto patches_xb = std::vector<Real3>(patches_n_local);
     auto patches_xe = std::vector<Real3>(patches_n_local);
@@ -543,6 +579,7 @@ struct kg::Variable<Grid_<T>>
     var_patches_off_.put(writer, patches_off.data(), grid, launch);
     var_patches_xb_.put(writer, patches_xb.data(), grid, launch);
     var_patches_xe_.put(writer, patches_xe.data(), grid, launch);
+
     writer.performPuts();
   }
   
@@ -553,6 +590,15 @@ struct kg::Variable<Grid_<T>>
     reader.get(var_bc_, grid.bc, launch);
     reader.get(var_norm_, grid.norm, launch);
     reader.get(var_dt_, grid.dt, launch);
+
+    int patches_n_local;
+    reader.get(var_patches_n_local_, patches_n_local, launch);
+    printf("patches_n_local %d\n", patches_n_local);
+
+    grid.patches.resize(patches_n_local);
+
+    auto patches_off = std::vector<Int3>(patches_n_local);
+    var_patches_off_.get(reader, patches_off.data(), grid, launch);
   }
   
   explicit operator bool() const

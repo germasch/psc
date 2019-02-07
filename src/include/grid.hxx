@@ -76,6 +76,9 @@ struct Grid_
 
   struct Patch
   {
+    Patch()
+    {}
+    
     Patch(const Int3& _off, const Real3& _xb, const Real3& _xe, const Real3& dx)
       : off(_off), xb(_xb), xe(_xe), dx_(dx)
     {}
