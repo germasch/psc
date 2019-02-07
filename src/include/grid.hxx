@@ -97,6 +97,9 @@ struct Grid_
 
   // ----------------------------------------------------------------------
   // ctor
+
+  Grid_()
+  {}
   
   Grid_(const Domain& domain, const GridBc& bc, const Kinds& kinds, const Normalization& norm,
 	double dt, int n_patches = -1, Int3 ibn = {})

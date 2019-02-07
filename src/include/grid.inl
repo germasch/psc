@@ -50,6 +50,7 @@ struct VariableGlobalSingleValue
   VariableGlobalSingleValue(const std::string& name, IO& io);
   
   void put(Engine& writer, const T val, const Mode launch = Mode::Deferred);
+  void get(Engine& reader, T& val, const Mode launch = Mode::Deferred);
 
   explicit operator bool() const { return static_cast<bool>(var_); }
   
@@ -255,6 +256,12 @@ void VariableGlobalSingleValue<T>::put(Engine& writer, T val, const Mode launch)
 }
 
 template<typename T>
+void VariableGlobalSingleValue<T>::get(Engine& reader, T& val, const Mode launch)
+{
+  reader.get(var_, val, launch);
+}
+
+template<typename T>
 VariableGlobalSingleValue<Vec3<T>>::VariableGlobalSingleValue(const std::string& name, IO& io)
   : var_{io.defineVariable<T>(name, {3}, {0}, {0})} // adios2 FIXME {3} {} {} gives no error, but problems
 {}
@@ -356,6 +363,18 @@ struct kg::Variable<Grid_<T>>
     writer.put(var_dt_, grid.dt);
   }
   
+  void get(kg::Engine& reader, Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
+  {
+    reader.get(var_ldims_, grid.ldims);
+    reader.get(var_domain_, grid.domain);
+    reader.get(var_dt_, grid.dt);
+  }
+  
+  explicit operator bool() const
+  {
+    return (var_ldims_ && var_domain_ && var_dt_);
+  }
+
 private:
   kg::VariableGlobalSingleValue<Int3> var_ldims_;
   kg::Variable<typename Grid::Domain> var_domain_;

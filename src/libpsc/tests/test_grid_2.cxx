@@ -116,20 +116,28 @@ TEST(Grid, adios2_write)
     
     double dt;
     Grid_t::Domain domain;
+    Grid_t grid;
 
     auto io_reader = kg::IO(ad, "io_reader");
     auto reader = io_reader.open("test.bp", kg::Mode::Read);
-    auto var_domain = io_reader.defineVariable<Grid_t::Domain>("grid.domain");
-    assert(bool(var_domain));
     auto var_dt = io_reader.inquireVariable<double>("grid.dt");
+    auto var_domain = io_reader.defineVariable<Grid_t::Domain>("grid.domain");
+    auto var_grid = io_reader.defineVariable<Grid_t>("grid");
+    assert(bool(var_domain));
     assert(bool(var_dt));
+    assert(bool(var_grid));
     reader.get(var_dt, dt);
     reader.get(var_domain, domain);
+    reader.get(var_grid, grid);
     reader.close();
 
     EXPECT_EQ(dt, .1);
+
     EXPECT_EQ(domain.gdims, Int3({8, 4, 2}));
     EXPECT_EQ(domain.length, Real3({80., 40., 20.}));
+
+    EXPECT_EQ(grid.ldims, Int3({4, 2, 2}));
+    EXPECT_EQ(grid.domain.gdims, Int3({8, 4, 2}));
   }
 }
 
