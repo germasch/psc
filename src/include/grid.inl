@@ -85,6 +85,14 @@ struct Engine
   }
 
   // ----------------------------------------------------------------------
+  // performPuts
+  
+  void performPuts()
+  {
+    engine_.PerformPuts();
+  }
+  
+  // ----------------------------------------------------------------------
   // close
   
   void close()
@@ -189,6 +197,11 @@ struct Variable
   void setSelection(const Box<Dims>& selection)
   {
     var_.SetSelection(selection);
+  }
+
+  void setShape(const Dims &shape)
+  {
+    var_.SetShape(shape);
   }
   
   adios2::Variable<T> var_;
@@ -469,7 +482,8 @@ struct kg::Variable<Grid_<T>>
       var_bc_{name + ".bc", io},
       var_norm_{name + ".norm", io},
       var_dt_{name + ".dt", io},
-      var_patches_n_local_{name + ".patches.n_local", io}
+      var_patches_n_local_{name + ".patches.n_local", io},
+      var_patches_off_{io.defineVariable<int>(name + ".patches.off", {0}, {0}, {0})}
   {}
 
   void put(kg::Engine& writer, const Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
@@ -480,8 +494,24 @@ struct kg::Variable<Grid_<T>>
     writer.put(var_norm_, grid.norm, launch);
     writer.put(var_dt_, grid.dt, launch);
 
-    int patches_n_local = grid.patches.size();
+    size_t patches_n_local = grid.patches.size();
     writer.put(var_patches_n_local_, patches_n_local);
+
+    auto patches_off = std::vector<int>(patches_n_local);
+    for (int p = 0; p < patches_n_local; p++) {
+      auto& patch = grid.patches[p];
+      mprintf("patch off %d %d %d\n", patch.off[0], patch.off[1], patch.off[2]);
+      patches_off[p] = patch.off[0];
+    }
+
+    size_t patches_n_global = grid.nGlobalPatches();
+    size_t patches_start = grid.localPatchInfo(0).global_patch;
+    mprintf("n_global %zu start %zu\n", patches_n_global, patches_start);
+    var_patches_off_.setShape({patches_n_global});
+    var_patches_off_.setSelection({{patches_start}, {patches_n_local}});
+    writer.put(var_patches_off_, patches_off.data(), launch);
+
+    writer.performPuts();
   }
   
   void get(kg::Engine& reader, Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
@@ -505,6 +535,7 @@ private:
   kg::Variable<typename Grid::Normalization> var_norm_;
   kg::VariableGlobalSingleValue<real_t> var_dt_;
 
-  kg::VariableLocalSingleValue<int> var_patches_n_local_;
+  kg::VariableLocalSingleValue<int> var_patches_n_local_; // FIXME, should be size_t, adios2 bug?
+  kg::Variable<int> var_patches_off_;
 };
 
