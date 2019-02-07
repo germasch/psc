@@ -302,13 +302,16 @@ private:
 // VariableByPatch
 
 template<typename T>
-struct VariableByPatch
+struct VariableByPatch;
+
+template<typename T>
+struct VariableByPatch<Vec3<T>>
 {
-  using value_type = T;
+  using value_type = Vec3<T>;
   using is_adios_variable = std::false_type;
 
   VariableByPatch(const std::string& name, kg::IO& io)
-    : var_{io.defineVariable<typename T::value_type>(name, {1}, {0}, {1})}
+    : var_{io.defineVariable<T>(name, {1, 3}, {0, 0}, {0, 0})}
   {}
   
   void put(kg::Engine& writer, const value_type* data, const Grid_t& grid,
@@ -323,7 +326,7 @@ struct VariableByPatch
   }
   
 private:
-  kg::Variable<typename T::value_type> var_;
+  kg::Variable<T> var_;
 };
   
 // ======================================================================
