@@ -305,6 +305,11 @@ struct VariableGlobalSingleArray
       writer.put(var_, data, launch);
     }
   }
+
+  void put(Engine& writer, const std::vector<T>& vec, const Mode launch = Mode::Deferred)
+  {
+    put(writer, vec.data(), {vec.size()});
+  }
   
   void get(Engine& reader, T* data, const Mode launch = Mode::Deferred)
   {
@@ -594,8 +599,8 @@ struct kg::Variable<Grid_t::Kinds>
       m[kind] = kinds[kind].m;
     }
     
-    var_q_.put(writer, q.data(), {n_kinds}, launch);
-    var_m_.put(writer, m.data(), {n_kinds}, launch);
+    var_q_.put(writer, q, launch);
+    var_m_.put(writer, m, launch);
 
     writer.performPuts();
   }
