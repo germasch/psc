@@ -140,6 +140,22 @@ TEST(Grid, adios2_write)
 
     EXPECT_EQ(grid.ldims, Int3({4, 2, 2}));
     EXPECT_EQ(grid.domain.gdims, Int3({8, 4, 2}));
+
+    if (mpi_rank == 0) {
+      EXPECT_EQ(grid.patches[0].off, Int3({ 0, 0, 0 }));
+      EXPECT_EQ(grid.patches[0].xb, Grid_t::Real3({ -40., -20.,  0. }));
+      EXPECT_EQ(grid.patches[0].xe, Grid_t::Real3({   0.,   0., 20. }));
+      EXPECT_EQ(grid.patches[1].off, Int3({ 4, 0, 0 }));
+      EXPECT_EQ(grid.patches[1].xb, Grid_t::Real3({   0., -20.,  0. }));
+      EXPECT_EQ(grid.patches[1].xe, Grid_t::Real3({  40.,   0., 20. }));
+    } else {
+      EXPECT_EQ(grid.patches[0].off, Int3({ 0, 2, 0 }));
+      EXPECT_EQ(grid.patches[0].xb, Grid_t::Real3({ -40.,   0.,  0. }));
+      EXPECT_EQ(grid.patches[0].xe, Grid_t::Real3({   0.,  20., 20. }));
+      EXPECT_EQ(grid.patches[1].off, Int3({ 4, 2, 0 }));
+      EXPECT_EQ(grid.patches[1].xb, Grid_t::Real3({   0.,   0.,  0. }));
+      EXPECT_EQ(grid.patches[1].xe, Grid_t::Real3({  40.,  20., 20. }));
+    }
   }
 }
 

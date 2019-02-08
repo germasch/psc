@@ -363,11 +363,8 @@ struct VariableByPatch<Vec3<T>>
     size_t patches_n_global = grid.nGlobalPatches();
     size_t patches_start = grid.localPatchInfo(0).global_patch;
     assert(var_.shape() == kg::Dims({patches_n_global, 3}));
-#if 0
-    var_.setShape({patches_n_global, 3});
     var_.setSelection({{patches_start, 0}, {patches_n_local, 3}});
     reader.get(var_, data[0].data(), launch);
-#endif
   }
   
 private:
@@ -602,14 +599,25 @@ struct kg::Variable<Grid_<T>>
 
     int patches_n_local;
     reader.get(var_patches_n_local_, patches_n_local, launch);
-    printf("patches_n_local %d\n", patches_n_local);
 
     reader.performGets();
     grid.mrc_domain_ = grid.make_mrc_domain(grid.domain, grid.bc, patches_n_local);
 
     grid.patches.resize(patches_n_local);
     auto patches_off = std::vector<Int3>(patches_n_local);
+    auto patches_xb = std::vector<Real3>(patches_n_local);
+    auto patches_xe = std::vector<Real3>(patches_n_local);
     var_patches_off_.get(reader, patches_off.data(), grid, launch);
+    var_patches_xb_.get(reader, patches_xb.data(), grid, launch);
+    var_patches_xe_.get(reader, patches_xe.data(), grid, launch);
+
+    reader.performGets();
+    for (int p = 0; p < patches_n_local; p++) {
+      auto& patch = grid.patches[p];
+      patch.off = patches_off[p];
+      patch.xb = patches_xb[p];
+      patch.xe = patches_xe[p];
+    }
   }
   
   explicit operator bool() const
