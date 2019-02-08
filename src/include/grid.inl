@@ -297,19 +297,11 @@ struct VariableGlobalSingleArray
     : var_{io.defineVariable<T>(name, {1}, {0}, {1})}
   {}
 
-  void setShape(const Dims& shape)
+  void put(Engine& writer, const T* data, const Dims& shape, const Mode launch = Mode::Deferred)
   {
     var_.setShape(shape);
-  }
-  
-  void setSelection(const Box<Dims>& box)
-  {
-    var_.setSelection(box);
-  }
-  
-  void put(Engine& writer, const T* data, const Mode launch = Mode::Deferred)
-  {
     if (writer.mpiRank() == 0) {
+      var_.setSelection({Dims(shape.size()), shape});
       writer.put(var_, data, launch);
     }
   }
@@ -602,12 +594,8 @@ struct kg::Variable<Grid_t::Kinds>
       m[kind] = kinds[kind].m;
     }
     
-    var_q_.setShape({n_kinds});
-    var_m_.setShape({n_kinds});
-    var_q_.setSelection({{0}, {n_kinds}});
-    var_m_.setSelection({{0}, {n_kinds}});
-    writer.put(var_q_, q.data(), launch);
-    writer.put(var_m_, m.data(), launch);
+    var_q_.put(writer, q.data(), {n_kinds}, launch);
+    var_m_.put(writer, m.data(), {n_kinds}, launch);
 
     writer.performPuts();
   }
