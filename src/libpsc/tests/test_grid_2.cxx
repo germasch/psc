@@ -156,6 +156,12 @@ TEST(Grid, adios2_write)
       EXPECT_EQ(grid.patches[1].xb, Grid_t::Real3({   0.,   0.,  0. }));
       EXPECT_EQ(grid.patches[1].xe, Grid_t::Real3({  40.,  20., 20. }));
     }
+
+    EXPECT_EQ(grid.kinds.size(), 2);
+    EXPECT_EQ(grid.kinds[0].q, -1.);
+    EXPECT_EQ(grid.kinds[1].q,  1.);
+    EXPECT_EQ(strcmp(grid.kinds[0].name, "electron"), 0);
+    EXPECT_EQ(strcmp(grid.kinds[1].name, "ion"), 0);
   }
 }
 

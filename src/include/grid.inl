@@ -315,7 +315,13 @@ struct VariableGlobalSingleArray
   
   void get(Engine& reader, T* data, const Mode launch = Mode::Deferred)
   {
+    // FIXME, without a setSelection, is it guaranteed that the default selection is {{}, shape}?
     reader.get(var_, data, launch);
+  }
+
+  Dims shape() const
+  {
+    return var_.shape();
   }
 
   explicit operator bool() const { return static_cast<bool>(var_); }
@@ -586,6 +592,8 @@ struct kg::Variable<Grid_t::Kinds>
   using is_adios_variable = std::false_type;
   using real_t = Grid_t::real_t;
 
+  static const size_t NAME_LEN = 10;
+
   Variable(const std::string& name, kg::IO& io)
     : var_q_{name + ".q", io},
       var_m_{name + ".m", io},
@@ -596,29 +604,43 @@ struct kg::Variable<Grid_t::Kinds>
   {
     // FIXME, this way of handling arrays of strings is bad, and using int instead of char is worse,
     // but char gives an adios2 error?
-    const size_t STRING_LENGTH = 10;
     
     auto n_kinds = kinds.size();
     auto q = std::vector<real_t>(n_kinds);
     auto m = std::vector<real_t>(n_kinds);
-    auto name = std::vector<std::array<int, STRING_LENGTH>>(n_kinds);
+    auto name = std::vector<std::array<int, NAME_LEN>>(n_kinds);
     for (int kind = 0; kind < n_kinds; kind++) {
       q[kind] = kinds[kind].q;
       m[kind] = kinds[kind].m;
-      strncpy((char*)name[kind].data(), kinds[kind].name, STRING_LENGTH);
+      strncpy((char*)name[kind].data(), kinds[kind].name, NAME_LEN);
     }
     
     var_q_.put(writer, q, launch);
     var_m_.put(writer, m, launch);
-    var_name_.put(writer, &name[0][0], {n_kinds, STRING_LENGTH}, launch);
+    var_name_.put(writer, &name[0][0], {n_kinds, NAME_LEN}, launch);
 
     writer.performPuts();
   }
 
   void get(Engine& reader, Grid_t::Kinds& kinds, const Mode launch = Mode::Deferred)
   {
-    //    reader.get(var_q_, kinds[0].q, launch);
-    //    reader.get(var_m_, kinds[0].m, launch);
+    auto shape = var_q_.shape();
+    assert(shape.size() == 1);
+    size_t n_kinds = shape[0];
+    auto q = std::vector<real_t>(n_kinds);
+    auto m = std::vector<real_t>(n_kinds);
+    auto name = std::vector<std::array<int, NAME_LEN>>(n_kinds);
+    reader.get(var_q_, q.data(), launch);
+    reader.get(var_m_, m.data(), launch);
+    reader.get(var_name_, &name[0][0], launch);
+    reader.performGets();
+
+    kinds.resize(n_kinds);
+    for (int kind = 0; kind < n_kinds; kind++) {
+      kinds[kind].q = q[kind];
+      kinds[kind].m = m[kind];
+      kinds[kind].name = strdup((char*)name[kind].data());
+    }
   }
 
 private:
@@ -712,6 +734,8 @@ struct kg::Variable<Grid_<T>>
       patch.xb = patches_xb[p];
       patch.xe = patches_xe[p];
     }
+
+    reader.get(var_kinds_, grid.kinds, launch);
   }
   
   explicit operator bool() const
