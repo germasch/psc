@@ -1,4 +1,6 @@
 
+#include <array>
+
 namespace kg
 {
 
@@ -586,21 +588,29 @@ struct kg::Variable<Grid_t::Kinds>
 
   Variable(const std::string& name, kg::IO& io)
     : var_q_{name + ".q", io},
-      var_m_{name + ".m", io}
+      var_m_{name + ".m", io},
+      var_name_{name + ".name", io}
   {}
 
   void put(kg::Engine& writer, const Grid_t::Kinds& kinds, const kg::Mode launch = kg::Mode::Deferred)
   {
+    // FIXME, this way of handling arrays of strings is bad, and using int instead of char is worse,
+    // but char gives an adios2 error?
+    const size_t STRING_LENGTH = 10;
+    
     auto n_kinds = kinds.size();
     auto q = std::vector<real_t>(n_kinds);
     auto m = std::vector<real_t>(n_kinds);
+    auto name = std::vector<std::array<int, STRING_LENGTH>>(n_kinds);
     for (int kind = 0; kind < n_kinds; kind++) {
       q[kind] = kinds[kind].q;
       m[kind] = kinds[kind].m;
+      strncpy((char*)name[kind].data(), kinds[kind].name, STRING_LENGTH);
     }
     
     var_q_.put(writer, q, launch);
     var_m_.put(writer, m, launch);
+    var_name_.put(writer, &name[0][0], {n_kinds, STRING_LENGTH}, launch);
 
     writer.performPuts();
   }
@@ -614,6 +624,7 @@ struct kg::Variable<Grid_t::Kinds>
 private:
   kg::VariableGlobalSingleArray<real_t> var_q_;
   kg::VariableGlobalSingleArray<real_t> var_m_;
+  kg::VariableGlobalSingleArray<int> var_name_;
 };
 
 // ======================================================================
