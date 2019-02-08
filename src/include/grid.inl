@@ -672,7 +672,9 @@ struct kg::Variable<Grid_<T>>
       var_patches_off_{name + ".patches.off", io},
       var_patches_xb_{name + ".patches.xb", io},
       var_patches_xe_{name + ".patches.xe", io},
-      var_kinds_{name + ".kinds", io}
+      var_kinds_{name + ".kinds", io},
+      var_ibn_{name + ".ibn", io},
+      var_timestep_{name + ".timestep", io}
   {}
 
   void put(kg::Engine& writer, const Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
@@ -701,6 +703,8 @@ struct kg::Variable<Grid_<T>>
     var_patches_xe_.put(writer, patches_xe.data(), grid, launch);
 
     writer.put(var_kinds_, grid.kinds, launch);
+    writer.put(var_ibn_, grid.ibn, launch);
+    writer.put(var_timestep_, grid.timestep_, launch);
 
     writer.performPuts(); // because we're writing temp local vars (the patches_*)
   }
@@ -716,7 +720,7 @@ struct kg::Variable<Grid_<T>>
     int patches_n_local;
     reader.get(var_patches_n_local_, patches_n_local, launch);
 
-    reader.performGets();
+    reader.performGets(); // need patches_n_local, domain, bc to be read
     grid.mrc_domain_ = grid.make_mrc_domain(grid.domain, grid.bc, patches_n_local);
 
     grid.patches.resize(patches_n_local);
@@ -727,7 +731,7 @@ struct kg::Variable<Grid_<T>>
     var_patches_xb_.get(reader, patches_xb.data(), grid, launch);
     var_patches_xe_.get(reader, patches_xe.data(), grid, launch);
 
-    reader.performGets();
+    reader.performGets(); // need to actually read the temp local vars
     for (int p = 0; p < patches_n_local; p++) {
       auto& patch = grid.patches[p];
       patch.off = patches_off[p];
@@ -736,6 +740,8 @@ struct kg::Variable<Grid_<T>>
     }
 
     reader.get(var_kinds_, grid.kinds, launch);
+    reader.get(var_ibn_, grid.ibn, launch);
+    reader.get(var_timestep_, grid.timestep_, launch);
   }
   
   explicit operator bool() const
@@ -756,5 +762,8 @@ private:
   VariableByPatch<Real3> var_patches_xe_;
 
   kg::Variable<typename Grid::Kinds> var_kinds_;
+  kg::VariableGlobalSingleValue<Int3> var_ibn_;
+  kg::VariableGlobalSingleValue<int> var_timestep_;
+  // the mrc_domain_ member is not written and handled specially on read
 };
 
