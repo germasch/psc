@@ -99,7 +99,7 @@ TEST(Grid, adios2_write)
 				 {2, 2, 1}};
     auto offs = std::vector<Int3>{{0, 0, 0}, {4, 0, 0}};
     auto bc = GridBc{};
-    auto kinds = Grid_t::Kinds{};
+    auto kinds = Grid_t::Kinds{{-1., 1., "electron"}, {1., 100., "ion"}};
     auto norm = Grid_t::Normalization{};
     double dt = .1;
     int n_patches = -1;

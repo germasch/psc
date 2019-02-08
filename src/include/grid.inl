@@ -285,6 +285,47 @@ private:
 };
 
 // ======================================================================
+// VariableGlobalSingleArray
+
+template<typename T>
+struct VariableGlobalSingleArray
+{
+  using value_type = T;
+  using is_adios_variable = std::false_type;
+
+  VariableGlobalSingleArray(const std::string& name, IO& io)
+    : var_{io.defineVariable<T>(name, {1}, {0}, {1})}
+  {}
+
+  void setShape(const Dims& shape)
+  {
+    var_.setShape(shape);
+  }
+  
+  void setSelection(const Box<Dims>& box)
+  {
+    var_.setSelection(box);
+  }
+  
+  void put(Engine& writer, const T* data, const Mode launch = Mode::Deferred)
+  {
+    if (writer.mpiRank() == 0) {
+      writer.put(var_, data, launch);
+    }
+  }
+  
+  void get(Engine& reader, T* data, const Mode launch = Mode::Deferred)
+  {
+    reader.get(var_, data, launch);
+  }
+
+  explicit operator bool() const { return static_cast<bool>(var_); }
+  
+private:
+  Variable<T> var_;
+};
+  
+// ======================================================================
 // VariableLocalSingleValue
 
 template<typename T>
@@ -537,6 +578,52 @@ private:
 };
 
 // ======================================================================
+// Variable<Grid::Kind>
+
+template<>
+struct kg::Variable<Grid_t::Kinds>
+{
+  using value_type = Grid_t::Kinds;
+  using is_adios_variable = std::false_type;
+  using real_t = Grid_t::real_t;
+
+  Variable(const std::string& name, kg::IO& io)
+    : var_q_{name + ".q", io},
+      var_m_{name + ".m", io}
+  {}
+
+  void put(kg::Engine& writer, const Grid_t::Kinds& kinds, const kg::Mode launch = kg::Mode::Deferred)
+  {
+    auto n_kinds = kinds.size();
+    auto q = std::vector<real_t>(n_kinds);
+    auto m = std::vector<real_t>(n_kinds);
+    for (int kind = 0; kind < n_kinds; kind++) {
+      q[kind] = kinds[kind].q;
+      m[kind] = kinds[kind].m;
+    }
+    
+    var_q_.setShape({n_kinds});
+    var_m_.setShape({n_kinds});
+    var_q_.setSelection({{0}, {n_kinds}});
+    var_m_.setSelection({{0}, {n_kinds}});
+    writer.put(var_q_, q.data(), launch);
+    writer.put(var_m_, m.data(), launch);
+
+    writer.performPuts();
+  }
+
+  void get(Engine& reader, Grid_t::Kinds& kinds, const Mode launch = Mode::Deferred)
+  {
+    //    reader.get(var_q_, kinds[0].q, launch);
+    //    reader.get(var_m_, kinds[0].m, launch);
+  }
+
+private:
+  kg::VariableGlobalSingleArray<real_t> var_q_;
+  kg::VariableGlobalSingleArray<real_t> var_m_;
+};
+
+// ======================================================================
 // Variable<Grid_<T>>
 
 template<typename T>
@@ -558,7 +645,8 @@ struct kg::Variable<Grid_<T>>
       var_patches_n_local_{name + ".patches.n_local", io},
       var_patches_off_{name + ".patches.off", io},
       var_patches_xb_{name + ".patches.xb", io},
-      var_patches_xe_{name + ".patches.xe", io}
+      var_patches_xe_{name + ".patches.xe", io},
+      var_kinds_{name + ".kinds", io}
   {}
 
   void put(kg::Engine& writer, const Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
@@ -586,7 +674,9 @@ struct kg::Variable<Grid_<T>>
     var_patches_xb_.put(writer, patches_xb.data(), grid, launch);
     var_patches_xe_.put(writer, patches_xe.data(), grid, launch);
 
-    writer.performPuts();
+    writer.put(var_kinds_, grid.kinds, launch);
+
+    writer.performPuts(); // because we're writing temp local vars (the patches_*)
   }
   
   void get(kg::Engine& reader, Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
@@ -636,5 +726,7 @@ private:
   VariableByPatch<Int3> var_patches_off_;
   VariableByPatch<Real3> var_patches_xb_;
   VariableByPatch<Real3> var_patches_xe_;
+
+  kg::Variable<typename Grid::Kinds> var_kinds_;
 };
 
