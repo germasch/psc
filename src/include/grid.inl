@@ -608,7 +608,7 @@ struct kg::Variable<Grid_t::Kinds>
     auto n_kinds = kinds.size();
     auto q = std::vector<real_t>(n_kinds);
     auto m = std::vector<real_t>(n_kinds);
-    auto name = std::vector<std::array<int, NAME_LEN>>(n_kinds);
+    auto name = std::vector<std::array<char, NAME_LEN>>(n_kinds);
     for (int kind = 0; kind < n_kinds; kind++) {
       q[kind] = kinds[kind].q;
       m[kind] = kinds[kind].m;
@@ -629,7 +629,7 @@ struct kg::Variable<Grid_t::Kinds>
     size_t n_kinds = shape[0];
     auto q = std::vector<real_t>(n_kinds);
     auto m = std::vector<real_t>(n_kinds);
-    auto name = std::vector<std::array<int, NAME_LEN>>(n_kinds);
+    auto name = std::vector<std::array<char, NAME_LEN>>(n_kinds);
     reader.get(var_q_, q.data(), launch);
     reader.get(var_m_, m.data(), launch);
     reader.get(var_name_, &name[0][0], launch);
@@ -646,7 +646,7 @@ struct kg::Variable<Grid_t::Kinds>
 private:
   kg::VariableGlobalSingleArray<real_t> var_q_;
   kg::VariableGlobalSingleArray<real_t> var_m_;
-  kg::VariableGlobalSingleArray<int> var_name_;
+  kg::VariableGlobalSingleArray<char> var_name_;
 };
 
 // ======================================================================
