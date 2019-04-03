@@ -188,25 +188,6 @@ private:
 };
 
 // ======================================================================
-// Attribute
-//
-// Only handles T being one of the base adios2 types (or arrays thereof)
-
-template<typename T>
-struct Attribute
-{
-  using value_type = T;
-  using is_adios_attribute = std::true_type;
-
-  Attribute(const std::string& name)
-    : name_{name}
-  {}
-
-private:
-  const std::string name_;
-};
-  
-// ======================================================================
 // Variable
 //
 // This general version handles T being one of the base adios2 types (only!)
@@ -376,17 +357,19 @@ struct VariableGlobalSingleArray
 private:
   Variable<T> var_;
 };
+
+namespace detail
+{
   
 // ======================================================================
-// AttributeArray
+// Attribute
+//
+// Handles T being one of the base adios2 types (or arrays thereof)
 
 template<typename T>
-struct AttributeArray
+struct Attribute
 {
-  using value_type = T;
-  using is_adios_variable = std::false_type;
-
-  AttributeArray(const std::string& name, IO& io)
+  Attribute(const std::string& name)
     : name_{name}
   {}
 
@@ -397,18 +380,101 @@ struct AttributeArray
     }
   }
 
-  void put(Engine& writer, const std::vector<T>& vec)
-  {
-    put(writer, vec.data(), vec.size());
-  }
-  
   void get(Engine& reader, std::vector<T>& data)
   {
     reader.getAttribute(name_, data);
   }
 
-private:
+protected:
   const std::string name_;
+};
+
+};
+
+template <typename T>
+class Attribute;
+
+// ======================================================================
+// Attribute<std::vector>
+
+template <>
+class Attribute<std::vector<std::string>>
+{
+  using T = std::string;
+public:
+  using value_type = std::vector<std::string>;
+
+  Attribute(const std::string& name)
+    : attr_{name}
+  {}
+
+  void put(Engine& writer, const std::vector<T>& vec)
+  {
+    attr_.put(writer, vec.data(), vec.size());
+  }
+
+  void get(Engine& reader, std::vector<T>& vec)
+  {
+    attr_.get(reader, vec);
+  }
+
+private:
+  detail::Attribute<T> attr_;
+};
+  
+template <>
+class Attribute<std::vector<double>>
+{
+  using T = double;
+public:
+  using value_type = std::vector<std::string>;
+
+  Attribute(const std::string& name)
+    : attr_{name}
+  {}
+
+  void put(Engine& writer, const std::vector<T>& vec)
+  {
+    attr_.put(writer, vec.data(), vec.size());
+  }
+
+  void get(Engine& reader, std::vector<T>& vec)
+  {
+    attr_.get(reader, vec);
+  }
+
+private:
+  detail::Attribute<T> attr_;
+};
+  
+// ======================================================================
+// Attribute<Vec3>
+
+template<>
+class Attribute<Int3>
+{
+  using T = int;
+public:
+  using value_type = Int3;
+
+  Attribute(const std::string& name, IO& io)
+    : attr_{name}
+  {}
+
+  void put(Engine& writer, const Vec3<T>& vec)
+  {
+    attr_.put(writer, vec.data(), 3);
+  }
+  
+  void get(Engine& reader, Vec3<T>& data)
+  {
+    std::vector<T> vals;
+    attr_.get(reader, vals);
+    data = {vals[0], vals[1], vals[2]};
+  }
+
+private:
+  detail::Attribute<T> attr_;
 };
   
 // ======================================================================
@@ -676,9 +742,9 @@ struct kg::Variable<Grid_t::Kinds>
   static const size_t NAME_LEN = 10;
 
   Variable(const std::string& name, kg::IO& io)
-    : attr_q_{name + ".q", io},
-      attr_m_{name + ".m", io},
-      attr_names_{name + ".names", io}
+    : attr_q_{name + ".q"},
+      attr_m_{name + ".m"},
+      attr_names_{name + ".names"}
   {}
 
   void put(kg::Engine& writer, const Grid_t::Kinds& kinds, const kg::Mode launch = kg::Mode::Deferred)
@@ -718,9 +784,9 @@ struct kg::Variable<Grid_t::Kinds>
   }
 
 private:
-  kg::AttributeArray<real_t> attr_q_;
-  kg::AttributeArray<real_t> attr_m_;
-  kg::AttributeArray<std::string> attr_names_;
+  kg::Attribute<std::vector<real_t>> attr_q_;
+  kg::Attribute<std::vector<real_t>> attr_m_;
+  kg::Attribute<std::vector<std::string>> attr_names_;
 };
 
 // ======================================================================
@@ -753,7 +819,7 @@ struct kg::Variable<Grid_<T>>
 
   void put(kg::Engine& writer, const Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
   {
-    writer.put(var_ldims_, grid.ldims, launch);
+    writer.put(var_ldims_, grid.ldims);
     writer.put(var_domain_, grid.domain, launch);
     writer.put(var_bc_, grid.bc, launch);
     writer.put(var_norm_, grid.norm, launch);
@@ -785,7 +851,7 @@ struct kg::Variable<Grid_<T>>
   
   void get(kg::Engine& reader, Grid& grid, const kg::Mode launch = kg::Mode::Deferred)
   {
-    reader.get(var_ldims_, grid.ldims, launch);
+    reader.get(var_ldims_, grid.ldims);
     reader.get(var_domain_, grid.domain, launch);
     reader.get(var_bc_, grid.bc, launch);
     reader.get(var_norm_, grid.norm, launch);
@@ -820,11 +886,11 @@ struct kg::Variable<Grid_<T>>
   
   explicit operator bool() const
   {
-    return (var_ldims_ && var_domain_ && var_dt_);
+    return (var_domain_ && var_dt_);
   }
 
 private:
-  kg::VariableGlobalSingleValue<Int3> var_ldims_;
+  kg::Attribute<Int3> var_ldims_;
   kg::Variable<typename Grid::Domain> var_domain_;
   kg::Variable<GridBc> var_bc_;
   kg::Variable<typename Grid::Normalization> var_norm_;
