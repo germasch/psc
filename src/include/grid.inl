@@ -15,7 +15,7 @@ struct Engine;
 template<typename T>
 struct Variable;
 
-template<typename T>
+template<typename T, typename Enable = void>
 struct Attribute;
 
 // ======================================================================
@@ -369,7 +369,7 @@ namespace detail
 template<typename T>
 struct Attribute
 {
-  Attribute(const std::string& name)
+  Attribute(const std::string& name, IO& io)
     : name_{name}
   {}
 
@@ -391,90 +391,87 @@ protected:
 
 };
 
-template <typename T>
+template <typename T, typename Enable>
 class Attribute;
 
 // ======================================================================
 // Attribute<std::vector>
 
-template <>
-class Attribute<std::vector<std::string>>
+namespace detail
 {
-  using T = std::string;
-public:
-  using value_type = std::vector<std::string>;
 
-  Attribute(const std::string& name)
-    : attr_{name}
-  {}
+template <typename T>
+struct is_vector : std::false_type {};
 
-  void put(Engine& writer, const std::vector<T>& vec)
-  {
-    attr_.put(writer, vec.data(), vec.size());
-  }
+template <typename T>
+struct is_vector<std::vector<T>> : std::true_type {};
 
-  void get(Engine& reader, std::vector<T>& vec)
-  {
-    attr_.get(reader, vec);
-  }
-
-private:
-  detail::Attribute<T> attr_;
 };
-  
-template <>
-class Attribute<std::vector<double>>
-{
-  using T = double;
-public:
-  using value_type = std::vector<std::string>;
 
-  Attribute(const std::string& name)
-    : attr_{name}
+template <class T>
+class Attribute<T, typename std::enable_if<detail::is_vector<T>::value>::type>
+{
+  using DataType = typename T::value_type;
+public:
+  using value_type = T;
+
+  Attribute(const std::string& name, IO& io)
+    : attr_{name, io}
   {}
 
-  void put(Engine& writer, const std::vector<T>& vec)
+  void put(Engine& writer, const T& vec)
   {
     attr_.put(writer, vec.data(), vec.size());
   }
 
-  void get(Engine& reader, std::vector<T>& vec)
+  void get(Engine& reader, T& vec)
   {
     attr_.get(reader, vec);
   }
 
 private:
-  detail::Attribute<T> attr_;
+  detail::Attribute<DataType> attr_;
 };
   
 // ======================================================================
 // Attribute<Vec3>
 
-template<>
-class Attribute<Int3>
+namespace detail
 {
-  using T = int;
+
+template <typename T>
+struct is_Vec3 : std::false_type {};
+
+template <typename T>
+struct is_Vec3<Vec3<T>> : std::true_type {};
+
+};
+
+template <class T>
+class Attribute<T, typename std::enable_if<detail::is_Vec3<T>::value>::type>
+{
+  using DataType = typename T::value_type;
 public:
-  using value_type = Int3;
+  using value_type = T;
 
   Attribute(const std::string& name, IO& io)
-    : attr_{name}
+    : attr_{name, io}
   {}
 
-  void put(Engine& writer, const Vec3<T>& vec)
+  void put(Engine& writer, const T& vec)
   {
     attr_.put(writer, vec.data(), 3);
   }
   
-  void get(Engine& reader, Vec3<T>& data)
+  void get(Engine& reader, T& data)
   {
-    std::vector<T> vals;
+    std::vector<DataType> vals;
     attr_.get(reader, vals);
     data = {vals[0], vals[1], vals[2]};
   }
 
 private:
-  detail::Attribute<T> attr_;
+  detail::Attribute<DataType> attr_;
 };
   
 // ======================================================================
@@ -742,9 +739,9 @@ struct kg::Variable<Grid_t::Kinds>
   static const size_t NAME_LEN = 10;
 
   Variable(const std::string& name, kg::IO& io)
-    : attr_q_{name + ".q"},
-      attr_m_{name + ".m"},
-      attr_names_{name + ".names"}
+    : attr_q_{name + ".q", io},
+      attr_m_{name + ".m", io},
+      attr_names_{name + ".names", io}
   {}
 
   void put(kg::Engine& writer, const Grid_t::Kinds& kinds, const kg::Mode launch = kg::Mode::Deferred)
