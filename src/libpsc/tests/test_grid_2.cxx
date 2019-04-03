@@ -10,6 +10,7 @@ int mpi_rank, mpi_size;
 // ======================================================================
 // MPI test (to be run on 2 procs)
 
+#if 0
 TEST(Grid, CtorComplete)
 {
   EXPECT_EQ(mpi_size, 2);
@@ -86,6 +87,7 @@ TEST(Grid, Kinds)
   kinds.emplace_back(Grid_t::Kind(1., 1., "test_species"));
   EXPECT_EQ(kinds.size(), 1);
 }
+#endif
 
 TEST(Grid, adios2_write)
 {

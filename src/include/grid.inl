@@ -15,13 +15,16 @@ struct Engine;
 template<typename T>
 struct Variable;
 
+template<typename T>
+struct Attribute;
+
 // ======================================================================
 // Engine
 
 struct Engine
 {
-  Engine(adios2::Engine engine, MPI_Comm comm)
-    : engine_{engine}
+  Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
+    : engine_{engine}, io_{io}
   {
     MPI_Comm_rank(comm, &mpi_rank_);
     MPI_Comm_size(comm, &mpi_size_);
@@ -45,16 +48,10 @@ struct Engine
   // ----------------------------------------------------------------------
   // put in general
   
-  template<class T>
-  void put(T& variable, const typename T::value_type* data, const Mode launch = Mode::Deferred)
+  template<class T, class... Args>
+  void put(T& variable, Args&&... args)
   {
-    variable.put(*this, data, launch);
-  }
-
-  template<class T>
-  void put(T& variable, const typename T::value_type& datum, const Mode launch = Mode::Deferred)
-  {
-    variable.put(*this, datum, launch);
+    variable.put(*this, std::forward<Args>(args)...);
   }
 
   // ----------------------------------------------------------------------
@@ -75,16 +72,10 @@ struct Engine
   // ----------------------------------------------------------------------
   // get in general
   
-  template <class T>
-  void get(T& variable, typename T::value_type& datum, const Mode launch = Mode::Deferred)
+  template <class T, class... Args>
+  void get(T& variable, Args&&... args)
   {
-    variable.get(*this, datum, launch);
-  }
-
-  template <class T>
-  void get(T& variable, typename T::value_type* data, const Mode launch = Mode::Deferred)
-  {
-    variable.get(*this, data, launch);
+    variable.get(*this, std::forward<Args>(args)...);
   }
 
   // ----------------------------------------------------------------------
@@ -111,11 +102,31 @@ struct Engine
     engine_.Close();
   }
 
+  template<typename T>
+  void putAttribute(const std::string& name, const T* data, size_t size)
+  {
+    auto attr = io_.InquireAttribute<T>(name);
+    if (attr) {
+      mprintf("attr '%s' already exists -- ignoring it!", name.c_str());
+    } else {
+      io_.DefineAttribute<T>(name, data, size);
+    }
+  }
+  
+  template<typename T>
+  void getAttribute(const std::string& name, std::vector<T>& data)
+  {
+    auto attr = io_.InquireAttribute<T>(name);
+    assert(attr);
+    data = attr.Data();
+  }
+  
   int mpiRank() const { return mpi_rank_; }
   int mpiSize() const { return mpi_size_; }
 
 private:
   adios2::Engine engine_;
+  adios2::IO io_;
   int mpi_rank_;
   int mpi_size_;
 };
@@ -134,7 +145,7 @@ struct IO
      // FIXME, assumes that the ADIOS2 object underlying io_ was created on MPI_COMM_WORLD
     auto comm = MPI_COMM_WORLD;
     
-    return {io_.Open(name, mode), comm};
+    return {io_.Open(name, mode), io_, comm};
   }
 
   template<typename T,
@@ -170,6 +181,25 @@ private:
   adios2::IO io_;
 };
 
+// ======================================================================
+// Attribute
+//
+// Only handles T being one of the base adios2 types (or arrays thereof)
+
+template<typename T>
+struct Attribute
+{
+  using value_type = T;
+  using is_adios_attribute = std::true_type;
+
+  Attribute(const std::string& name)
+    : name_{name}
+  {}
+
+private:
+  const std::string name_;
+};
+  
 // ======================================================================
 // Variable
 //
@@ -328,6 +358,40 @@ struct VariableGlobalSingleArray
   
 private:
   Variable<T> var_;
+};
+  
+// ======================================================================
+// AttributeArray
+
+template<typename T>
+struct AttributeArray
+{
+  using value_type = T;
+  using is_adios_variable = std::false_type;
+
+  AttributeArray(const std::string& name, IO& io)
+    : name_{name}
+  {}
+
+  void put(Engine& writer, const T* data, size_t size)
+  {
+    if (writer.mpiRank() == 0) { // FIXME, should I do this?
+      writer.putAttribute(name_, data, size);
+    }
+  }
+
+  void put(Engine& writer, const std::vector<T>& vec)
+  {
+    put(writer, vec.data(), vec.size());
+  }
+  
+  void get(Engine& reader, std::vector<T>& data)
+  {
+    reader.getAttribute(name_, data);
+  }
+
+private:
+  const std::string name_;
 };
   
 // ======================================================================
@@ -597,14 +661,20 @@ struct kg::Variable<Grid_t::Kinds>
   Variable(const std::string& name, kg::IO& io)
     : var_q_{name + ".q", io},
       var_m_{name + ".m", io},
-      var_name_{name + ".name", io}
+      attr_names_{name + ".names", io}
   {}
 
   void put(kg::Engine& writer, const Grid_t::Kinds& kinds, const kg::Mode launch = kg::Mode::Deferred)
   {
     // FIXME, this way of handling arrays of strings is bad, and using int instead of char is worse,
     // but char gives an adios2 error?
-    
+
+    std::vector<std::string> names;
+    names.reserve(kinds.size());
+    for (auto& kind : kinds) {
+      names.push_back(kind.name);
+    }
+    attr_names_.put(writer, names);
     auto n_kinds = kinds.size();
     auto q = std::vector<real_t>(n_kinds);
     auto m = std::vector<real_t>(n_kinds);
@@ -617,36 +687,36 @@ struct kg::Variable<Grid_t::Kinds>
     
     var_q_.put(writer, q, launch);
     var_m_.put(writer, m, launch);
-    var_name_.put(writer, &name[0][0], {n_kinds, NAME_LEN}, launch);
 
     writer.performPuts();
   }
 
   void get(Engine& reader, Grid_t::Kinds& kinds, const Mode launch = Mode::Deferred)
   {
+    // FIXME, put and get are too asymmetric (one on var, one on engine)
     auto shape = var_q_.shape();
     assert(shape.size() == 1);
     size_t n_kinds = shape[0];
     auto q = std::vector<real_t>(n_kinds);
     auto m = std::vector<real_t>(n_kinds);
-    auto name = std::vector<std::array<char, NAME_LEN>>(n_kinds);
+    auto names = std::vector<std::string>{};
+    attr_names_.get(reader, names);
     reader.get(var_q_, q.data(), launch);
     reader.get(var_m_, m.data(), launch);
-    reader.get(var_name_, &name[0][0], launch);
     reader.performGets();
 
     kinds.resize(n_kinds);
     for (int kind = 0; kind < n_kinds; kind++) {
       kinds[kind].q = q[kind];
       kinds[kind].m = m[kind];
-      kinds[kind].name = strdup((char*)name[kind].data());
+      kinds[kind].name = strdup(names[kind].c_str());
     }
   }
 
 private:
   kg::VariableGlobalSingleArray<real_t> var_q_;
   kg::VariableGlobalSingleArray<real_t> var_m_;
-  kg::VariableGlobalSingleArray<char> var_name_;
+  kg::AttributeArray<std::string> attr_names_;
 };
 
 // ======================================================================
@@ -698,9 +768,9 @@ struct kg::Variable<Grid_<T>>
       patches_xe[p] = patch.xe;
     }
 
-    var_patches_off_.put(writer, patches_off.data(), grid, launch);
-    var_patches_xb_.put(writer, patches_xb.data(), grid, launch);
-    var_patches_xe_.put(writer, patches_xe.data(), grid, launch);
+    writer.put(var_patches_off_, patches_off.data(), grid, launch);
+    writer.put(var_patches_xb_, patches_xb.data(), grid, launch);
+    writer.put(var_patches_xe_, patches_xe.data(), grid, launch);
 
     writer.put(var_kinds_, grid.kinds, launch);
     writer.put(var_ibn_, grid.ibn, launch);
@@ -727,9 +797,9 @@ struct kg::Variable<Grid_<T>>
     auto patches_off = std::vector<Int3>(patches_n_local);
     auto patches_xb = std::vector<Real3>(patches_n_local);
     auto patches_xe = std::vector<Real3>(patches_n_local);
-    var_patches_off_.get(reader, patches_off.data(), grid, launch);
-    var_patches_xb_.get(reader, patches_xb.data(), grid, launch);
-    var_patches_xe_.get(reader, patches_xe.data(), grid, launch);
+    reader.get(var_patches_off_, patches_off.data(), grid, launch);
+    reader.get(var_patches_xb_, patches_xb.data(), grid, launch);
+    reader.get(var_patches_xe_, patches_xe.data(), grid, launch);
 
     reader.performGets(); // need to actually read the temp local vars
     for (int p = 0; p < patches_n_local; p++) {
