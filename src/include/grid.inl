@@ -874,7 +874,7 @@ struct kg::Variable<Grid_<T>>
     writer.put(var_domain_, grid.domain, launch);
     writer.put(var_bc_, grid.bc, launch);
     writer.put(var_norm_, grid.norm, launch);
-    writer.put(var_dt_, grid.dt, launch);
+    writer.put(var_dt_, grid.dt);
 
     size_t patches_n_local = grid.patches.size();
     writer.put(var_patches_n_local_, patches_n_local);
@@ -906,7 +906,7 @@ struct kg::Variable<Grid_<T>>
     reader.get(var_domain_, grid.domain, launch);
     reader.get(var_bc_, grid.bc, launch);
     reader.get(var_norm_, grid.norm, launch);
-    reader.get(var_dt_, grid.dt, launch);
+    reader.get(var_dt_, grid.dt);
 
     int patches_n_local;
     reader.get(var_patches_n_local_, patches_n_local, launch);
@@ -935,17 +935,12 @@ struct kg::Variable<Grid_<T>>
     reader.get(var_timestep_, grid.timestep_);
   }
   
-  explicit operator bool() const
-  {
-    return (var_domain_ && var_dt_);
-  }
-
 private:
   kg::Attribute<Int3> var_ldims_;
   kg::Variable<typename Grid::Domain> var_domain_;
   kg::Variable<GridBc> var_bc_;
   kg::Variable<typename Grid::Normalization> var_norm_;
-  kg::VariableGlobalSingleValue<real_t> var_dt_;
+  kg::Attribute<real_t> var_dt_;
 
   kg::VariableLocalSingleValue<int> var_patches_n_local_; // FIXME, should be size_t, adios2 bug?
   VariableByPatch<Int3> var_patches_off_;
