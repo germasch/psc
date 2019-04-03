@@ -17,8 +17,8 @@ int main(int argc, char** argv)
   {
     auto io_witer = ad.DeclareIO("io_writer");
     auto varTest = io_witer.DefineVariable<int>("TestVar");
-    std::cout << "varTest = " << varTest << std::endl;
-    std::cout << "ShapeID = " << varTest.ShapeID() << std::endl;
+    //std::cout << "varTest = " << varTest << std::endl;
+    //std::cout << "ShapeID = " << varTest.ShapeID() << std::endl;
     auto shape_id = varTest.ShapeID();
     auto varSize = varTest;
     auto varRankLocal = io_witer.DefineVariable<int>("RankLocal", {adios2::LocalValueDim});
