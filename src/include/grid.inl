@@ -111,11 +111,28 @@ struct Engine
   template<typename T>
   void putAttribute(const std::string& name, const T* data, size_t size)
   {
+    if (mpi_rank_ != 0) { // FIXME, should we do this?
+      return;
+    }
     auto attr = io_.InquireAttribute<T>(name);
     if (attr) {
       mprintf("attr '%s' already exists -- ignoring it!", name.c_str());
     } else {
       io_.DefineAttribute<T>(name, data, size);
+    }
+  }
+  
+  template<typename T>
+  void putAttribute(const std::string& name, const T& value)
+  {
+    if (mpi_rank_ != 0) { // FIXME, should we do this?
+      return;
+    }
+    auto attr = io_.InquireAttribute<T>(name);
+    if (attr) {
+      mprintf("attr '%s' already exists -- ignoring it!", name.c_str());
+    } else {
+      io_.DefineAttribute<T>(name, value);
     }
   }
   
@@ -375,14 +392,25 @@ struct Attribute
 
   void put(Engine& writer, const T* data, size_t size)
   {
-    if (writer.mpiRank() == 0) { // FIXME, should I do this?
-      writer.putAttribute(name_, data, size);
-    }
+    writer.putAttribute(name_, data, size);
+  }
+
+  void put(Engine& writer, const T& value)
+  {
+    writer.putAttribute(name_, value);
   }
 
   void get(Engine& reader, std::vector<T>& data)
   {
     reader.getAttribute(name_, data);
+  }
+
+  void get(Engine& reader, T& value)
+  {
+    std::vector<T> vals;
+    reader.getAttribute(name_, vals);
+    assert(vals.size() == 1);
+    value = vals[0];
   }
 
 protected:
@@ -391,8 +419,34 @@ protected:
 
 };
 
+// ======================================================================
+// Attribute<T>
+//
+// single value
+
 template <typename T, typename Enable>
-class Attribute;
+class Attribute
+{
+  using DataType = T;
+
+public:
+  Attribute(const std::string& name, IO& io)
+    : attr_{name, io}
+  {}
+
+  void put(Engine& writer, const T& value)
+  {
+    attr_.put(writer, value);
+  }
+
+  void get(Engine& reader, T& value)
+  {
+    attr_.get(reader, value);
+  }
+
+private:
+  detail::Attribute<DataType> attr_;
+};
 
 // ======================================================================
 // Attribute<std::vector>
@@ -840,8 +894,8 @@ struct kg::Variable<Grid_<T>>
     writer.put(var_patches_xe_, patches_xe.data(), grid, launch);
 
     writer.put(var_kinds_, grid.kinds, launch);
-    writer.put(var_ibn_, grid.ibn, launch);
-    writer.put(var_timestep_, grid.timestep_, launch);
+    writer.put(var_ibn_, grid.ibn);
+    writer.put(var_timestep_, grid.timestep_);
 
     writer.performPuts(); // because we're writing temp local vars (the patches_*)
   }
@@ -877,8 +931,8 @@ struct kg::Variable<Grid_<T>>
     }
 
     reader.get(var_kinds_, grid.kinds, launch);
-    reader.get(var_ibn_, grid.ibn, launch);
-    reader.get(var_timestep_, grid.timestep_, launch);
+    reader.get(var_ibn_, grid.ibn);
+    reader.get(var_timestep_, grid.timestep_);
   }
   
   explicit operator bool() const
@@ -899,8 +953,8 @@ private:
   VariableByPatch<Real3> var_patches_xe_;
 
   kg::Variable<typename Grid::Kinds> var_kinds_;
-  kg::VariableGlobalSingleValue<Int3> var_ibn_;
-  kg::VariableGlobalSingleValue<int> var_timestep_;
+  kg::Attribute<Int3> var_ibn_;
+  kg::Attribute<int> var_timestep_;
   // the mrc_domain_ member is not written and handled specially on read
 };
 
