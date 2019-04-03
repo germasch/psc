@@ -664,7 +664,7 @@ private:
 };
 
 // ======================================================================
-// Variable<Grid::Kind>
+// Variable<Grid::Kinds>
 
 template<>
 struct kg::Variable<Grid_t::Kinds>
@@ -676,8 +676,8 @@ struct kg::Variable<Grid_t::Kinds>
   static const size_t NAME_LEN = 10;
 
   Variable(const std::string& name, kg::IO& io)
-    : var_q_{name + ".q", io},
-      var_m_{name + ".m", io},
+    : attr_q_{name + ".q", io},
+      attr_m_{name + ".m", io},
       attr_names_{name + ".names", io}
   {}
 
@@ -694,27 +694,23 @@ struct kg::Variable<Grid_t::Kinds>
     }
     
     writer.put(attr_names_, names);
-    writer.put(var_q_, q, launch);
-    writer.put(var_m_, m, launch);
-
+    writer.put(attr_q_, q);
+    writer.put(attr_m_, m);
     writer.performPuts();
   }
 
   void get(Engine& reader, Grid_t::Kinds& kinds, const Mode launch = Mode::Deferred)
   {
-    auto shape = var_q_.shape();
-    assert(shape.size() == 1);
-    size_t n_kinds = shape[0];
     auto q = std::vector<real_t>{};
     auto m = std::vector<real_t>{};
     auto names = std::vector<std::string>{};
     reader.get(attr_names_, names);
-    reader.get(var_q_, q, launch);
-    reader.get(var_m_, m, launch);
+    reader.get(attr_q_, q);
+    reader.get(attr_m_, m);
     reader.performGets();
 
-    kinds.resize(n_kinds);
-    for (int kind = 0; kind < n_kinds; kind++) {
+    kinds.resize(q.size());
+    for (int kind = 0; kind < q.size(); kind++) {
       kinds[kind].q = q[kind];
       kinds[kind].m = m[kind];
       kinds[kind].name = strdup(names[kind].c_str());
@@ -722,8 +718,8 @@ struct kg::Variable<Grid_t::Kinds>
   }
 
 private:
-  kg::VariableGlobalSingleArray<real_t> var_q_;
-  kg::VariableGlobalSingleArray<real_t> var_m_;
+  kg::AttributeArray<real_t> attr_q_;
+  kg::AttributeArray<real_t> attr_m_;
   kg::AttributeArray<std::string> attr_names_;
 };
 
