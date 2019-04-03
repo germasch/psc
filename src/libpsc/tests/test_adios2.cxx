@@ -16,8 +16,8 @@ void test1()
     auto var = io_writer.DefineVariable<T>("var");
     auto writer = io_writer.Open("test", adios2::Mode::Write);
     
-    T test = 99;
-    writer.Put(var, test);
+    unsigned long test = 99;
+    //writer.Put(var, test);
     writer.Close();
   }
 
