@@ -69,6 +69,12 @@ struct Engine
     engine_.Get(variable, data, launch);
   }
   
+  template<typename T>
+  void get(adios2::Variable<T> variable, std::vector<T>& data, const Mode launch = Mode::Deferred)
+  {
+    engine_.Get(variable, data, launch);
+  }
+  
   // ----------------------------------------------------------------------
   // get in general
   
@@ -235,6 +241,11 @@ struct Variable
     reader.get(var_, data, launch);
   }
 
+  void get(Engine& reader, std::vector<T>& data, const Mode launch = Mode::Deferred)
+  {
+    reader.get(var_, data, launch);
+  }
+
   explicit operator bool() const { return static_cast<bool>(var_); }
   
   void setSelection(const Box<Dims>& selection)
@@ -344,6 +355,12 @@ struct VariableGlobalSingleArray
   }
   
   void get(Engine& reader, T* data, const Mode launch = Mode::Deferred)
+  {
+    // FIXME, without a setSelection, is it guaranteed that the default selection is {{}, shape}?
+    reader.get(var_, data, launch);
+  }
+
+  void get(Engine& reader, std::vector<T>& data, const Mode launch = Mode::Deferred)
   {
     // FIXME, without a setSelection, is it guaranteed that the default selection is {{}, shape}?
     reader.get(var_, data, launch);
@@ -666,43 +683,34 @@ struct kg::Variable<Grid_t::Kinds>
 
   void put(kg::Engine& writer, const Grid_t::Kinds& kinds, const kg::Mode launch = kg::Mode::Deferred)
   {
-    // FIXME, this way of handling arrays of strings is bad, and using int instead of char is worse,
-    // but char gives an adios2 error?
-
-    std::vector<std::string> names;
-    names.reserve(kinds.size());
-    for (auto& kind : kinds) {
-      names.push_back(kind.name);
-    }
-    attr_names_.put(writer, names);
     auto n_kinds = kinds.size();
+    auto names = std::vector<std::string>(n_kinds);
     auto q = std::vector<real_t>(n_kinds);
     auto m = std::vector<real_t>(n_kinds);
-    auto name = std::vector<std::array<char, NAME_LEN>>(n_kinds);
     for (int kind = 0; kind < n_kinds; kind++) {
       q[kind] = kinds[kind].q;
       m[kind] = kinds[kind].m;
-      strncpy((char*)name[kind].data(), kinds[kind].name, NAME_LEN);
+      names[kind] = kinds[kind].name;
     }
     
-    var_q_.put(writer, q, launch);
-    var_m_.put(writer, m, launch);
+    writer.put(attr_names_, names);
+    writer.put(var_q_, q, launch);
+    writer.put(var_m_, m, launch);
 
     writer.performPuts();
   }
 
   void get(Engine& reader, Grid_t::Kinds& kinds, const Mode launch = Mode::Deferred)
   {
-    // FIXME, put and get are too asymmetric (one on var, one on engine)
     auto shape = var_q_.shape();
     assert(shape.size() == 1);
     size_t n_kinds = shape[0];
-    auto q = std::vector<real_t>(n_kinds);
-    auto m = std::vector<real_t>(n_kinds);
+    auto q = std::vector<real_t>{};
+    auto m = std::vector<real_t>{};
     auto names = std::vector<std::string>{};
-    attr_names_.get(reader, names);
-    reader.get(var_q_, q.data(), launch);
-    reader.get(var_m_, m.data(), launch);
+    reader.get(attr_names_, names);
+    reader.get(var_q_, q, launch);
+    reader.get(var_m_, m, launch);
     reader.performGets();
 
     kinds.resize(n_kinds);
