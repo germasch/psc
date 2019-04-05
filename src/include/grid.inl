@@ -3,6 +3,47 @@
 
 #include "kg/io.h"
 
+namespace kg
+{
+
+// ======================================================================
+// VariableGlobalSingleValue<Vec3<T>>
+
+template <typename T>
+struct VariableGlobalSingleValue<Vec3<T>>
+{
+  using value_type = Vec3<T>;
+
+  VariableGlobalSingleValue(const std::string& name, IO& io)
+    : var_{io.defineVariable<T>(name, {3}, {0}, {0})}
+  // adios2 FIXME {3} {} {} gives no error, but problems
+  {}
+
+  void put(Engine& writer, const Vec3<T>& vec3,
+           const Mode launch = Mode::Deferred)
+  {
+    if (writer.mpiRank() == 0) {
+      var_.setSelection(
+        {{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+      writer.put(var_, vec3.data(), launch);
+    }
+  };
+
+  void get(Engine& reader, Vec3<T>& vec3, const Mode launch = Mode::Deferred)
+  {
+    var_.setSelection(
+      {{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+    reader.get(var_, vec3.data(), launch);
+  };
+
+  explicit operator bool() const { return static_cast<bool>(var_); }
+
+private:
+  Variable<T> var_;
+};
+
+} // namespace kg
+
 // ======================================================================
 // VariableByPatch
 
