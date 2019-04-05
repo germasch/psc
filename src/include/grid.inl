@@ -14,8 +14,8 @@ struct VariableGlobalSingleValue<Vec3<T>>
 {
   using value_type = Vec3<T>;
 
-  VariableGlobalSingleValue(const std::string& name, IO& io)
-    : var_{io.defineVariable<T>(name, {3}, {0}, {0})}
+  VariableGlobalSingleValue(const std::string& name, Engine& engine)
+    : var_{engine.defineVariable<T>(name, {3}, {0}, {0})}
   // adios2 FIXME {3} {} {} gives no error, but problems
   {}
 
@@ -56,8 +56,8 @@ struct VariableByPatch<Vec3<T>>
   using value_type = Vec3<T>;
   using is_adios_variable = std::false_type;
 
-  VariableByPatch(const std::string& name, kg::IO& io)
-    : var_{io._defineVariable<T>(name, {1, 3}, {0, 0}, {0, 0})}
+  VariableByPatch(const std::string& name, kg::Engine& engine)
+    : var_{engine._defineVariable<T>(name, {1, 3}, {0, 0}, {0, 0})}
   {}
 
   void put(kg::Engine& writer, const value_type* data, const Grid_t& grid,
@@ -101,13 +101,13 @@ struct kg::Variable<Grid_t::Domain>
   using real_t = typename Grid::real_t;
   using Real3 = typename Grid::Real3;
 
-  Variable(const std::string& name, kg::IO& io)
-    : var_gdims_{name + ".gdims", io},
-      var_length_{name + ".length", io},
-      var_corner_{name + ".corner", io},
-      var_np_{name + ".np", io},
-      var_ldims_{name + ".ldims", io},
-      var_dx_{name + ".dx", io}
+  Variable(const std::string& name, kg::Engine& engine)
+    : var_gdims_{name + ".gdims", engine},
+      var_length_{name + ".length", engine},
+      var_corner_{name + ".corner", engine},
+      var_np_{name + ".np", engine},
+      var_ldims_{name + ".ldims", engine},
+      var_dx_{name + ".dx", engine}
   {}
 
   void put(kg::Engine& writer, const Grid::Domain& domain,
@@ -150,11 +150,11 @@ struct kg::Variable<GridBc>
   using value_type = GridBc;
   using is_adios_variable = std::false_type;
 
-  Variable(const std::string& name, kg::IO& io)
-    : var_fld_lo_{name + ".fld_lo", io},
-      var_fld_hi_{name + ".fld_hi", io},
-      var_prt_lo_{name + ".prt_lo", io},
-      var_prt_hi_{name + ".prt_hi", io}
+  Variable(const std::string& name, kg::Engine& engine)
+    : var_fld_lo_{name + ".fld_lo", engine},
+      var_fld_hi_{name + ".fld_hi", engine},
+      var_prt_lo_{name + ".prt_lo", engine},
+      var_prt_hi_{name + ".prt_hi", engine}
   {}
 
   void put(kg::Engine& writer, const GridBc& bc,
@@ -192,16 +192,16 @@ struct kg::Variable<Grid_t::Normalization>
 
   using real_t = Grid_t::real_t;
 
-  Variable(const std::string& name, kg::IO& io)
-    : var_cc_{name + ".cc", io},
-      var_fnqs_{name + ".fnqs", io},
-      var_eta_{name + ".eta", io},
-      var_beta_{name + ".beta", io},
-      var_cori_{name + ".cori", io},
-      var_b0_{name + ".b0", io},
-      var_rho0_{name + ".rho0", io},
-      var_phi0_{name + ".phi0", io},
-      var_a0_{name + ".a0", io}
+  Variable(const std::string& name, kg::Engine& engine)
+    : var_cc_{name + ".cc", engine},
+      var_fnqs_{name + ".fnqs", engine},
+      var_eta_{name + ".eta", engine},
+      var_beta_{name + ".beta", engine},
+      var_cori_{name + ".cori", engine},
+      var_b0_{name + ".b0", engine},
+      var_rho0_{name + ".rho0", engine},
+      var_phi0_{name + ".phi0", engine},
+      var_a0_{name + ".a0", engine}
   {}
 
   void put(kg::Engine& writer, const Grid_t::Normalization& norm,
@@ -257,10 +257,10 @@ struct kg::Variable<Grid_t::Kinds>
 
   static const size_t NAME_LEN = 10;
 
-  Variable(const std::string& name, kg::IO& io)
-    : attr_q_{name + ".q", io},
-      attr_m_{name + ".m", io},
-      attr_names_{name + ".names", io}
+  Variable(const std::string& name, kg::Engine& engine)
+    : attr_q_{name + ".q", engine},
+      attr_m_{name + ".m", engine},
+      attr_names_{name + ".names", engine}
   {}
 
   void put(kg::Engine& writer, const Grid_t::Kinds& kinds,
@@ -320,19 +320,19 @@ struct kg::Variable<Grid_<T>>
   using real_t = typename Grid::real_t;
   using Real3 = typename Grid::Real3;
 
-  Variable(const std::string& name, kg::IO& io)
-    : var_ldims_{name + ".ldims", io},
-      var_domain_{name + ".domain", io},
-      var_bc_{name + ".bc", io},
-      var_norm_{name + ".norm", io},
-      var_dt_{name + ".dt", io},
-      var_patches_n_local_{name + ".patches.n_local", io},
-      var_patches_off_{name + ".patches.off", io},
-      var_patches_xb_{name + ".patches.xb", io},
-      var_patches_xe_{name + ".patches.xe", io},
-      var_kinds_{name + ".kinds", io},
-      var_ibn_{name + ".ibn", io},
-      var_timestep_{name + ".timestep", io}
+  Variable(const std::string& name, kg::Engine& engine)
+    : var_ldims_{name + ".ldims", engine},
+      var_domain_{name + ".domain", engine},
+      var_bc_{name + ".bc", engine},
+      var_norm_{name + ".norm", engine},
+      var_dt_{name + ".dt", engine},
+      var_patches_n_local_{name + ".patches.n_local", engine},
+      var_patches_off_{name + ".patches.off", engine},
+      var_patches_xb_{name + ".patches.xb", engine},
+      var_patches_xe_{name + ".patches.xe", engine},
+      var_kinds_{name + ".kinds", engine},
+      var_ibn_{name + ".ibn", engine},
+      var_timestep_{name + ".timestep", engine}
   {}
 
   void put(kg::Engine& writer, const Grid& grid,

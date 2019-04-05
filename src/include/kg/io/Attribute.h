@@ -18,7 +18,7 @@ namespace detail
 template <typename T>
 struct Attribute
 {
-  Attribute(const std::string& name, IO& io) : name_{name} {}
+  Attribute(const std::string& name, Engine& engine) : name_{name} {}
 
   void put(Engine& writer, const T* data, size_t size)
   {
@@ -60,7 +60,7 @@ class Attribute
   using DataType = T;
 
 public:
-  Attribute(const std::string& name, IO& io) : attr_{name, io} {}
+  Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
 
   void put(Engine& writer, const T& value, const Mode launch = Mode::Deferred)
   {
@@ -100,7 +100,7 @@ class Attribute<T, typename std::enable_if<detail::is_vector<T>::value>::type>
 public:
   using value_type = T;
 
-  Attribute(const std::string& name, IO& io) : attr_{name, io} {}
+  Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
 
   void put(Engine& writer, const T& vec, const Mode launch = Mode::Deferred)
   {
@@ -140,7 +140,7 @@ class Attribute<T, typename std::enable_if<detail::is_Vec3<T>::value>::type>
 public:
   using value_type = T;
 
-  Attribute(const std::string& name, IO& io) : attr_{name, io} {}
+  Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
 
   void put(Engine& writer, const T& vec, const Mode launch = Mode::Deferred)
   {

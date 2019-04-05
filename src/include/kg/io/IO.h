@@ -28,16 +28,6 @@ struct IO
 {
   IO(io::Manager& mgr, const std::string& name);
 
-  template <typename T>
-  detail::Variable<T> _defineVariable(const std::string& name,
-                                      const Dims& shape = Dims(),
-                                      const Dims& start = Dims(),
-                                      const Dims& count = Dims(),
-                                      const bool constantDims = false);
-
-  template <typename T>
-  Variable<T> defineVariable(const std::string& name);
-
   // private:
   adios2::IO io_;
 };

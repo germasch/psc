@@ -50,7 +50,7 @@ class VariableGlobalSingleValue
 public:
   using value_type = T;
 
-  VariableGlobalSingleValue(const std::string& name, IO& io);
+  VariableGlobalSingleValue(const std::string& name, Engine& engine);
 
   void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred);
 
@@ -69,7 +69,7 @@ class VariableGlobalSingleArray
 public:
   using value_type = T;
 
-  VariableGlobalSingleArray(const std::string& name, IO& io);
+  VariableGlobalSingleArray(const std::string& name, Engine& engine);
 
   void put(Engine& writer, const T* data, const Dims& shape,
            const Mode launch = Mode::Deferred);
@@ -95,7 +95,7 @@ class VariableLocalSingleValue
 public:
   using value_type = T;
 
-  VariableLocalSingleValue(const std::string& name, IO& io);
+  VariableLocalSingleValue(const std::string& name, Engine& engine);
 
   void put(Engine& writer, const T& datum, const Mode launch = Mode::Deferred);
 

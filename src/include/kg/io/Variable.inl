@@ -70,8 +70,8 @@ Dims Variable<T>::shape() const
 
 template <typename T>
 VariableGlobalSingleValue<T>::VariableGlobalSingleValue(const std::string& name,
-                                                        IO& io)
-  : var_{io._defineVariable<T>(name)}
+                                                        Engine& engine)
+  : var_{engine._defineVariable<T>(name)}
 {}
 
 template <typename T>
@@ -95,8 +95,8 @@ void VariableGlobalSingleValue<T>::get(Engine& reader, T& val,
 
 template <typename T>
 VariableGlobalSingleArray<T>::VariableGlobalSingleArray(const std::string& name,
-                                                        IO& io)
-  : var_{io._defineVariable<T>(name, {1}, {0}, {1})} // FIXME?
+                                                        Engine& engine)
+  : var_{engine._defineVariable<T>(name, {1}, {0}, {1})} // FIXME?
 {}
 
 template <typename T>
@@ -147,8 +147,8 @@ Dims VariableGlobalSingleArray<T>::shape() const
 
 template <typename T>
 VariableLocalSingleValue<T>::VariableLocalSingleValue(const std::string& name,
-                                                      IO& io)
-  : var_{io._defineVariable<T>(name, {adios2::LocalValueDim})}
+                                                      Engine& engine)
+  : var_{engine._defineVariable<T>(name, {adios2::LocalValueDim})}
 {}
 
 template <typename T>
