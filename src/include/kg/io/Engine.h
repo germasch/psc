@@ -15,142 +15,82 @@ class Variable;
 // ======================================================================
 // Engine
 
-struct Engine
+class Engine
 {
-  Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
-    : engine_{engine}, io_{io}
-  {
-    MPI_Comm_rank(comm, &mpi_rank_);
-    MPI_Comm_size(comm, &mpi_size_);
-  }
+public:
+  Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm);
 
   template <typename T>
   detail::Variable<T> _defineVariable(const std::string& name,
                                       const Dims& shape = Dims(),
                                       const Dims& start = Dims(),
                                       const Dims& count = Dims(),
-                                      const bool constantDims = false)
-  {
-    auto var = io_.InquireVariable<T>(name);
-    if (var) {
-      return var;
-    } else {
-      return io_.DefineVariable<T>(name, shape, start, count, constantDims);
-    }
-  }
+                                      const bool constantDims = false);
 
   // ----------------------------------------------------------------------
   // put for adios2 variables
 
   template <typename T>
   void put(adios2::Variable<T> variable, const T* data,
-           const Mode launch = Mode::Deferred)
-  {
-    engine_.Put(variable, data, launch);
-  }
+           const Mode launch = Mode::Deferred);
 
   template <typename T>
   void put(adios2::Variable<T> variable, const T& datum,
-           const Mode launch = Mode::Deferred)
-  {
-    engine_.Put(variable, datum, launch);
-  }
+           const Mode launch = Mode::Deferred);
 
   // ----------------------------------------------------------------------
   // put in general
 
   template <class T, class... Args>
-  void put(T& variable, Args&&... args)
-  {
-    variable.put(*this, std::forward<Args>(args)...);
-  }
+  void put(T& variable, Args&&... args);
 
   // ----------------------------------------------------------------------
   // get for adios2 variables
 
   template <typename T>
   void get(adios2::Variable<T> variable, T& datum,
-           const Mode launch = Mode::Deferred)
-  {
-    engine_.Get(variable, datum, launch);
-  }
+           const Mode launch = Mode::Deferred);
 
   template <typename T>
   void get(adios2::Variable<T> variable, T* data,
-           const Mode launch = Mode::Deferred)
-  {
-    engine_.Get(variable, data, launch);
-  }
+           const Mode launch = Mode::Deferred);
 
   template <typename T>
   void get(adios2::Variable<T> variable, std::vector<T>& data,
-           const Mode launch = Mode::Deferred)
-  {
-    engine_.Get(variable, data, launch);
-  }
+           const Mode launch = Mode::Deferred);
 
   // ----------------------------------------------------------------------
   // get in general
 
   template <class T, class... Args>
-  void get(T& variable, Args&&... args)
-  {
-    variable.get(*this, std::forward<Args>(args)...);
-  }
+  void get(T& variable, Args&&... args);
 
   // ----------------------------------------------------------------------
   // performPuts
 
-  void performPuts() { engine_.PerformPuts(); }
+  void performPuts();
 
   // ----------------------------------------------------------------------
   // performGets
 
-  void performGets() { engine_.PerformGets(); }
+  void performGets();
 
   // ----------------------------------------------------------------------
   // close
 
-  void close() { engine_.Close(); }
+  void close();
 
   template <typename T>
-  void putAttribute(const std::string& name, const T* data, size_t size)
-  {
-    if (mpi_rank_ != 0) { // FIXME, should we do this?
-      return;
-    }
-    auto attr = io_.InquireAttribute<T>(name);
-    if (attr) {
-      mprintf("attr '%s' already exists -- ignoring it!", name.c_str());
-    } else {
-      io_.DefineAttribute<T>(name, data, size);
-    }
-  }
+  void putAttribute(const std::string& name, const T* data, size_t size);
 
   template <typename T>
-  void putAttribute(const std::string& name, const T& value)
-  {
-    if (mpi_rank_ != 0) { // FIXME, should we do this?
-      return;
-    }
-    auto attr = io_.InquireAttribute<T>(name);
-    if (attr) {
-      mprintf("attr '%s' already exists -- ignoring it!", name.c_str());
-    } else {
-      io_.DefineAttribute<T>(name, value);
-    }
-  }
+  void putAttribute(const std::string& name, const T& value);
 
   template <typename T>
-  void getAttribute(const std::string& name, std::vector<T>& data)
-  {
-    auto attr = io_.InquireAttribute<T>(name);
-    assert(attr);
-    data = attr.Data();
-  }
+  void getAttribute(const std::string& name, std::vector<T>& data);
 
-  int mpiRank() const { return mpi_rank_; }
-  int mpiSize() const { return mpi_size_; }
+  int mpiRank() const;
+  int mpiSize() const;
 
 private:
   adios2::Engine engine_;
@@ -160,3 +100,5 @@ private:
 };
 
 } // namespace kg
+
+#include "Engine.inl"
