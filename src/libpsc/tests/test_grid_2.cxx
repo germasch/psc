@@ -106,9 +106,9 @@ TEST(Grid, adios2_write)
     auto grid = Grid_t{domain, bc, kinds, norm, dt, n_patches};
 
     auto io_writer = kg::IO(mgr, "io_writer");
-    auto var_grid = io_writer.defineVariable<Grid_t>("grid");
 
     auto writer = mgr.open("test.bp", kg::Mode::Write);
+    auto var_grid = writer.defineVariable<Grid_t>("grid");
     writer.put(var_grid, grid);
     writer.close();
   }
@@ -122,7 +122,7 @@ TEST(Grid, adios2_write)
 
     auto io_reader = kg::IO(mgr, "io_reader");
     auto reader = mgr.open("test.bp", kg::Mode::Read);
-    auto var_grid = io_reader.defineVariable<Grid_t>("grid");
+    auto var_grid = reader.defineVariable<Grid_t>("grid");
     reader.get(var_grid, grid);
     reader.close();
 

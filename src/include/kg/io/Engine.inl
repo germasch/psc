@@ -26,6 +26,12 @@ detail::Variable<T> Engine::_defineVariable(const std::string& name,
   }
 }
 
+template <typename T>
+Variable<T> Engine::defineVariable(const std::string& name)
+{
+  return {name, io_};
+}
+
 // ----------------------------------------------------------------------
 // put for adios2 variables
 

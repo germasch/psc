@@ -29,6 +29,9 @@ public:
                                       const Dims& count = Dims(),
                                       const bool constantDims = false);
 
+  template <typename T>
+  Variable<T> defineVariable(const std::string& name);
+
   // ----------------------------------------------------------------------
   // put for adios2 variables
 

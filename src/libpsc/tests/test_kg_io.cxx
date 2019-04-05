@@ -8,7 +8,6 @@ TEST(KgIo, WriteRead)
   auto mgr = kg::io::Manager(MPI_COMM_WORLD);
 
   {
-    auto io_writer = kg::IO(mgr, "io_writer");
     auto writer = mgr.open("test.bp", kg::Mode::Write);
     auto var_double = writer._defineVariable<double>("var_double");
     writer.put(var_double, 99.);
@@ -16,7 +15,6 @@ TEST(KgIo, WriteRead)
   }
 
   {
-    auto io_reader = kg::IO(mgr, "io_reader");
     auto reader = mgr.open("test.bp", kg::Mode::Read);
     auto var_double = reader._defineVariable<double>("var_double");
     double dbl;
