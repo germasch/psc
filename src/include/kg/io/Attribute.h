@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <vec3.hxx>
+
 namespace kg
 {
 namespace detail

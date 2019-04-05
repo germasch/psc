@@ -27,6 +27,10 @@ add_psc_test(test_collision)
 add_psc_test(test_inject)
 add_psc_test(test_balance)
 
+if (ADIOS2_FOUND)
+  add_psc_test(test_kg_io)
+endif()
+
 macro(add_adios_test name)
   if (ADIOS2_FOUND)
     add_executable(${name} ${name}.cxx)

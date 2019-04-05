@@ -1,6 +1,10 @@
 
 #pragma once
 
+#include <adios2.h>
+
+#include <mrc_common.h>
+
 namespace kg
 {
 
