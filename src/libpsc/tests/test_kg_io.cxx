@@ -9,7 +9,7 @@ TEST(KgIo, WriteRead)
 
   {
     auto io_writer = kg::IO(mgr, "io_writer");
-    auto writer = io_writer.open("test.bp", kg::Mode::Write);
+    auto writer = mgr.open("test.bp", kg::Mode::Write);
     auto var_double = writer._defineVariable<double>("var_double");
     writer.put(var_double, 99.);
     writer.close();
@@ -17,7 +17,7 @@ TEST(KgIo, WriteRead)
 
   {
     auto io_reader = kg::IO(mgr, "io_reader");
-    auto reader = io_reader.open("test.bp", kg::Mode::Read);
+    auto reader = mgr.open("test.bp", kg::Mode::Read);
     auto var_double = reader._defineVariable<double>("var_double");
     double dbl;
     reader.get(var_double, dbl);

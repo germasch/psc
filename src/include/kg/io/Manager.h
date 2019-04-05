@@ -18,7 +18,15 @@ class Manager
 public:
   Manager(MPI_Comm comm) : ad_{comm, adios2::DebugON} {}
 
-  Engine open(const std::string& name, const adios2::Mode mode);
+  Engine open(const std::string& name, const adios2::Mode mode)
+  {
+    static int cnt;
+    // FIXME, assumes that the ADIOS2 object underlying io_ was created on
+    // MPI_COMM_WORLD
+    auto comm = MPI_COMM_WORLD;
+    auto io = ad_.DeclareIO("io" + name + "-" + std::to_string(cnt++));
+    return {io.Open(name, mode), io, comm};
+  }
 
 private:
   adios2::ADIOS ad_;

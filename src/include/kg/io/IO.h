@@ -30,8 +30,6 @@ struct IO
 {
   IO(io::Manager& mgr, const char* name);
 
-  Engine open(const std::string& name, const adios2::Mode mode);
-
   template <typename T>
   detail::Variable<T> _defineVariable(const std::string& name,
                                       const Dims& shape = Dims(),
