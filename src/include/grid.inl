@@ -379,7 +379,7 @@ namespace detail
 {
   
 // ======================================================================
-// Attribute
+// detail::Attribute
 //
 // Handles T being one of the base adios2 types (or arrays thereof)
 
@@ -434,12 +434,12 @@ public:
     : attr_{name, io}
   {}
 
-  void put(Engine& writer, const T& value)
+  void put(Engine& writer, const T& value, const Mode launch = Mode::Deferred)
   {
     attr_.put(writer, value);
   }
 
-  void get(Engine& reader, T& value)
+  void get(Engine& reader, T& value, const Mode launch = Mode::Deferred)
   {
     attr_.get(reader, value);
   }
@@ -473,12 +473,12 @@ public:
     : attr_{name, io}
   {}
 
-  void put(Engine& writer, const T& vec)
+  void put(Engine& writer, const T& vec, const Mode launch = Mode::Deferred)
   {
     attr_.put(writer, vec.data(), vec.size());
   }
 
-  void get(Engine& reader, T& vec)
+  void get(Engine& reader, T& vec, const Mode launch = Mode::Deferred)
   {
     attr_.get(reader, vec);
   }
@@ -512,12 +512,12 @@ public:
     : attr_{name, io}
   {}
 
-  void put(Engine& writer, const T& vec)
+  void put(Engine& writer, const T& vec, const Mode launch = Mode::Deferred)
   {
     attr_.put(writer, vec.data(), 3);
   }
   
-  void get(Engine& reader, T& data)
+  void get(Engine& reader, T& data, const Mode launch = Mode::Deferred)
   {
     std::vector<DataType> vals;
     attr_.get(reader, vals);
@@ -659,19 +659,13 @@ struct kg::Variable<Grid_t::Domain>
     reader.get(var_dx_, domain.dx, launch);
   }
 
-  explicit operator bool() const
-  {
-    return (var_gdims_ && var_length_ && var_corner_ &&
-	    var_np_ && var_ldims_ && var_dx_);
-  }
-
 private:
-  kg::VariableGlobalSingleValue<Int3> var_gdims_;
-  kg::VariableGlobalSingleValue<Real3> var_length_;
-  kg::VariableGlobalSingleValue<Real3> var_corner_;
-  kg::VariableGlobalSingleValue<Int3> var_np_;
-  kg::VariableGlobalSingleValue<Int3> var_ldims_;
-  kg::VariableGlobalSingleValue<Real3> var_dx_;
+  kg::Attribute<Int3> var_gdims_;
+  kg::Attribute<Real3> var_length_;
+  kg::Attribute<Real3> var_corner_;
+  kg::Attribute<Int3> var_np_;
+  kg::Attribute<Int3> var_ldims_;
+  kg::Attribute<Real3> var_dx_;
 };
 
 // ======================================================================
@@ -706,16 +700,11 @@ struct kg::Variable<GridBc>
     reader.get(var_prt_hi_, bc.prt_hi, launch);
   }
 
-  explicit operator bool() const
-  {
-    return (var_fld_lo_ && var_fld_hi_ && var_prt_lo_ && var_prt_hi_);
-  }
-
 private:
-  kg::VariableGlobalSingleValue<Int3> var_fld_lo_;
-  kg::VariableGlobalSingleValue<Int3> var_fld_hi_;
-  kg::VariableGlobalSingleValue<Int3> var_prt_lo_;
-  kg::VariableGlobalSingleValue<Int3> var_prt_hi_;
+  kg::Attribute<Int3> var_fld_lo_;
+  kg::Attribute<Int3> var_fld_hi_;
+  kg::Attribute<Int3> var_prt_lo_;
+  kg::Attribute<Int3> var_prt_hi_;
 };
 
 // ======================================================================
@@ -768,16 +757,16 @@ struct kg::Variable<Grid_t::Normalization>
   }
 
 private:
-  kg::VariableGlobalSingleValue<real_t> var_cc_;
-  kg::VariableGlobalSingleValue<real_t> var_fnqs_;
-  kg::VariableGlobalSingleValue<real_t> var_eta_;
-  kg::VariableGlobalSingleValue<real_t> var_beta_;
-  kg::VariableGlobalSingleValue<real_t> var_cori_;
+  kg::Attribute<real_t> var_cc_;
+  kg::Attribute<real_t> var_fnqs_;
+  kg::Attribute<real_t> var_eta_;
+  kg::Attribute<real_t> var_beta_;
+  kg::Attribute<real_t> var_cori_;
 
-  kg::VariableGlobalSingleValue<real_t> var_b0_;
-  kg::VariableGlobalSingleValue<real_t> var_rho0_;
-  kg::VariableGlobalSingleValue<real_t> var_phi0_;
-  kg::VariableGlobalSingleValue<real_t> var_a0_;
+  kg::Attribute<real_t> var_b0_;
+  kg::Attribute<real_t> var_rho0_;
+  kg::Attribute<real_t> var_phi0_;
+  kg::Attribute<real_t> var_a0_;
 };
 
 // ======================================================================
