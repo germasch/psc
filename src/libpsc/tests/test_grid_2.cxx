@@ -1,6 +1,6 @@
 
 #include <gtest/gtest.h>
-#include <adios2.h>
+#include <kg/io.h>
 
 #include "test_common.hxx"
 #include "grid.inl"
@@ -91,7 +91,7 @@ TEST(Grid, Kinds)
 
 TEST(Grid, adios2_write)
 {
-  auto ad = adios2::ADIOS(MPI_COMM_WORLD, adios2::DebugON);
+  auto ad = kg::io::Manager(MPI_COMM_WORLD);
 
   {
     auto domain = Grid_t::Domain{{8, 4, 2},

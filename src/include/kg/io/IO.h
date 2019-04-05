@@ -1,6 +1,9 @@
 
 #pragma once
 
+#include "Engine.h"
+#include "Manager.h"
+
 namespace kg
 {
 
@@ -21,7 +24,7 @@ struct Attribute;
 
 struct IO
 {
-  IO(adios2::ADIOS& ad, const char* name) : io_{ad.DeclareIO(name)} {}
+  IO(io::Manager& mgr, const char* name) : io_{mgr.ad_.DeclareIO(name)} {}
 
   Engine open(const std::string& name, const adios2::Mode mode)
   {

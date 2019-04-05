@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "IO.h"
+
 #include <vec3.hxx>
 
 namespace kg

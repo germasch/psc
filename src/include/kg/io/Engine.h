@@ -1,17 +1,16 @@
 
 #pragma once
 
-#include <adios2.h>
-
 #include <mrc_common.h>
 
 namespace kg
 {
 
-using Mode = adios2::Mode;
-using Dims = adios2::Dims;
+namespace detail
+{
 template <typename T>
-using Box = adios2::Box<T>;
+class Variable;
+}
 
 // ======================================================================
 // Engine
@@ -23,6 +22,21 @@ struct Engine
   {
     MPI_Comm_rank(comm, &mpi_rank_);
     MPI_Comm_size(comm, &mpi_size_);
+  }
+
+  template <typename T>
+  detail::Variable<T> _defineVariable(const std::string& name,
+                                      const Dims& shape = Dims(),
+                                      const Dims& start = Dims(),
+                                      const Dims& count = Dims(),
+                                      const bool constantDims = false)
+  {
+    auto var = io_.InquireVariable<T>(name);
+    if (var) {
+      return var;
+    } else {
+      return io_.DefineVariable<T>(name, shape, start, count, constantDims);
+    }
   }
 
   // ----------------------------------------------------------------------

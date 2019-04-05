@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "Engine.h"
+
 namespace kg
 {
 namespace detail
