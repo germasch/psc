@@ -26,9 +26,8 @@ struct IO
     return {io_.Open(name, mode), io_, comm};
   }
 
-  template <typename T, typename std::enable_if<
-                          Variable<T>::is_adios_variable::value, int>::type = 0>
-  Variable<T> defineVariable(const std::string& name,
+  template <typename T>
+  Variable<T> _defineVariable(const std::string& name,
                              const Dims& shape = Dims(),
                              const Dims& start = Dims(),
                              const Dims& count = Dims(),
@@ -42,14 +41,8 @@ struct IO
     }
   }
 
-  template <typename T,
-            typename std::enable_if<!Variable<T>::is_adios_variable::value,
-                                    int>::type = 0>
-  Variable<T> defineVariable(const std::string& name,
-                             const Dims& shape = Dims(),
-                             const Dims& start = Dims(),
-                             const Dims& count = Dims(),
-                             const bool constantDims = false)
+  template <typename T>
+  Variable<T> defineVariable(const std::string& name)
   {
     return {name, *this};
   }

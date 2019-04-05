@@ -45,8 +45,6 @@ struct Variable
     reader.get(var_, data, launch);
   }
 
-  explicit operator bool() const { return static_cast<bool>(var_); }
-
   void setSelection(const Box<Dims>& selection)
   {
     var_.SetSelection(selection);
@@ -175,6 +173,5 @@ struct VariableGlobalSingleArray
 private:
   Variable<T> var_;
 };
-
 
 } // namespace kg

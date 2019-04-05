@@ -16,7 +16,7 @@ struct VariableByPatch<Vec3<T>>
   using is_adios_variable = std::false_type;
 
   VariableByPatch(const std::string& name, kg::IO& io)
-    : var_{io.defineVariable<T>(name, {1, 3}, {0, 0}, {0, 0})}
+    : var_{io._defineVariable<T>(name, {1, 3}, {0, 0}, {0, 0})}
   {}
 
   void put(kg::Engine& writer, const value_type* data, const Grid_t& grid,

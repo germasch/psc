@@ -164,7 +164,7 @@ struct VariableLocalSingleValue
   using is_adios_variable = std::false_type;
 
   VariableLocalSingleValue(const std::string& name, IO& io)
-    : var_{io.defineVariable<T>(name, {adios2::LocalValueDim})}
+    : var_{io._defineVariable<T>(name, {adios2::LocalValueDim})}
   {}
 
   void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred)
