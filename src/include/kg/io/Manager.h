@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "Engine.h"
+
 #include <adios2.h>
 
 namespace kg
@@ -15,6 +17,8 @@ class Manager
 {
 public:
   Manager(MPI_Comm comm) : ad_{comm, adios2::DebugON} {}
+
+  Engine open(const std::string& name, const adios2::Mode mode);
 
 private:
   adios2::ADIOS ad_;

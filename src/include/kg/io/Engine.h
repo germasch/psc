@@ -12,6 +12,8 @@ template <typename T>
 class Variable;
 }
 
+class IO;
+
 // ======================================================================
 // Engine
 

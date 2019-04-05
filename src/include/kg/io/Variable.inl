@@ -71,7 +71,7 @@ Dims Variable<T>::shape() const
 template <typename T>
 VariableGlobalSingleValue<T>::VariableGlobalSingleValue(const std::string& name,
                                                         IO& io)
-  : var_{io.defineVariable<T>(name)}
+  : var_{io._defineVariable<T>(name)}
 {}
 
 template <typename T>
@@ -96,7 +96,7 @@ void VariableGlobalSingleValue<T>::get(Engine& reader, T& val,
 template <typename T>
 VariableGlobalSingleArray<T>::VariableGlobalSingleArray(const std::string& name,
                                                         IO& io)
-  : var_{io.defineVariable<T>(name, {1}, {0}, {1})} // FIXME?
+  : var_{io._defineVariable<T>(name, {1}, {0}, {1})} // FIXME?
 {}
 
 template <typename T>

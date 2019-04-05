@@ -2,7 +2,6 @@
 #pragma once
 
 #include "Engine.h"
-#include "Manager.h"
 
 namespace kg
 {
@@ -11,6 +10,11 @@ namespace detail
 {
 template <typename T>
 struct Variable;
+}
+
+namespace io
+{
+struct Manager;
 }
 
 template <typename T>
@@ -24,46 +28,27 @@ struct Attribute;
 
 struct IO
 {
-  IO(io::Manager& mgr, const char* name) : io_{mgr.ad_.DeclareIO(name)} {}
+  IO(io::Manager& mgr, const char* name);
 
-  Engine open(const std::string& name, const adios2::Mode mode)
-  {
-    // FIXME, assumes that the ADIOS2 object underlying io_ was created on
-    // MPI_COMM_WORLD
-    auto comm = MPI_COMM_WORLD;
-
-    return {io_.Open(name, mode), io_, comm};
-  }
+  Engine open(const std::string& name, const adios2::Mode mode);
 
   template <typename T>
   detail::Variable<T> _defineVariable(const std::string& name,
                                       const Dims& shape = Dims(),
                                       const Dims& start = Dims(),
                                       const Dims& count = Dims(),
-                                      const bool constantDims = false)
-  {
-    auto var = io_.InquireVariable<T>(name);
-    if (var) {
-      return var;
-    } else {
-      return io_.DefineVariable<T>(name, shape, start, count, constantDims);
-    }
-  }
+                                      const bool constantDims = false);
 
   template <typename T>
-  Variable<T> defineVariable(const std::string& name)
-  {
-    return {name, *this};
-  }
+  Variable<T> defineVariable(const std::string& name);
 
   template <class T>
-  Variable<T> inquireVariable(const std::string& name)
-  {
-    return io_.InquireVariable<T>(name);
-  }
+  Variable<T> inquireVariable(const std::string& name);
 
-private:
+  // private:
   adios2::IO io_;
 };
 
 } // namespace kg
+
+#include "IO.inl"
