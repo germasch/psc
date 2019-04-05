@@ -24,8 +24,8 @@ public:
     // FIXME, assumes that the ADIOS2 object underlying io_ was created on
     // MPI_COMM_WORLD
     auto comm = MPI_COMM_WORLD;
-    auto io = ad_.DeclareIO("io" + name + "-" + std::to_string(cnt++));
-    return {io.Open(name, mode), io, comm};
+    auto io = IO(*this, "io" + name + "-" + std::to_string(cnt++));
+    return {io.io_.Open(name, mode), io, comm};
   }
 
 private:

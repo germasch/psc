@@ -4,7 +4,7 @@
 namespace kg
 {
 
-Engine::Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
+Engine::Engine(adios2::Engine engine, IO& io, MPI_Comm comm)
   : engine_{engine}, io_{io}
 {
   MPI_Comm_rank(comm, &mpi_rank_);
@@ -18,11 +18,11 @@ detail::Variable<T> Engine::_defineVariable(const std::string& name,
                                             const Dims& count,
                                             const bool constantDims)
 {
-  auto var = io_.InquireVariable<T>(name);
+  auto var = io_.io_.InquireVariable<T>(name);
   if (var) {
     return var;
   } else {
-    return io_.DefineVariable<T>(name, shape, start, count, constantDims);
+    return io_.io_.DefineVariable<T>(name, shape, start, count, constantDims);
   }
 }
 
@@ -106,11 +106,11 @@ void Engine::putAttribute(const std::string& name, const T* data, size_t size)
   if (mpi_rank_ != 0) { // FIXME, should we do this?
     return;
   }
-  auto attr = io_.InquireAttribute<T>(name);
+  auto attr = io_.io_.InquireAttribute<T>(name);
   if (attr) {
     mprintf("attr '%s' already exists -- ignoring it!", name.c_str());
   } else {
-    io_.DefineAttribute<T>(name, data, size);
+    io_.io_.DefineAttribute<T>(name, data, size);
   }
 }
 
@@ -120,18 +120,18 @@ void Engine::putAttribute(const std::string& name, const T& value)
   if (mpi_rank_ != 0) { // FIXME, should we do this?
     return;
   }
-  auto attr = io_.InquireAttribute<T>(name);
+  auto attr = io_.io_.InquireAttribute<T>(name);
   if (attr) {
     mprintf("attr '%s' already exists -- ignoring it!", name.c_str());
   } else {
-    io_.DefineAttribute<T>(name, value);
+    io_.io_.DefineAttribute<T>(name, value);
   }
 }
 
 template <typename T>
 void Engine::getAttribute(const std::string& name, std::vector<T>& data)
 {
-  auto attr = io_.InquireAttribute<T>(name);
+  auto attr = io_.io_.InquireAttribute<T>(name);
   assert(attr);
   data = attr.Data();
 }

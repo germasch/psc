@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include "Engine.h"
-
 namespace kg
 {
 
@@ -28,7 +26,7 @@ struct Attribute;
 
 struct IO
 {
-  IO(io::Manager& mgr, const char* name);
+  IO(io::Manager& mgr, const std::string& name);
 
   template <typename T>
   detail::Variable<T> _defineVariable(const std::string& name,

@@ -4,7 +4,7 @@
 namespace kg
 {
 
-IO::IO(io::Manager& mgr, const char* name) : io_{mgr.ad_.DeclareIO(name)} {}
+IO::IO(io::Manager& mgr, const std::string& name) : io_{mgr.ad_.DeclareIO(name)} {}
 
 template <typename T>
 detail::Variable<T> IO::_defineVariable(const std::string& name,
