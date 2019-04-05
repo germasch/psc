@@ -26,10 +26,4 @@ Variable<T> IO::defineVariable(const std::string& name)
   return {name, *this};
 }
 
-template <class T>
-Variable<T> IO::inquireVariable(const std::string& name)
-{
-  return io_.InquireVariable<T>(name);
-}
-
 } // namespace kg

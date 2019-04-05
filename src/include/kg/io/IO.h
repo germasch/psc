@@ -38,9 +38,6 @@ struct IO
   template <typename T>
   Variable<T> defineVariable(const std::string& name);
 
-  template <class T>
-  Variable<T> inquireVariable(const std::string& name);
-
   // private:
   adios2::IO io_;
 };
