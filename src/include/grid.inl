@@ -42,7 +42,7 @@ struct VariableByPatch<Vec3<T>>
   }
 
 private:
-  kg::Variable<T> var_;
+  kg::detail::Variable<T> var_;
 };
 
 // ======================================================================

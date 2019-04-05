@@ -4,6 +4,12 @@
 namespace kg
 {
 
+namespace detail
+{
+template <typename T>
+struct Variable;
+}
+
 template <typename T>
 struct Variable;
 
@@ -27,11 +33,11 @@ struct IO
   }
 
   template <typename T>
-  Variable<T> _defineVariable(const std::string& name,
-                             const Dims& shape = Dims(),
-                             const Dims& start = Dims(),
-                             const Dims& count = Dims(),
-                             const bool constantDims = false)
+  detail::Variable<T> _defineVariable(const std::string& name,
+                                      const Dims& shape = Dims(),
+                                      const Dims& start = Dims(),
+                                      const Dims& count = Dims(),
+                                      const bool constantDims = false)
   {
     auto var = io_.InquireVariable<T>(name);
     if (var) {
