@@ -97,51 +97,29 @@ private:
 template <>
 struct kg::io::Variable<Grid_t::Domain>
 {
-  using Grid = Grid_t;
-  using value_type = typename Grid::Domain;
-  using is_adios_variable = std::false_type;
+  using value_type = typename Grid_t::Domain;
 
-  using real_t = typename Grid::real_t;
-  using Real3 = typename Grid::Real3;
-
-  Variable(const std::string& name, kg::io::Engine& engine)
-    : var_gdims_{name + ".gdims", engine},
-      var_length_{name + ".length", engine},
-      var_corner_{name + ".corner", engine},
-      var_np_{name + ".np", engine},
-      var_ldims_{name + ".ldims", engine},
-      var_dx_{name + ".dx", engine}
-  {}
-
-  void put(kg::io::Engine& writer, const Grid::Domain& domain,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+  static void put(kg::io::Engine& writer, const value_type& domain,
+                  const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.put(var_gdims_, domain.gdims, launch);
-    writer.put(var_length_, domain.length, launch);
-    writer.put(var_corner_, domain.corner, launch);
-    writer.put(var_np_, domain.np, launch);
-    writer.put(var_ldims_, domain.ldims, launch);
-    writer.put(var_dx_, domain.dx, launch);
+    writer.put1("gdims", domain.gdims, launch);
+    writer.put1("length", domain.length, launch);
+    writer.put1("corner", domain.corner, launch);
+    writer.put1("np", domain.np, launch);
+    writer.put1("ldims", domain.ldims, launch);
+    writer.put1("dx", domain.dx, launch);
   }
 
-  void get(Engine& reader, Grid::Domain& domain,
-           const Mode launch = Mode::Deferred)
+  static void get(Engine& reader, value_type& domain,
+                  const Mode launch = Mode::Deferred)
   {
-    reader.get(var_gdims_, domain.gdims, launch);
-    reader.get(var_length_, domain.length, launch);
-    reader.get(var_corner_, domain.corner, launch);
-    reader.get(var_np_, domain.np, launch);
-    reader.get(var_ldims_, domain.ldims, launch);
-    reader.get(var_dx_, domain.dx, launch);
+    reader.get1("gdims", domain.gdims, launch);
+    reader.get1("length", domain.length, launch);
+    reader.get1("corner", domain.corner, launch);
+    reader.get1("np", domain.np, launch);
+    reader.get1("ldims", domain.ldims, launch);
+    reader.get1("dx", domain.dx, launch);
   }
-
-private:
-  kg::io::Attribute<Int3> var_gdims_;
-  kg::io::Attribute<Real3> var_length_;
-  kg::io::Attribute<Real3> var_corner_;
-  kg::io::Attribute<Int3> var_np_;
-  kg::io::Attribute<Int3> var_ldims_;
-  kg::io::Attribute<Real3> var_dx_;
 };
 
 // ======================================================================
@@ -325,7 +303,6 @@ struct kg::io::Variable<Grid_<T>>
 
   Variable(const std::string& name, kg::io::Engine& engine)
     : var_ldims_{name + ".ldims", engine},
-      var_domain_{name + ".domain", engine},
       var_bc_{name + ".bc", engine},
       var_norm_{name + ".norm", engine},
       var_dt_{name + ".dt", engine},
@@ -342,7 +319,7 @@ struct kg::io::Variable<Grid_<T>>
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     writer.put(var_ldims_, grid.ldims);
-    writer.put(var_domain_, grid.domain, launch);
+    writer.putVar("domain", grid.domain, launch);
     writer.put(var_bc_, grid.bc, launch);
     writer.put(var_norm_, grid.norm, launch);
     writer.put(var_dt_, grid.dt);
@@ -376,7 +353,7 @@ struct kg::io::Variable<Grid_<T>>
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     reader.get(var_ldims_, grid.ldims);
-    reader.get(var_domain_, grid.domain, launch);
+    reader.getVar("domain", grid.domain, launch);
     reader.get(var_bc_, grid.bc, launch);
     reader.get(var_norm_, grid.norm, launch);
     reader.get(var_dt_, grid.dt);
@@ -411,7 +388,6 @@ struct kg::io::Variable<Grid_<T>>
 
 private:
   kg::io::Attribute<Int3> var_ldims_;
-  kg::io::Variable<typename Grid::Domain> var_domain_;
   kg::io::Variable<GridBc> var_bc_;
   kg::io::Variable<typename Grid::Normalization> var_norm_;
   kg::io::Attribute<real_t> var_dt_;
