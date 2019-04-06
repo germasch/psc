@@ -99,9 +99,23 @@ public:
     attr_.put(writer, vec.data(), vec.size());
   }
 
+  static void put(Engine& writer, const std::string& pfx, const value_type& vec,
+                  const Mode launch = Mode::Deferred)
+  {
+    auto attr = detail::Attribute<DataType>{pfx, writer};
+    attr.put(writer, vec.data(), vec.size());
+  }
+
   void get(Engine& reader, value_type& vec, const Mode launch = Mode::Deferred)
   {
     attr_.get(reader, vec);
+  }
+
+  static void get(Engine& reader, const std::string& pfx, value_type& vec,
+                  const Mode launch = Mode::Deferred)
+  {
+    auto attr = detail::Attribute<DataType>{pfx, reader};
+    attr.get(reader, vec);
   }
 
   std::string name() const { return attr_.name(); }

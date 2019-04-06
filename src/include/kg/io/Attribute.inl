@@ -17,7 +17,7 @@ void Attribute<T>::put(Engine& writer, const T* data, size_t size)
   }
   auto attr = writer.io_.InquireAttribute<T>(name_);
   if (attr) {
-    mprintf("attr '%s' already exists -- ignoring it!", name_.c_str());
+    mprintf("attr '%s' already exists -- ignoring it!\n", name_.c_str());
   } else {
     writer.io_.DefineAttribute<T>(name_, data, size);
   }
@@ -31,7 +31,7 @@ void Attribute<T>::put(Engine& writer, const T& datum)
   }
   auto attr = writer.io_.InquireAttribute<T>(name_);
   if (attr) {
-    mprintf("attr '%s' already exists -- ignoring it!", name_.c_str());
+    mprintf("attr '%s' already exists -- ignoring it!\n", name_.c_str());
   } else {
     writer.io_.DefineAttribute<T>(name_, datum);
   }

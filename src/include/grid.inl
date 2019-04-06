@@ -129,37 +129,24 @@ template <>
 struct kg::io::Variable<GridBc>
 {
   using value_type = GridBc;
-  using is_adios_variable = std::false_type;
 
-  Variable(const std::string& name, kg::io::Engine& engine)
-    : var_fld_lo_{name + ".fld_lo", engine},
-      var_fld_hi_{name + ".fld_hi", engine},
-      var_prt_lo_{name + ".prt_lo", engine},
-      var_prt_hi_{name + ".prt_hi", engine}
-  {}
-
-  void put(kg::io::Engine& writer, const GridBc& bc,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+  static void put(kg::io::Engine& writer, const value_type& bc,
+                  const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.put(var_fld_lo_, bc.fld_lo, launch);
-    writer.put(var_fld_hi_, bc.fld_hi, launch);
-    writer.put(var_prt_lo_, bc.prt_lo, launch);
-    writer.put(var_prt_hi_, bc.prt_hi, launch);
+    writer.put1("fld_lo", bc.fld_lo, launch);
+    writer.put1("fld_hi", bc.fld_hi, launch);
+    writer.put1("prt_lo", bc.prt_lo, launch);
+    writer.put1("prt_hi", bc.prt_hi, launch);
   }
 
-  void get(Engine& reader, GridBc& bc, const Mode launch = Mode::Deferred)
+  static void get(Engine& reader, value_type& bc,
+                  const Mode launch = Mode::Deferred)
   {
-    reader.get(var_fld_lo_, bc.fld_lo, launch);
-    reader.get(var_fld_hi_, bc.fld_hi, launch);
-    reader.get(var_prt_lo_, bc.prt_lo, launch);
-    reader.get(var_prt_hi_, bc.prt_hi, launch);
+    reader.get1("fld_lo", bc.fld_lo, launch);
+    reader.get1("fld_hi", bc.fld_hi, launch);
+    reader.get1("prt_lo", bc.prt_lo, launch);
+    reader.get1("prt_hi", bc.prt_hi, launch);
   }
-
-private:
-  kg::io::Attribute<Int3> var_fld_lo_;
-  kg::io::Attribute<Int3> var_fld_hi_;
-  kg::io::Attribute<Int3> var_prt_lo_;
-  kg::io::Attribute<Int3> var_prt_hi_;
 };
 
 // ======================================================================
@@ -169,61 +156,34 @@ template <>
 struct kg::io::Variable<Grid_t::Normalization>
 {
   using value_type = Grid_t::Normalization;
-  using is_adios_variable = std::false_type;
 
-  using real_t = Grid_t::real_t;
-
-  Variable(const std::string& name, kg::io::Engine& engine)
-    : var_cc_{name + ".cc", engine},
-      var_fnqs_{name + ".fnqs", engine},
-      var_eta_{name + ".eta", engine},
-      var_beta_{name + ".beta", engine},
-      var_cori_{name + ".cori", engine},
-      var_b0_{name + ".b0", engine},
-      var_rho0_{name + ".rho0", engine},
-      var_phi0_{name + ".phi0", engine},
-      var_a0_{name + ".a0", engine}
-  {}
-
-  void put(kg::io::Engine& writer, const Grid_t::Normalization& norm,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+  static void put(kg::io::Engine& writer, const Grid_t::Normalization& norm,
+                  const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.put(var_cc_, norm.cc, launch);
-    writer.put(var_fnqs_, norm.fnqs, launch);
-    writer.put(var_eta_, norm.eta, launch);
-    writer.put(var_beta_, norm.beta, launch);
-    writer.put(var_cori_, norm.cori, launch);
-    writer.put(var_b0_, norm.b0, launch);
-    writer.put(var_rho0_, norm.rho0, launch);
-    writer.put(var_phi0_, norm.phi0, launch);
-    writer.put(var_a0_, norm.a0, launch);
+    writer.put1("cc", norm.cc, launch);
+    writer.put1("fnqs", norm.fnqs, launch);
+    writer.put1("eta", norm.eta, launch);
+    writer.put1("beta", norm.beta, launch);
+    writer.put1("cori", norm.cori, launch);
+    writer.put1("b0", norm.b0, launch);
+    writer.put1("rho0", norm.rho0, launch);
+    writer.put1("phi0", norm.phi0, launch);
+    writer.put1("a0", norm.a0, launch);
   }
 
-  void get(Engine& reader, Grid_t::Normalization& norm,
-           const Mode launch = Mode::Deferred)
+  static void get(Engine& reader, Grid_t::Normalization& norm,
+                  const Mode launch = Mode::Deferred)
   {
-    reader.get(var_cc_, norm.cc, launch);
-    reader.get(var_fnqs_, norm.fnqs, launch);
-    reader.get(var_eta_, norm.eta, launch);
-    reader.get(var_beta_, norm.beta, launch);
-    reader.get(var_cori_, norm.cori, launch);
-    reader.get(var_b0_, norm.b0, launch);
-    reader.get(var_rho0_, norm.rho0, launch);
-    reader.get(var_phi0_, norm.phi0, launch);
-    reader.get(var_a0_, norm.a0, launch);
+    reader.get1("cc", norm.cc, launch);
+    reader.get1("fnqs", norm.fnqs, launch);
+    reader.get1("eta", norm.eta, launch);
+    reader.get1("beta", norm.beta, launch);
+    reader.get1("cori", norm.cori, launch);
+    reader.get1("b0", norm.b0, launch);
+    reader.get1("rho0", norm.rho0, launch);
+    reader.get1("phi0", norm.phi0, launch);
+    reader.get1("a0", norm.a0, launch);
   }
-
-private:
-  kg::io::Attribute<real_t> var_cc_;
-  kg::io::Attribute<real_t> var_fnqs_;
-  kg::io::Attribute<real_t> var_eta_;
-  kg::io::Attribute<real_t> var_beta_;
-  kg::io::Attribute<real_t> var_cori_;
-
-  kg::io::Attribute<real_t> var_b0_;
-  kg::io::Attribute<real_t> var_rho0_;
-  kg::io::Attribute<real_t> var_phi0_;
-  kg::io::Attribute<real_t> var_a0_;
 };
 
 // ======================================================================
@@ -239,9 +199,6 @@ struct kg::io::Variable<Grid_t::Kinds>
   static const size_t NAME_LEN = 10;
 
   Variable(const std::string& name, kg::io::Engine& engine)
-    : attr_q_{name + ".q", engine},
-      attr_m_{name + ".m", engine},
-      attr_names_{name + ".names", engine}
   {}
 
   void put(kg::io::Engine& writer, const Grid_t::Kinds& kinds,
@@ -257,10 +214,9 @@ struct kg::io::Variable<Grid_t::Kinds>
       names[kind] = kinds[kind].name;
     }
 
-    writer.put(attr_names_, names);
-    writer.put(attr_q_, q);
-    writer.put(attr_m_, m);
-    writer.performPuts();
+    writer.put1("names", names, kg::io::Mode::Sync);
+    writer.put1("q", q, kg::io::Mode::Sync);
+    writer.put1("m", m, kg::io::Mode::Sync);
   }
 
   void get(Engine& reader, Grid_t::Kinds& kinds,
@@ -269,10 +225,10 @@ struct kg::io::Variable<Grid_t::Kinds>
     auto q = std::vector<real_t>{};
     auto m = std::vector<real_t>{};
     auto names = std::vector<std::string>{};
-    reader.get(attr_names_, names);
-    reader.get(attr_q_, q);
-    reader.get(attr_m_, m);
-    reader.performGets();
+    reader.get1("names", names, kg::io::Mode::Sync);
+    reader.get1("q", q, kg::io::Mode::Sync);
+    reader.get1("m", m, kg::io::Mode::Sync);
+    reader.get1("names", names);
 
     kinds.resize(q.size());
     for (int kind = 0; kind < q.size(); kind++) {
@@ -281,11 +237,6 @@ struct kg::io::Variable<Grid_t::Kinds>
       kinds[kind].name = strdup(names[kind].c_str());
     }
   }
-
-private:
-  kg::io::Attribute<std::vector<real_t>> attr_q_;
-  kg::io::Attribute<std::vector<real_t>> attr_m_;
-  kg::io::Attribute<std::vector<std::string>> attr_names_;
 };
 
 // ======================================================================
@@ -303,8 +254,6 @@ struct kg::io::Variable<Grid_<T>>
 
   Variable(const std::string& name, kg::io::Engine& engine)
     : var_ldims_{name + ".ldims", engine},
-      var_bc_{name + ".bc", engine},
-      var_norm_{name + ".norm", engine},
       var_dt_{name + ".dt", engine},
       var_patches_n_local_{name + ".patches.n_local", engine},
       var_patches_off_{name + ".patches.off", engine},
@@ -320,8 +269,8 @@ struct kg::io::Variable<Grid_<T>>
   {
     writer.put(var_ldims_, grid.ldims);
     writer.putVar("domain", grid.domain, launch);
-    writer.put(var_bc_, grid.bc, launch);
-    writer.put(var_norm_, grid.norm, launch);
+    writer.putVar("bc", grid.bc, launch);
+    writer.putVar("norm", grid.norm, launch);
     writer.put(var_dt_, grid.dt);
 
     size_t patches_n_local = grid.patches.size();
@@ -354,8 +303,8 @@ struct kg::io::Variable<Grid_<T>>
   {
     reader.get(var_ldims_, grid.ldims);
     reader.getVar("domain", grid.domain, launch);
-    reader.get(var_bc_, grid.bc, launch);
-    reader.get(var_norm_, grid.norm, launch);
+    reader.getVar("bc", grid.bc, launch);
+    reader.getVar("norm", grid.norm, launch);
     reader.get(var_dt_, grid.dt);
 
     int patches_n_local;
@@ -388,8 +337,6 @@ struct kg::io::Variable<Grid_<T>>
 
 private:
   kg::io::Attribute<Int3> var_ldims_;
-  kg::io::Variable<GridBc> var_bc_;
-  kg::io::Variable<typename Grid::Normalization> var_norm_;
   kg::io::Attribute<real_t> var_dt_;
 
   kg::io::VariableLocalSingleValue<int>
