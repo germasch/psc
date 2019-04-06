@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "IO.h"
+#include "Engine.h"
 
 #include <vec3.hxx>
 
@@ -54,7 +54,7 @@ protected:
 //
 // single value
 
-template <typename T, typename Enable>
+template <typename T, typename Enable = void>
 class Attribute
 {
   using DataType = T;
@@ -79,35 +79,23 @@ private:
 // ======================================================================
 // Attribute<std::vector>
 
-namespace detail
-{
-
-template <typename T>
-struct is_vector : std::false_type
-{};
-
-template <typename T>
-struct is_vector<std::vector<T>> : std::true_type
-{};
-
-}; // namespace detail
-
 template <class T>
-class Attribute<T, typename std::enable_if<detail::is_vector<T>::value>::type>
+class Attribute<std::vector<T>>
 {
-  using DataType = typename T::value_type;
+  using DataType = T;
 
 public:
-  using value_type = T;
+  using value_type = std::vector<T>;
 
   Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
 
-  void put(Engine& writer, const T& vec, const Mode launch = Mode::Deferred)
+  void put(Engine& writer, const value_type& vec,
+           const Mode launch = Mode::Deferred)
   {
     attr_.put(writer, vec.data(), vec.size());
   }
 
-  void get(Engine& reader, T& vec, const Mode launch = Mode::Deferred)
+  void get(Engine& reader, value_type& vec, const Mode launch = Mode::Deferred)
   {
     attr_.get(reader, vec);
   }
@@ -119,35 +107,23 @@ private:
 // ======================================================================
 // Attribute<Vec3>
 
-namespace detail
-{
-
-template <typename T>
-struct is_Vec3 : std::false_type
-{};
-
-template <typename T>
-struct is_Vec3<Vec3<T>> : std::true_type
-{};
-
-}; // namespace detail
-
 template <class T>
-class Attribute<T, typename std::enable_if<detail::is_Vec3<T>::value>::type>
+class Attribute<Vec3<T>>
 {
-  using DataType = typename T::value_type;
+  using DataType = T;
 
 public:
-  using value_type = T;
+  using value_type = Vec3<T>;
 
   Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
 
-  void put(Engine& writer, const T& vec, const Mode launch = Mode::Deferred)
+  void put(Engine& writer, const value_type& vec,
+           const Mode launch = Mode::Deferred)
   {
     attr_.put(writer, vec.data(), 3);
   }
 
-  void get(Engine& reader, T& data, const Mode launch = Mode::Deferred)
+  void get(Engine& reader, value_type& data, const Mode launch = Mode::Deferred)
   {
     std::vector<DataType> vals;
     attr_.get(reader, vals);

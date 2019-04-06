@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include "IO.h"
-
 #include <mrc_common.h>
 
 namespace kg
@@ -14,13 +12,16 @@ template <typename T>
 class Variable;
 }
 
+template <typename T>
+class Variable;
+
 // ======================================================================
 // Engine
 
 class Engine
 {
 public:
-  Engine(adios2::Engine engine, IO& io, MPI_Comm comm);
+  Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm);
 
   template <typename T>
   detail::Variable<T> _defineVariable(const std::string& name,
@@ -99,7 +100,7 @@ public:
 
 private:
   adios2::Engine engine_;
-  IO io_;
+  adios2::IO io_;
   int mpi_rank_;
   int mpi_size_;
 };
