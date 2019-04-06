@@ -33,20 +33,7 @@ Variable<T> Engine::defineVariable(const std::string& name)
 }
 
 // ----------------------------------------------------------------------
-// put for adios2 variables
-
-template <typename T>
-void Engine::put(adios2::Variable<T> variable, const T* data, const Mode launch)
-{
-  engine_.Put(variable, data, launch);
-}
-
-template <typename T>
-void Engine::put(adios2::Variable<T> variable, const T& datum,
-                 const Mode launch)
-{
-  engine_.Put(variable, datum, launch);
-}
+// put
 
 template <class T, class... Args>
 void Engine::put(T& variable, Args&&... args)
@@ -55,26 +42,7 @@ void Engine::put(T& variable, Args&&... args)
 }
 
 // ----------------------------------------------------------------------
-// get for adios2 variables
-
-template <typename T>
-void Engine::get(adios2::Variable<T> variable, T& datum, const Mode launch)
-{
-  engine_.Get(variable, datum, launch);
-}
-
-template <typename T>
-void Engine::get(adios2::Variable<T> variable, T* data, const Mode launch)
-{
-  engine_.Get(variable, data, launch);
-}
-
-template <typename T>
-void Engine::get(adios2::Variable<T> variable, std::vector<T>& data,
-                 const Mode launch)
-{
-  engine_.Get(variable, data, launch);
-}
+// get
 
 template <class T, class... Args>
 void Engine::get(T& variable, Args&&... args)

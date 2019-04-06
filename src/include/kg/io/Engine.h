@@ -39,39 +39,13 @@ public:
   Variable<T> defineVariable(const std::string& name);
 
   // ----------------------------------------------------------------------
-  // put for adios2 variables
-
-  template <typename T>
-  void put(adios2::Variable<T> variable, const T* data,
-           const Mode launch = Mode::Deferred);
-
-  template <typename T>
-  void put(adios2::Variable<T> variable, const T& datum,
-           const Mode launch = Mode::Deferred);
-
-  // ----------------------------------------------------------------------
-  // put in general
+  // put
 
   template <class T, class... Args>
   void put(T& variable, Args&&... args);
 
   // ----------------------------------------------------------------------
-  // get for adios2 variables
-
-  template <typename T>
-  void get(adios2::Variable<T> variable, T& datum,
-           const Mode launch = Mode::Deferred);
-
-  template <typename T>
-  void get(adios2::Variable<T> variable, T* data,
-           const Mode launch = Mode::Deferred);
-
-  template <typename T>
-  void get(adios2::Variable<T> variable, std::vector<T>& data,
-           const Mode launch = Mode::Deferred);
-
-  // ----------------------------------------------------------------------
-  // get in general
+  // get
 
   template <class T, class... Args>
   void get(T& variable, Args&&... args);

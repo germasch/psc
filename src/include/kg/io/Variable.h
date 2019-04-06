@@ -30,8 +30,6 @@ public:
 
   void get(Engine& reader, T& datum, const Mode launch = Mode::Deferred);
   void get(Engine& reader, T* data, const Mode launch = Mode::Deferred);
-  void get(Engine& reader, std::vector<T>& data,
-           const Mode launch = Mode::Deferred);
 
   void setSelection(const Box<Dims>& selection);
   void setShape(const Dims& shape);
