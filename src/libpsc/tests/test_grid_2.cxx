@@ -91,7 +91,7 @@ TEST(Grid, Kinds)
 
 TEST(Grid, adios2_write)
 {
-  auto mgr = kg::io::Manager(MPI_COMM_WORLD);
+  auto io = kg::io::IO(MPI_COMM_WORLD);
 
   {
     auto domain = Grid_t::Domain{{8, 4, 2},
@@ -105,7 +105,7 @@ TEST(Grid, adios2_write)
     int n_patches = -1;
     auto grid = Grid_t{domain, bc, kinds, norm, dt, n_patches};
 
-    auto writer = mgr.open("test.bp", kg::io::Mode::Write);
+    auto writer = io.open("test.bp", kg::io::Mode::Write);
     auto var_grid = writer.defineVariable<Grid_t>("grid");
     writer.put(var_grid, grid);
     writer.close();
@@ -118,7 +118,7 @@ TEST(Grid, adios2_write)
     Grid_t::Domain domain;
     Grid_t grid;
 
-    auto reader = mgr.open("test.bp", kg::io::Mode::Read);
+    auto reader = io.open("test.bp", kg::io::Mode::Read);
     auto var_grid = reader.defineVariable<Grid_t>("grid");
     reader.get(var_grid, grid);
     reader.close();

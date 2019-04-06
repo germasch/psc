@@ -5,17 +5,17 @@
 
 TEST(KgIo, WriteRead)
 {
-  auto mgr = kg::io::Manager(MPI_COMM_WORLD);
+  auto io = kg::io::IO(MPI_COMM_WORLD);
 
   {
-    auto writer = mgr.open("test.bp", kg::io::Mode::Write);
+    auto writer = io.open("test.bp", kg::io::Mode::Write);
     auto var_double = writer._defineVariable<double>("var_double");
     writer.put(var_double, 99.);
     writer.close();
   }
 
   {
-    auto reader = mgr.open("test.bp", kg::io::Mode::Read);
+    auto reader = io.open("test.bp", kg::io::Mode::Read);
     auto var_double = reader._defineVariable<double>("var_double");
     double dbl;
     reader.get(var_double, dbl);

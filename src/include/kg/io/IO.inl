@@ -4,9 +4,9 @@ namespace kg
 namespace io
 {
 
-Manager::Manager(MPI_Comm comm) : comm_{comm}, ad_{comm, adios2::DebugON} {}
+IO::IO(MPI_Comm comm) : comm_{comm}, ad_{comm, adios2::DebugON} {}
 
-Engine Manager::open(const std::string& name, const adios2::Mode mode)
+Engine IO::open(const std::string& name, const adios2::Mode mode)
 {
   static int cnt;
   // FIXME, assumes that the ADIOS2 object underlying io_ was created on

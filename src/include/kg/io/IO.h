@@ -11,10 +11,10 @@ namespace io
 // ======================================================================
 // IO
 
-class Manager
+class IO
 {
 public:
-  Manager(MPI_Comm comm);
+  IO(MPI_Comm comm);
 
   Engine open(const std::string& name, const adios2::Mode mode);
 
