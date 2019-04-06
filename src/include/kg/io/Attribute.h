@@ -64,6 +64,8 @@ struct Attribute
     datum = data[0];
   }
 
+  std::string name() const { return name_; }
+
 protected:
   const std::string name_;
 };
@@ -88,10 +90,26 @@ public:
     attr_.put(writer, value);
   }
 
+  static void put(Engine& writer, const std::string& pfx, const T& value,
+                  const Mode launch = Mode::Deferred)
+  {
+    auto attr = detail::Attribute<DataType>{pfx, writer};
+    attr.put(writer, value);
+  }
+
   void get(Engine& reader, T& value, const Mode launch = Mode::Deferred)
   {
     attr_.get(reader, value);
   }
+
+  static void get(Engine& reader, const std::string& pfx, T& value,
+                  const Mode launch = Mode::Deferred)
+  {
+    auto attr = detail::Attribute<DataType>{pfx, reader};
+    attr.get(reader, value);
+  }
+
+  std::string name() const { return attr_.name(); }
 
 private:
   detail::Attribute<DataType> attr_;

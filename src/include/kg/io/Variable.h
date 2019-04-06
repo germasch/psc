@@ -35,6 +35,7 @@ public:
   void setShape(const Dims& shape);
 
   Dims shape() const;
+  std::string name() const { return var_.Name(); }
 
 private:
   adios2::Variable<T> var_;
@@ -55,6 +56,8 @@ public:
   void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred);
 
   void get(Engine& reader, T& val, const Mode launch = Mode::Deferred);
+
+  std::string Name() const { return var_.Name(); }
 
 private:
   detail::Variable<T> var_;
@@ -98,10 +101,16 @@ public:
   VariableLocalSingleValue(const std::string& name, Engine& engine);
 
   void put(Engine& writer, const T& datum, const Mode launch = Mode::Deferred);
+  static void put(Engine& writer, const std::string& pfx, const T& datum,
+                  const Mode launch = Mode::Deferred);
 
   void get(Engine& reader, T& val, const Mode launch = Mode::Deferred);
+  void get(Engine& reader, const std::string& pfx, T& val,
+           const Mode launch = Mode::Deferred);
 
   Dims shape() const;
+
+  std::string name() const { return var_.name(); }
 
 private:
   detail::Variable<T> var_;

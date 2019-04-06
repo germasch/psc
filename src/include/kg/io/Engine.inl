@@ -38,6 +38,7 @@ Variable<T> Engine::defineVariable(const std::string& name)
 template <class T, class... Args>
 void Engine::put(T& variable, Args&&... args)
 {
+  mprintf("put name %s\n", variable.name().c_str());
   variable.put(*this, std::forward<Args>(args)...);
 }
 
