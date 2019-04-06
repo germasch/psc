@@ -104,6 +104,8 @@ public:
     attr_.get(reader, vec);
   }
 
+  std::string name() const { return attr_.name(); }
+
 private:
   detail::Attribute<DataType> attr_;
 };
@@ -133,6 +135,8 @@ public:
     attr_.get(reader, vals);
     data = {vals[0], vals[1], vals[2]};
   }
+
+  std::string name() const { return attr_.name(); }
 
 private:
   detail::Attribute<DataType> attr_;
