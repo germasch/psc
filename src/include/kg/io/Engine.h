@@ -50,6 +50,15 @@ public:
   template <class T, class... Args>
   void _put(T& variable, const std::string& pfx, Args&&... args);
 
+  template <class T, class... Args>
+  void put1(const std::string& pfx, const T& datum, Args&&... args);
+
+  template <class T, class... Args>
+  void putLocal(const std::string& pfx, const T& datum, Args&&... args);
+
+  template <class T, class... Args>
+  void putVar(const std::string& pfx, const T& datum, Args&&... args);
+
   // ----------------------------------------------------------------------
   // get
 
@@ -83,7 +92,7 @@ public:
     bool first = true;
     for (auto& pfx : prefixes_) {
       if (!first) {
-	s += "::";
+        s += "::";
       }
       s += pfx;
       first = false;

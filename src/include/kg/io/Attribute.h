@@ -1,14 +1,15 @@
 
 #pragma once
 
-#include "Engine.h"
-
 #include <vec3.hxx>
 
 namespace kg
 {
 namespace io
 {
+
+class Engine;
+
 namespace detail
 {
 
@@ -22,47 +23,11 @@ struct Attribute
 {
   Attribute(const std::string& name, Engine& engine) : name_{name} {}
 
-  void put(Engine& writer, const T* data, size_t size)
-  {
-    if (writer.mpiRank() != 0) { // FIXME, should we do this?
-      return;
-    }
-    auto attr = writer.io_.InquireAttribute<T>(name_);
-    if (attr) {
-      mprintf("attr '%s' already exists -- ignoring it!", name_.c_str());
-    } else {
-      writer.io_.DefineAttribute<T>(name_, data, size);
-    }
-  }
+  void put(Engine& writer, const T* data, size_t size);
+  void put(Engine& writer, const T& datum);
 
-  void put(Engine& writer, const T& datum)
-  {
-    if (writer.mpiRank() != 0) { // FIXME, should we do this?
-      return;
-    }
-    auto attr = writer.io_.InquireAttribute<T>(name_);
-    if (attr) {
-      mprintf("attr '%s' already exists -- ignoring it!", name_.c_str());
-    } else {
-      writer.io_.DefineAttribute<T>(name_, datum);
-    }
-  }
-
-  void get(Engine& reader, std::vector<T>& data)
-  {
-    auto attr = reader.io_.InquireAttribute<T>(name_);
-    assert(attr);
-    data = attr.Data();
-  }
-
-  void get(Engine& reader, T& datum)
-  {
-    auto attr = reader.io_.InquireAttribute<T>(name_);
-    assert(attr);
-    auto data = attr.Data();
-    assert(data.size() == 1);
-    datum = data[0];
-  }
+  void get(Engine& reader, std::vector<T>& data);
+  void get(Engine& reader, T& datum);
 
   std::string name() const { return name_; }
 
@@ -175,3 +140,5 @@ private:
 
 } // namespace io
 } // namespace kg
+
+#include "Attribute.inl"

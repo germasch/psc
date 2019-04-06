@@ -1,4 +1,7 @@
 
+#include "Attribute.h"
+#include "Variable.h"
+
 namespace kg
 {
 namespace io
@@ -48,6 +51,36 @@ void Engine::_put(T& variable, const std::string& pfx, Args&&... args)
   prefixes_.push_back(pfx);
   mprintf("put pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
   variable.put(*this, prefix(), std::forward<Args>(args)...);
+  prefixes_.pop_back();
+}
+
+template <class T, class... Args>
+void Engine::put1(const std::string& pfx, const T& datum, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("put1 pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  auto attr = Attribute<T>{prefix(), *this};
+  attr.put(*this, prefix(), datum, std::forward<Args>(args)...);
+  prefixes_.pop_back();
+}
+
+template <class T, class... Args>
+void Engine::putLocal(const std::string& pfx, const T& datum, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("putLocal pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  auto var = VariableLocalSingleValue<T>{prefix(), *this};
+  var.put(*this, prefix(), datum, std::forward<Args>(args)...);
+  prefixes_.pop_back();
+}
+
+template <class T, class... Args>
+void Engine::putVar(const std::string& pfx, const T& datum, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("putVar pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  auto var = Variable<T>{prefix(), *this};
+  var.put(*this, prefix(), datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
 }
 
