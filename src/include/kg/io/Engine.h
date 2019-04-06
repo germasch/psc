@@ -5,6 +5,8 @@
 
 namespace kg
 {
+namespace io
+{
 
 namespace detail
 {
@@ -105,6 +107,7 @@ private:
   int mpi_size_;
 };
 
+} // namespace io
 } // namespace kg
 
 #include "Engine.inl"

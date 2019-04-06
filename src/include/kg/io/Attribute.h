@@ -7,6 +7,8 @@
 
 namespace kg
 {
+namespace io
+{
 namespace detail
 {
 
@@ -134,4 +136,5 @@ private:
   detail::Attribute<DataType> attr_;
 };
 
-}; // namespace kg
+} // namespace io
+} // namespace kg

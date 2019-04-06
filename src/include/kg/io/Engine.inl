@@ -3,6 +3,8 @@
 
 namespace kg
 {
+namespace io
+{
 
 Engine::Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm)
   : engine_{engine}, io_{io}
@@ -151,4 +153,5 @@ int Engine::mpiSize() const
   return mpi_size_;
 }
 
+} // namespace io
 } // namespace kg

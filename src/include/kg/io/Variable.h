@@ -5,6 +5,8 @@
 
 namespace kg
 {
+namespace io
+{
 
 class Engine;
 
@@ -107,6 +109,7 @@ private:
   detail::Variable<T> var_;
 };
 
+} // namespace io
 } // namespace kg
 
 #include "Variable.inl"

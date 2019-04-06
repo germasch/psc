@@ -5,6 +5,9 @@
 
 namespace kg
 {
+namespace io
+{
+
 namespace detail
 {
 
@@ -179,4 +182,5 @@ Dims VariableLocalSingleValue<T>::shape() const
   return var_.shape();
 }
 
+} // namespace io
 } // namespace kg

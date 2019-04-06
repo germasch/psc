@@ -5,6 +5,8 @@
 
 namespace kg
 {
+namespace io
+{
 
 // ======================================================================
 // VariableGlobalSingleValue<Vec3<T>>
@@ -42,6 +44,7 @@ private:
   Variable<T> var_;
 };
 
+} // namespace io
 } // namespace kg
 
 // ======================================================================
@@ -56,12 +59,12 @@ struct VariableByPatch<Vec3<T>>
   using value_type = Vec3<T>;
   using is_adios_variable = std::false_type;
 
-  VariableByPatch(const std::string& name, kg::Engine& engine)
+  VariableByPatch(const std::string& name, kg::io::Engine& engine)
     : var_{engine._defineVariable<T>(name, {1, 3}, {0, 0}, {0, 0})}
   {}
 
-  void put(kg::Engine& writer, const value_type* data, const Grid_t& grid,
-           const kg::Mode launch = kg::Mode::Deferred)
+  void put(kg::io::Engine& writer, const value_type* data, const Grid_t& grid,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     size_t patches_n_local = grid.n_patches();
     size_t patches_n_global = grid.nGlobalPatches();
@@ -71,19 +74,19 @@ struct VariableByPatch<Vec3<T>>
     writer.put(var_, data[0].data(), launch);
   }
 
-  void get(kg::Engine& reader, value_type* data, const Grid_t& grid,
-           const kg::Mode launch = kg::Mode::Deferred)
+  void get(kg::io::Engine& reader, value_type* data, const Grid_t& grid,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     size_t patches_n_local = grid.n_patches();
     size_t patches_n_global = grid.nGlobalPatches();
     size_t patches_start = grid.localPatchInfo(0).global_patch;
-    assert(var_.shape() == kg::Dims({patches_n_global, 3}));
+    assert(var_.shape() == kg::io::Dims({patches_n_global, 3}));
     var_.setSelection({{patches_start, 0}, {patches_n_local, 3}});
     reader.get(var_, data[0].data(), launch);
   }
 
 private:
-  kg::detail::Variable<T> var_;
+  kg::io::detail::Variable<T> var_;
 };
 
 // ======================================================================
@@ -92,7 +95,7 @@ private:
 // FIXME, this should be templated by Grid_<T>::Domain, but can't do that...
 
 template <>
-struct kg::Variable<Grid_t::Domain>
+struct kg::io::Variable<Grid_t::Domain>
 {
   using Grid = Grid_t;
   using value_type = typename Grid::Domain;
@@ -101,7 +104,7 @@ struct kg::Variable<Grid_t::Domain>
   using real_t = typename Grid::real_t;
   using Real3 = typename Grid::Real3;
 
-  Variable(const std::string& name, kg::Engine& engine)
+  Variable(const std::string& name, kg::io::Engine& engine)
     : var_gdims_{name + ".gdims", engine},
       var_length_{name + ".length", engine},
       var_corner_{name + ".corner", engine},
@@ -110,8 +113,8 @@ struct kg::Variable<Grid_t::Domain>
       var_dx_{name + ".dx", engine}
   {}
 
-  void put(kg::Engine& writer, const Grid::Domain& domain,
-           const kg::Mode launch = kg::Mode::Deferred)
+  void put(kg::io::Engine& writer, const Grid::Domain& domain,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     writer.put(var_gdims_, domain.gdims, launch);
     writer.put(var_length_, domain.length, launch);
@@ -133,32 +136,32 @@ struct kg::Variable<Grid_t::Domain>
   }
 
 private:
-  kg::Attribute<Int3> var_gdims_;
-  kg::Attribute<Real3> var_length_;
-  kg::Attribute<Real3> var_corner_;
-  kg::Attribute<Int3> var_np_;
-  kg::Attribute<Int3> var_ldims_;
-  kg::Attribute<Real3> var_dx_;
+  kg::io::Attribute<Int3> var_gdims_;
+  kg::io::Attribute<Real3> var_length_;
+  kg::io::Attribute<Real3> var_corner_;
+  kg::io::Attribute<Int3> var_np_;
+  kg::io::Attribute<Int3> var_ldims_;
+  kg::io::Attribute<Real3> var_dx_;
 };
 
 // ======================================================================
 // Variable<GridBc>
 
 template <>
-struct kg::Variable<GridBc>
+struct kg::io::Variable<GridBc>
 {
   using value_type = GridBc;
   using is_adios_variable = std::false_type;
 
-  Variable(const std::string& name, kg::Engine& engine)
+  Variable(const std::string& name, kg::io::Engine& engine)
     : var_fld_lo_{name + ".fld_lo", engine},
       var_fld_hi_{name + ".fld_hi", engine},
       var_prt_lo_{name + ".prt_lo", engine},
       var_prt_hi_{name + ".prt_hi", engine}
   {}
 
-  void put(kg::Engine& writer, const GridBc& bc,
-           const kg::Mode launch = kg::Mode::Deferred)
+  void put(kg::io::Engine& writer, const GridBc& bc,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     writer.put(var_fld_lo_, bc.fld_lo, launch);
     writer.put(var_fld_hi_, bc.fld_hi, launch);
@@ -175,24 +178,24 @@ struct kg::Variable<GridBc>
   }
 
 private:
-  kg::Attribute<Int3> var_fld_lo_;
-  kg::Attribute<Int3> var_fld_hi_;
-  kg::Attribute<Int3> var_prt_lo_;
-  kg::Attribute<Int3> var_prt_hi_;
+  kg::io::Attribute<Int3> var_fld_lo_;
+  kg::io::Attribute<Int3> var_fld_hi_;
+  kg::io::Attribute<Int3> var_prt_lo_;
+  kg::io::Attribute<Int3> var_prt_hi_;
 };
 
 // ======================================================================
 // Variable<Normalization>
 
 template <>
-struct kg::Variable<Grid_t::Normalization>
+struct kg::io::Variable<Grid_t::Normalization>
 {
   using value_type = Grid_t::Normalization;
   using is_adios_variable = std::false_type;
 
   using real_t = Grid_t::real_t;
 
-  Variable(const std::string& name, kg::Engine& engine)
+  Variable(const std::string& name, kg::io::Engine& engine)
     : var_cc_{name + ".cc", engine},
       var_fnqs_{name + ".fnqs", engine},
       var_eta_{name + ".eta", engine},
@@ -204,8 +207,8 @@ struct kg::Variable<Grid_t::Normalization>
       var_a0_{name + ".a0", engine}
   {}
 
-  void put(kg::Engine& writer, const Grid_t::Normalization& norm,
-           const kg::Mode launch = kg::Mode::Deferred)
+  void put(kg::io::Engine& writer, const Grid_t::Normalization& norm,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     writer.put(var_cc_, norm.cc, launch);
     writer.put(var_fnqs_, norm.fnqs, launch);
@@ -233,23 +236,23 @@ struct kg::Variable<Grid_t::Normalization>
   }
 
 private:
-  kg::Attribute<real_t> var_cc_;
-  kg::Attribute<real_t> var_fnqs_;
-  kg::Attribute<real_t> var_eta_;
-  kg::Attribute<real_t> var_beta_;
-  kg::Attribute<real_t> var_cori_;
+  kg::io::Attribute<real_t> var_cc_;
+  kg::io::Attribute<real_t> var_fnqs_;
+  kg::io::Attribute<real_t> var_eta_;
+  kg::io::Attribute<real_t> var_beta_;
+  kg::io::Attribute<real_t> var_cori_;
 
-  kg::Attribute<real_t> var_b0_;
-  kg::Attribute<real_t> var_rho0_;
-  kg::Attribute<real_t> var_phi0_;
-  kg::Attribute<real_t> var_a0_;
+  kg::io::Attribute<real_t> var_b0_;
+  kg::io::Attribute<real_t> var_rho0_;
+  kg::io::Attribute<real_t> var_phi0_;
+  kg::io::Attribute<real_t> var_a0_;
 };
 
 // ======================================================================
 // Variable<Grid::Kinds>
 
 template <>
-struct kg::Variable<Grid_t::Kinds>
+struct kg::io::Variable<Grid_t::Kinds>
 {
   using value_type = Grid_t::Kinds;
   using is_adios_variable = std::false_type;
@@ -257,14 +260,14 @@ struct kg::Variable<Grid_t::Kinds>
 
   static const size_t NAME_LEN = 10;
 
-  Variable(const std::string& name, kg::Engine& engine)
+  Variable(const std::string& name, kg::io::Engine& engine)
     : attr_q_{name + ".q", engine},
       attr_m_{name + ".m", engine},
       attr_names_{name + ".names", engine}
   {}
 
-  void put(kg::Engine& writer, const Grid_t::Kinds& kinds,
-           const kg::Mode launch = kg::Mode::Deferred)
+  void put(kg::io::Engine& writer, const Grid_t::Kinds& kinds,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     auto n_kinds = kinds.size();
     auto names = std::vector<std::string>(n_kinds);
@@ -302,16 +305,16 @@ struct kg::Variable<Grid_t::Kinds>
   }
 
 private:
-  kg::Attribute<std::vector<real_t>> attr_q_;
-  kg::Attribute<std::vector<real_t>> attr_m_;
-  kg::Attribute<std::vector<std::string>> attr_names_;
+  kg::io::Attribute<std::vector<real_t>> attr_q_;
+  kg::io::Attribute<std::vector<real_t>> attr_m_;
+  kg::io::Attribute<std::vector<std::string>> attr_names_;
 };
 
 // ======================================================================
 // Variable<Grid_<T>>
 
 template <typename T>
-struct kg::Variable<Grid_<T>>
+struct kg::io::Variable<Grid_<T>>
 {
   using Grid = Grid_<T>;
   using value_type = Grid;
@@ -320,7 +323,7 @@ struct kg::Variable<Grid_<T>>
   using real_t = typename Grid::real_t;
   using Real3 = typename Grid::Real3;
 
-  Variable(const std::string& name, kg::Engine& engine)
+  Variable(const std::string& name, kg::io::Engine& engine)
     : var_ldims_{name + ".ldims", engine},
       var_domain_{name + ".domain", engine},
       var_bc_{name + ".bc", engine},
@@ -335,8 +338,8 @@ struct kg::Variable<Grid_<T>>
       var_timestep_{name + ".timestep", engine}
   {}
 
-  void put(kg::Engine& writer, const Grid& grid,
-           const kg::Mode launch = kg::Mode::Deferred)
+  void put(kg::io::Engine& writer, const Grid& grid,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     writer.put(var_ldims_, grid.ldims);
     writer.put(var_domain_, grid.domain, launch);
@@ -369,8 +372,8 @@ struct kg::Variable<Grid_<T>>
                           // patches_*)
   }
 
-  void get(kg::Engine& reader, Grid& grid,
-           const kg::Mode launch = kg::Mode::Deferred)
+  void get(kg::io::Engine& reader, Grid& grid,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     reader.get(var_ldims_, grid.ldims);
     reader.get(var_domain_, grid.domain, launch);
@@ -407,20 +410,20 @@ struct kg::Variable<Grid_<T>>
   }
 
 private:
-  kg::Attribute<Int3> var_ldims_;
-  kg::Variable<typename Grid::Domain> var_domain_;
-  kg::Variable<GridBc> var_bc_;
-  kg::Variable<typename Grid::Normalization> var_norm_;
-  kg::Attribute<real_t> var_dt_;
+  kg::io::Attribute<Int3> var_ldims_;
+  kg::io::Variable<typename Grid::Domain> var_domain_;
+  kg::io::Variable<GridBc> var_bc_;
+  kg::io::Variable<typename Grid::Normalization> var_norm_;
+  kg::io::Attribute<real_t> var_dt_;
 
-  kg::VariableLocalSingleValue<int>
+  kg::io::VariableLocalSingleValue<int>
     var_patches_n_local_; // FIXME, should be size_t, adios2 bug?
   VariableByPatch<Int3> var_patches_off_;
   VariableByPatch<Real3> var_patches_xb_;
   VariableByPatch<Real3> var_patches_xe_;
 
-  kg::Variable<typename Grid::Kinds> var_kinds_;
-  kg::Attribute<Int3> var_ibn_;
-  kg::Attribute<int> var_timestep_;
+  kg::io::Variable<typename Grid::Kinds> var_kinds_;
+  kg::io::Attribute<Int3> var_ibn_;
+  kg::io::Attribute<int> var_timestep_;
   // the mrc_domain_ member is not written and handled specially on read
 };

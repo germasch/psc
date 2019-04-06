@@ -5,12 +5,15 @@
 
 namespace kg
 {
+namespace io
+{
 
 using Mode = adios2::Mode;
 using Dims = adios2::Dims;
 template <typename T>
 using Box = adios2::Box<T>;
 
+} // namespace io
 } // namespace kg
 
 #include "io/Attribute.h"
