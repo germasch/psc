@@ -19,5 +19,4 @@ using Box = adios2::Box<T>;
 #include "io/Attribute.h"
 #include "io/Engine.h"
 #include "io/IO.h"
-#include "io/Manager.h"
 #include "io/Variable.h"

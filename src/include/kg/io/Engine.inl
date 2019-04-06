@@ -1,6 +1,4 @@
 
-#include "IO.h"
-
 namespace kg
 {
 namespace io
