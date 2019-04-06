@@ -64,15 +64,15 @@ public:
   void put(kg::io::Engine& writer, const std::string& pfx, const Custom& c,
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.put(attr_i_, pfx + ".i", c.i, launch);
-    writer.put(var_d_, pfx + ".d", c.d, launch);
+    writer._put(attr_i_, pfx + ".i", c.i, launch);
+    writer._put(var_d_, pfx + ".d", c.d, launch);
   }
 
   void get(kg::io::Engine& reader, const std::string& pfx, Custom& c,
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    reader.get(attr_i_, pfx + ".i", c.i, launch);
-    reader.get(var_d_, pfx + ".d", c.d, launch);
+    reader._get(attr_i_, pfx + ".i", c.i, launch);
+    reader._get(var_d_, pfx + ".d", c.d, launch);
   }
 
   std::string name() const { return name_; }
@@ -91,7 +91,7 @@ TEST(KgIo, WriteReadCustom)
     auto writer = io.open("test.bp", kg::io::Mode::Write);
     auto var_custom = kg::io::Variable<Custom>{"var_custom", writer};
     auto c = Custom{3, 99.};
-    writer.put(var_custom, "var_custom", c);
+    writer._put(var_custom, "var_custom", c);
     writer.close();
   }
 
@@ -99,7 +99,7 @@ TEST(KgIo, WriteReadCustom)
     auto reader = io.open("test.bp", kg::io::Mode::Read);
     auto var_custom = kg::io::Variable<Custom>{"var_custom", reader};
     auto c = Custom{};
-    reader.get(var_custom, "var_custom", c);
+    reader._get(var_custom, "var_custom", c);
     reader.close();
     EXPECT_EQ(c.i, 3);
     EXPECT_EQ(c.d, 99.);

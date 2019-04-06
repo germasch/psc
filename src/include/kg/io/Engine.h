@@ -3,6 +3,9 @@
 
 #include <mrc_common.h>
 
+#include <deque>
+#include <iostream>
+
 namespace kg
 {
 namespace io
@@ -44,11 +47,17 @@ public:
   template <class T, class... Args>
   void put(T& variable, Args&&... args);
 
+  template <class T, class... Args>
+  void _put(T& variable, const std::string& pfx, Args&&... args);
+
   // ----------------------------------------------------------------------
   // get
 
   template <class T, class... Args>
   void get(T& variable, Args&&... args);
+
+  template <class T, class... Args>
+  void _get(T& variable, const std::string& pfx, Args&&... args);
 
   // ----------------------------------------------------------------------
   // performPuts
@@ -68,9 +77,24 @@ public:
   int mpiRank() const;
   int mpiSize() const;
 
+  std::string prefix() const
+  {
+    std::string s;
+    bool first = true;
+    for (auto& pfx : prefixes_) {
+      if (!first) {
+	s += "::";
+      }
+      s += pfx;
+      first = false;
+    }
+    return s;
+  }
+
 private:
   adios2::Engine engine_;
   adios2::IO io_;
+  std::deque<std::string> prefixes_;
   int mpi_rank_;
   int mpi_size_;
 

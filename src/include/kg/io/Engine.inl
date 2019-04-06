@@ -42,6 +42,15 @@ void Engine::put(T& variable, Args&&... args)
   variable.put(*this, std::forward<Args>(args)...);
 }
 
+template <class T, class... Args>
+void Engine::_put(T& variable, const std::string& pfx, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("put pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  variable.put(*this, prefix(), std::forward<Args>(args)...);
+  prefixes_.pop_back();
+}
+
 // ----------------------------------------------------------------------
 // get
 
@@ -49,6 +58,15 @@ template <class T, class... Args>
 void Engine::get(T& variable, Args&&... args)
 {
   variable.get(*this, std::forward<Args>(args)...);
+}
+
+template <class T, class... Args>
+void Engine::_get(T& variable, const std::string& pfx, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("get pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  variable.get(*this, prefix(), std::forward<Args>(args)...);
+  prefixes_.pop_back();
 }
 
 // ----------------------------------------------------------------------
