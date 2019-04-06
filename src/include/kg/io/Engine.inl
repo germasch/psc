@@ -106,42 +106,6 @@ void Engine::close()
   engine_.Close();
 }
 
-template <typename T>
-void Engine::putAttribute(const std::string& name, const T* data, size_t size)
-{
-  if (mpi_rank_ != 0) { // FIXME, should we do this?
-    return;
-  }
-  auto attr = io_.InquireAttribute<T>(name);
-  if (attr) {
-    mprintf("attr '%s' already exists -- ignoring it!", name.c_str());
-  } else {
-    io_.DefineAttribute<T>(name, data, size);
-  }
-}
-
-template <typename T>
-void Engine::putAttribute(const std::string& name, const T& value)
-{
-  if (mpi_rank_ != 0) { // FIXME, should we do this?
-    return;
-  }
-  auto attr = io_.InquireAttribute<T>(name);
-  if (attr) {
-    mprintf("attr '%s' already exists -- ignoring it!", name.c_str());
-  } else {
-    io_.DefineAttribute<T>(name, value);
-  }
-}
-
-template <typename T>
-void Engine::getAttribute(const std::string& name, std::vector<T>& data)
-{
-  auto attr = io_.InquireAttribute<T>(name);
-  assert(attr);
-  data = attr.Data();
-}
-
 int Engine::mpiRank() const
 {
   return mpi_rank_;

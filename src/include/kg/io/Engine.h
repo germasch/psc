@@ -12,6 +12,9 @@ namespace detail
 {
 template <typename T>
 class Variable;
+
+template <typename T>
+class Attribute;
 }
 
 template <typename T>
@@ -88,15 +91,6 @@ public:
 
   void close();
 
-  template <typename T>
-  void putAttribute(const std::string& name, const T* data, size_t size);
-
-  template <typename T>
-  void putAttribute(const std::string& name, const T& value);
-
-  template <typename T>
-  void getAttribute(const std::string& name, std::vector<T>& data);
-
   int mpiRank() const;
   int mpiSize() const;
 
@@ -105,6 +99,11 @@ private:
   adios2::IO io_;
   int mpi_rank_;
   int mpi_size_;
+
+  template <typename T>
+  friend class detail::Attribute;
+  template <typename T>
+  friend class detail::Variable;
 };
 
 } // namespace io

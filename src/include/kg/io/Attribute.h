@@ -24,25 +24,44 @@ struct Attribute
 
   void put(Engine& writer, const T* data, size_t size)
   {
-    writer.putAttribute(name_, data, size);
+    if (writer.mpiRank() != 0) { // FIXME, should we do this?
+      return;
+    }
+    auto attr = writer.io_.InquireAttribute<T>(name_);
+    if (attr) {
+      mprintf("attr '%s' already exists -- ignoring it!", name_.c_str());
+    } else {
+      writer.io_.DefineAttribute<T>(name_, data, size);
+    }
   }
 
-  void put(Engine& writer, const T& value)
+  void put(Engine& writer, const T& datum)
   {
-    writer.putAttribute(name_, value);
+    if (writer.mpiRank() != 0) { // FIXME, should we do this?
+      return;
+    }
+    auto attr = writer.io_.InquireAttribute<T>(name_);
+    if (attr) {
+      mprintf("attr '%s' already exists -- ignoring it!", name_.c_str());
+    } else {
+      writer.io_.DefineAttribute<T>(name_, datum);
+    }
   }
 
   void get(Engine& reader, std::vector<T>& data)
   {
-    reader.getAttribute(name_, data);
+    auto attr = reader.io_.InquireAttribute<T>(name_);
+    assert(attr);
+    data = attr.Data();
   }
 
-  void get(Engine& reader, T& value)
+  void get(Engine& reader, T& datum)
   {
-    std::vector<T> vals;
-    reader.getAttribute(name_, vals);
-    assert(vals.size() == 1);
-    value = vals[0];
+    auto attr = reader.io_.InquireAttribute<T>(name_);
+    assert(attr);
+    auto data = attr.Data();
+    assert(data.size() == 1);
+    datum = data[0];
   }
 
 protected:
