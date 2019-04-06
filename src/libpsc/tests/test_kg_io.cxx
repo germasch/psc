@@ -57,28 +57,19 @@ template <>
 class kg::io::Variable<Custom>
 {
 public:
-  Variable(const std::string& name, kg::io::Engine& engine)
-    : name_{name}
-  {}
-
-  void put(kg::io::Engine& writer, const std::string& pfx, const Custom& c,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+  static void put(kg::io::Engine& writer, const Custom& c,
+                  const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     writer.put1("i", c.i, launch);
     writer.putLocal("d", c.d, launch);
   }
 
-  void get(kg::io::Engine& reader, const std::string& pfx, Custom& c,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+  static void get(kg::io::Engine& reader, Custom& c,
+                  const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     reader.get1("i", c.i, launch);
     reader.getLocal("d", c.d, launch);
   }
-
-  std::string name() const { return name_; }
-
-private:
-  std::string name_;
 };
 
 TEST(KgIo, WriteReadCustom)

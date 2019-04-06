@@ -79,8 +79,7 @@ void Engine::putVar(const std::string& pfx, const T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
   mprintf("putVar pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  auto var = Variable<T>{prefix(), *this};
-  var.put(*this, prefix(), datum, std::forward<Args>(args)...);
+  Variable<T>::put(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
 }
 
@@ -127,8 +126,7 @@ void Engine::getVar(const std::string& pfx, T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
   mprintf("getVar pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  auto var = Variable<T>{prefix(), *this};
-  var.get(*this, prefix(), datum, std::forward<Args>(args)...);
+  Variable<T>::get(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
 }
 
