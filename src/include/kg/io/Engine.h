@@ -68,6 +68,15 @@ public:
   template <class T, class... Args>
   void _get(T& variable, const std::string& pfx, Args&&... args);
 
+  template <class T, class... Args>
+  void get1(const std::string& pfx, T& datum, Args&&... args);
+
+  template <class T, class... Args>
+  void getLocal(const std::string& pfx, T& datum, Args&&... args);
+
+  template <class T, class... Args>
+  void getVar(const std::string& pfx, T& datum, Args&&... args);
+
   // ----------------------------------------------------------------------
   // performPuts
 

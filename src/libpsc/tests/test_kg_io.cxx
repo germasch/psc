@@ -58,7 +58,7 @@ class kg::io::Variable<Custom>
 {
 public:
   Variable(const std::string& name, kg::io::Engine& engine)
-    : name_{name}, attr_i_{name + ".i", engine}, var_d_{name + ".d", engine}
+    : name_{name}
   {}
 
   void put(kg::io::Engine& writer, const std::string& pfx, const Custom& c,
@@ -71,16 +71,14 @@ public:
   void get(kg::io::Engine& reader, const std::string& pfx, Custom& c,
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    reader._get(attr_i_, "i", c.i, launch);
-    reader._get(var_d_, "d", c.d, launch);
+    reader.get1("i", c.i, launch);
+    reader.getLocal("d", c.d, launch);
   }
 
   std::string name() const { return name_; }
 
 private:
   std::string name_;
-  kg::io::Attribute<int> attr_i_;
-  kg::io::VariableLocalSingleValue<double> var_d_;
 };
 
 TEST(KgIo, WriteReadCustom)
@@ -96,9 +94,8 @@ TEST(KgIo, WriteReadCustom)
 
   {
     auto reader = io.open("test.bp", kg::io::Mode::Read);
-    auto var_custom = kg::io::Variable<Custom>{"var_custom", reader};
     auto c = Custom{};
-    reader._get(var_custom, "var_custom", c);
+    reader.getVar("var_custom", c);
     reader.close();
     EXPECT_EQ(c.i, 3);
     EXPECT_EQ(c.d, 99.);

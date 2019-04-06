@@ -102,6 +102,36 @@ void Engine::_get(T& variable, const std::string& pfx, Args&&... args)
   prefixes_.pop_back();
 }
 
+template <class T, class... Args>
+void Engine::get1(const std::string& pfx, T& datum, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("get1 pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  auto attr = Attribute<T>{prefix(), *this};
+  attr.get(*this, prefix(), datum, std::forward<Args>(args)...);
+  prefixes_.pop_back();
+}
+
+template <class T, class... Args>
+void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("get1 pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  auto var = VariableLocalSingleValue<T>{prefix(), *this};
+  var.get(*this, prefix(), datum, std::forward<Args>(args)...);
+  prefixes_.pop_back();
+}
+
+template <class T, class... Args>
+void Engine::getVar(const std::string& pfx, T& datum, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("getVar pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  auto var = Variable<T>{prefix(), *this};
+  var.get(*this, prefix(), datum, std::forward<Args>(args)...);
+  prefixes_.pop_back();
+}
+
 // ----------------------------------------------------------------------
 // performPuts
 
