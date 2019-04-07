@@ -41,46 +41,35 @@ Variable<T> Engine::defineVariable(const std::string& name)
 template <class T, class... Args>
 void Engine::put(T& variable, Args&&... args)
 {
-  mprintf("put name %s\n", "?");//variable.name().c_str());
+  mprintf("put name %s\n", "?"); // variable.name().c_str());
   variable.put(*this, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
 void Engine::put1(const std::string& pfx, const T& datum, Args&&... args)
 {
-  prefixes_.push_back(pfx);
-  mprintf("put1 pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  auto attr = Attribute<T>{prefix(), *this};
-  attr.put(*this, prefix(), datum, std::forward<Args>(args)...);
-  prefixes_.pop_back();
+  put<Attribute>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
 void Engine::putLocal(const std::string& pfx, const T& datum, Args&&... args)
 {
-  prefixes_.push_back(pfx);
-  mprintf("putLocal pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  auto var = VariableLocalSingleValue<T>{prefix(), *this};
-  var.put(*this, prefix(), datum, std::forward<Args>(args)...);
-  prefixes_.pop_back();
+  put<VariableLocalSingleValue>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
 void Engine::putVar(const std::string& pfx, const T& datum, Args&&... args)
 {
-  prefixes_.push_back(pfx);
-  mprintf("putVar pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  Variable<T>::put(*this, datum, std::forward<Args>(args)...);
-  prefixes_.pop_back();
+  put<Variable>(pfx, datum, std::forward<Args>(args)...);
 }
 
-template <template <typename> class Var, class T, class... Args>
-void Engine::put(const std::string& pfx, const T* data, Args&&... args)
+template <template <typename...> class Var, class T, class... Args>
+void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
   mprintf("put<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
   Var<T> var{prefix(), *this};
-  var.put(*this, data, std::forward<Args>(args)...);
+  var.put(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
 }
 
@@ -96,40 +85,28 @@ void Engine::get(T& variable, Args&&... args)
 template <class T, class... Args>
 void Engine::get1(const std::string& pfx, T& datum, Args&&... args)
 {
-  prefixes_.push_back(pfx);
-  mprintf("get1 pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  auto attr = Attribute<T>{prefix(), *this};
-  attr.get(*this, prefix(), datum, std::forward<Args>(args)...);
-  prefixes_.pop_back();
+  get<Attribute>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
 void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
 {
-  prefixes_.push_back(pfx);
-  mprintf("get1 pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  auto var = VariableLocalSingleValue<T>{prefix(), *this};
-  var.get(*this, prefix(), datum, std::forward<Args>(args)...);
-  prefixes_.pop_back();
+  get<VariableLocalSingleValue>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
 void Engine::getVar(const std::string& pfx, T& datum, Args&&... args)
 {
-  prefixes_.push_back(pfx);
-  mprintf("getVar pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  Variable<T> var{prefix(), *this};
-  var.get(*this, datum, std::forward<Args>(args)...);
-  prefixes_.pop_back();
+  get<Variable>(pfx, datum, std::forward<Args>(args)...);
 }
 
-template <template <typename> class Var, class T, class... Args>
-void Engine::get(const std::string& pfx, T* data, Args&&... args)
+template <template <typename...> class Var, class T, class... Args>
+void Engine::get(const std::string& pfx, T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
   mprintf("get<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
   Var<T> var{prefix(), *this};
-  var.get(*this, data, std::forward<Args>(args)...);
+  var.get(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
 }
 
