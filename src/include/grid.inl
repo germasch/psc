@@ -102,6 +102,8 @@ class kg::io::Variable<Grid_t::Domain>
 public:
   using value_type = typename Grid_t::Domain;
 
+  Variable(const std::string& pfx, Engine& engine) {}
+
   static void put(kg::io::Engine& writer, const value_type& domain,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
@@ -134,6 +136,8 @@ class kg::io::Variable<GridBc>
 public:
   using value_type = GridBc;
 
+  Variable(const std::string& pfx, Engine& engine) {}
+
   static void put(kg::io::Engine& writer, const value_type& bc,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
@@ -161,6 +165,8 @@ class kg::io::Variable<Grid_t::Normalization>
 {
 public:
   using value_type = Grid_t::Normalization;
+
+  Variable(const std::string& pfx, Engine& engine) {}
 
   static void put(kg::io::Engine& writer, const Grid_t::Normalization& norm,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
@@ -200,6 +206,8 @@ class kg::io::Variable<Grid_t::Kinds>
   using real_t = Grid_t::real_t;
 
 public:
+  Variable(const std::string& pfx, Engine& engine) {}
+
   using value_type = Grid_t::Kinds;
 
   static void put(kg::io::Engine& writer, const Grid_t::Kinds& kinds,

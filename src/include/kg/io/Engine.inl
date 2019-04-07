@@ -118,7 +118,8 @@ void Engine::getVar(const std::string& pfx, T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
   mprintf("getVar pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  Variable<T>::get(*this, datum, std::forward<Args>(args)...);
+  Variable<T> var{prefix(), *this};
+  var.get(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
 }
 

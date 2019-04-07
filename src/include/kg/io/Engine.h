@@ -58,7 +58,7 @@ public:
 
   template <template <typename> class Var, class T, class... Args>
   void put(const std::string& pfx, const T* data, Args&&... args);
-    
+
   // ----------------------------------------------------------------------
   // get
 
@@ -76,7 +76,7 @@ public:
 
   template <template <typename> class Var, class T, class... Args>
   void get(const std::string& pfx, T* data, Args&&... args);
-    
+
   // ----------------------------------------------------------------------
   // performPuts
 

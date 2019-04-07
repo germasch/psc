@@ -55,6 +55,8 @@ template <>
 class kg::io::Variable<Custom>
 {
 public:
+  Variable(const std::string& pfx, Engine& engine) {}
+
   static void put(kg::io::Engine& writer, const Custom& c,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
