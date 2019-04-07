@@ -108,23 +108,23 @@ public:
   static void put(kg::io::Engine& writer, const value_type& domain,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.put1("gdims", domain.gdims, launch);
-    writer.put1("length", domain.length, launch);
-    writer.put1("corner", domain.corner, launch);
-    writer.put1("np", domain.np, launch);
-    writer.put1("ldims", domain.ldims, launch);
-    writer.put1("dx", domain.dx, launch);
+    writer.putAttribute("gdims", domain.gdims, launch);
+    writer.putAttribute("length", domain.length, launch);
+    writer.putAttribute("corner", domain.corner, launch);
+    writer.putAttribute("np", domain.np, launch);
+    writer.putAttribute("ldims", domain.ldims, launch);
+    writer.putAttribute("dx", domain.dx, launch);
   }
 
   static void get(Engine& reader, value_type& domain,
                   const Mode launch = Mode::Deferred)
   {
-    reader.get1("gdims", domain.gdims, launch);
-    reader.get1("length", domain.length, launch);
-    reader.get1("corner", domain.corner, launch);
-    reader.get1("np", domain.np, launch);
-    reader.get1("ldims", domain.ldims, launch);
-    reader.get1("dx", domain.dx, launch);
+    reader.getAttribute("gdims", domain.gdims, launch);
+    reader.getAttribute("length", domain.length, launch);
+    reader.getAttribute("corner", domain.corner, launch);
+    reader.getAttribute("np", domain.np, launch);
+    reader.getAttribute("ldims", domain.ldims, launch);
+    reader.getAttribute("dx", domain.dx, launch);
   }
 };
 
@@ -142,19 +142,19 @@ public:
   static void put(kg::io::Engine& writer, const value_type& bc,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.put1("fld_lo", bc.fld_lo, launch);
-    writer.put1("fld_hi", bc.fld_hi, launch);
-    writer.put1("prt_lo", bc.prt_lo, launch);
-    writer.put1("prt_hi", bc.prt_hi, launch);
+    writer.putAttribute("fld_lo", bc.fld_lo, launch);
+    writer.putAttribute("fld_hi", bc.fld_hi, launch);
+    writer.putAttribute("prt_lo", bc.prt_lo, launch);
+    writer.putAttribute("prt_hi", bc.prt_hi, launch);
   }
 
   static void get(Engine& reader, value_type& bc,
                   const Mode launch = Mode::Deferred)
   {
-    reader.get1("fld_lo", bc.fld_lo, launch);
-    reader.get1("fld_hi", bc.fld_hi, launch);
-    reader.get1("prt_lo", bc.prt_lo, launch);
-    reader.get1("prt_hi", bc.prt_hi, launch);
+    reader.getAttribute("fld_lo", bc.fld_lo, launch);
+    reader.getAttribute("fld_hi", bc.fld_hi, launch);
+    reader.getAttribute("prt_lo", bc.prt_lo, launch);
+    reader.getAttribute("prt_hi", bc.prt_hi, launch);
   }
 };
 
@@ -172,29 +172,29 @@ public:
   static void put(kg::io::Engine& writer, const Grid_t::Normalization& norm,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.put1("cc", norm.cc, launch);
-    writer.put1("fnqs", norm.fnqs, launch);
-    writer.put1("eta", norm.eta, launch);
-    writer.put1("beta", norm.beta, launch);
-    writer.put1("cori", norm.cori, launch);
-    writer.put1("b0", norm.b0, launch);
-    writer.put1("rho0", norm.rho0, launch);
-    writer.put1("phi0", norm.phi0, launch);
-    writer.put1("a0", norm.a0, launch);
+    writer.putAttribute("cc", norm.cc, launch);
+    writer.putAttribute("fnqs", norm.fnqs, launch);
+    writer.putAttribute("eta", norm.eta, launch);
+    writer.putAttribute("beta", norm.beta, launch);
+    writer.putAttribute("cori", norm.cori, launch);
+    writer.putAttribute("b0", norm.b0, launch);
+    writer.putAttribute("rho0", norm.rho0, launch);
+    writer.putAttribute("phi0", norm.phi0, launch);
+    writer.putAttribute("a0", norm.a0, launch);
   }
 
   static void get(Engine& reader, Grid_t::Normalization& norm,
                   const Mode launch = Mode::Deferred)
   {
-    reader.get1("cc", norm.cc, launch);
-    reader.get1("fnqs", norm.fnqs, launch);
-    reader.get1("eta", norm.eta, launch);
-    reader.get1("beta", norm.beta, launch);
-    reader.get1("cori", norm.cori, launch);
-    reader.get1("b0", norm.b0, launch);
-    reader.get1("rho0", norm.rho0, launch);
-    reader.get1("phi0", norm.phi0, launch);
-    reader.get1("a0", norm.a0, launch);
+    reader.getAttribute("cc", norm.cc, launch);
+    reader.getAttribute("fnqs", norm.fnqs, launch);
+    reader.getAttribute("eta", norm.eta, launch);
+    reader.getAttribute("beta", norm.beta, launch);
+    reader.getAttribute("cori", norm.cori, launch);
+    reader.getAttribute("b0", norm.b0, launch);
+    reader.getAttribute("rho0", norm.rho0, launch);
+    reader.getAttribute("phi0", norm.phi0, launch);
+    reader.getAttribute("a0", norm.a0, launch);
   }
 };
 
@@ -224,9 +224,9 @@ public:
       names[kind] = kinds[kind].name;
     }
 
-    writer.put1("names", names, kg::io::Mode::Sync);
-    writer.put1("q", q, kg::io::Mode::Sync);
-    writer.put1("m", m, kg::io::Mode::Sync);
+    writer.putAttribute("names", names, kg::io::Mode::Sync);
+    writer.putAttribute("q", q, kg::io::Mode::Sync);
+    writer.putAttribute("m", m, kg::io::Mode::Sync);
   }
 
   static void get(Engine& reader, Grid_t::Kinds& kinds,
@@ -235,10 +235,10 @@ public:
     auto q = std::vector<real_t>{};
     auto m = std::vector<real_t>{};
     auto names = std::vector<std::string>{};
-    reader.get1("names", names, kg::io::Mode::Sync);
-    reader.get1("q", q, kg::io::Mode::Sync);
-    reader.get1("m", m, kg::io::Mode::Sync);
-    reader.get1("names", names);
+    reader.getAttribute("names", names, kg::io::Mode::Sync);
+    reader.getAttribute("q", q, kg::io::Mode::Sync);
+    reader.getAttribute("m", m, kg::io::Mode::Sync);
+    reader.getAttribute("names", names);
 
     kinds.resize(q.size());
     for (int kind = 0; kind < q.size(); kind++) {
@@ -267,11 +267,11 @@ public:
   void put(kg::io::Engine& writer, const Grid& grid,
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.put1("ldims", grid.ldims);
+    writer.putAttribute("ldims", grid.ldims);
     writer.putVar("domain", grid.domain, launch);
     writer.putVar("bc", grid.bc, launch);
     writer.putVar("norm", grid.norm, launch);
-    writer.put1("dt", grid.dt);
+    writer.putAttribute("dt", grid.dt);
 
     size_t patches_n_local = grid.patches.size();
     writer.putLocal("n_local", patches_n_local);
@@ -291,8 +291,8 @@ public:
     writer.put<VariableByPatch>("xe", patches_xe, grid, launch);
 
     writer.putVar("kinds", grid.kinds, launch);
-    writer.put1("ibn", grid.ibn);
-    writer.put1("timestep", grid.timestep_);
+    writer.putAttribute("ibn", grid.ibn);
+    writer.putAttribute("timestep", grid.timestep_);
 
     writer.performPuts(); // because we're writing temp local vars (the
                           // patches_*)
@@ -301,11 +301,11 @@ public:
   void get(kg::io::Engine& reader, Grid& grid,
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    reader.get1("ldims", grid.ldims);
+    reader.getAttribute("ldims", grid.ldims);
     reader.getVar("domain", grid.domain, launch);
     reader.getVar("bc", grid.bc, launch);
     reader.getVar("norm", grid.norm, launch);
-    reader.get1("dt", grid.dt);
+    reader.getAttribute("dt", grid.dt);
 
     size_t patches_n_local;
     reader.getLocal("n_local", patches_n_local, launch);
@@ -331,7 +331,7 @@ public:
     }
 
     reader.getVar("kinds", grid.kinds, launch);
-    reader.get1("ibn", grid.ibn);
-    reader.get1("timestep", grid.timestep_);
+    reader.getAttribute("ibn", grid.ibn);
+    reader.getAttribute("timestep", grid.timestep_);
   }
 };

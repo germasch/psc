@@ -46,7 +46,8 @@ void Engine::put(T& variable, Args&&... args)
 }
 
 template <class T, class... Args>
-void Engine::put1(const std::string& pfx, const T& datum, Args&&... args)
+void Engine::putAttribute(const std::string& pfx, const T& datum,
+                          Args&&... args)
 {
   put<Attribute>(pfx, datum, std::forward<Args>(args)...);
 }
@@ -83,7 +84,7 @@ void Engine::get(T& variable, Args&&... args)
 }
 
 template <class T, class... Args>
-void Engine::get1(const std::string& pfx, T& datum, Args&&... args)
+void Engine::getAttribute(const std::string& pfx, T& datum, Args&&... args)
 {
   get<Attribute>(pfx, datum, std::forward<Args>(args)...);
 }

@@ -32,14 +32,14 @@ TEST(KgIo, WriteReadAttr)
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);
-    writer.put1("attr_double", 99.);
+    writer.putAttribute("attr_double", 99.);
     writer.close();
   }
 
   {
     auto reader = io.open("test.bp", kg::io::Mode::Read);
     double dbl;
-    reader.get1("attr_double", dbl);
+    reader.getAttribute("attr_double", dbl);
     reader.close();
     EXPECT_EQ(dbl, 99.);
   }
@@ -60,14 +60,14 @@ public:
   static void put(kg::io::Engine& writer, const Custom& c,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.put1("i", c.i, launch);
+    writer.putAttribute("i", c.i, launch);
     writer.putLocal("d", c.d, launch);
   }
 
   static void get(kg::io::Engine& reader, Custom& c,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    reader.get1("i", c.i, launch);
+    reader.getAttribute("i", c.i, launch);
     reader.getLocal("d", c.d, launch);
   }
 };

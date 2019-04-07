@@ -48,7 +48,7 @@ public:
   void put(T& variable, Args&&... args);
 
   template <class T, class... Args>
-  void put1(const std::string& pfx, const T& datum, Args&&... args);
+  void putAttribute(const std::string& pfx, const T& datum, Args&&... args);
 
   template <class T, class... Args>
   void putLocal(const std::string& pfx, const T& datum, Args&&... args);
@@ -66,7 +66,7 @@ public:
   void get(T& variable, Args&&... args);
 
   template <class T, class... Args>
-  void get1(const std::string& pfx, T& datum, Args&&... args);
+  void getAttribute(const std::string& pfx, T& datum, Args&&... args);
 
   template <class T, class... Args>
   void getLocal(const std::string& pfx, T& datum, Args&&... args);
