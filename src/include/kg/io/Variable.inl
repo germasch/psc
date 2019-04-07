@@ -152,15 +152,7 @@ template <typename T>
 void VariableLocalSingleValue<T>::put(Engine& writer, const T& datum,
                                       const Mode launch)
 {
-  writer.put(var_, datum, launch);
-}
-
-template <typename T>
-void VariableLocalSingleValue<T>::put(Engine& writer, const std::string &pfx, const T& datum,
-                                      const Mode launch)
-{
-  auto var = writer._defineVariable<T>(pfx, {adios2::LocalValueDim});
-  writer.put(var, datum, launch);
+  var_.put(writer, datum, launch);
 }
 
 template <typename T>
@@ -173,24 +165,7 @@ void VariableLocalSingleValue<T>::get(Engine& reader, T& val, const Mode launch)
 
   // FIXME, setSelection doesn't work, so read the whole thing
   std::vector<T> vals(shape[0]);
-  reader.get(var_, vals.data(), launch);
-  // for (auto val : vals) mprintf("val %d\n", val);
-  val = vals[reader.mpiRank()];
-}
-
-template <typename T>
-void VariableLocalSingleValue<T>::get(Engine& reader, const std::string& pfx, T& val, const Mode launch)
-{
-  auto var = reader._defineVariable<T>(pfx, {adios2::LocalValueDim});
-  auto shape = var.shape();
-  assert(shape.size() == 1);
-  auto dim0 = shape[0];
-  assert(dim0 == reader.mpiSize());
-
-  // FIXME, setSelection doesn't work, so read the whole thing
-  std::vector<T> vals(shape[0]);
-  reader.get(var, vals.data(), launch);
-  // for (auto val : vals) mprintf("val %d\n", val);
+  var_.get(reader, vals.data(), launch);
   val = vals[reader.mpiRank()];
 }
 

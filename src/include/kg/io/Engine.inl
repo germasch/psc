@@ -39,13 +39,6 @@ Variable<T> Engine::defineVariable(const std::string& name)
 // put
 
 template <class T, class... Args>
-void Engine::put(T& variable, Args&&... args)
-{
-  mprintf("put name %s\n", "?"); // variable.name().c_str());
-  variable.put(*this, std::forward<Args>(args)...);
-}
-
-template <class T, class... Args>
 void Engine::putAttribute(const std::string& pfx, const T& datum,
                           Args&&... args)
 {
@@ -76,12 +69,6 @@ void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 
 // ----------------------------------------------------------------------
 // get
-
-template <class T, class... Args>
-void Engine::get(T& variable, Args&&... args)
-{
-  variable.get(*this, std::forward<Args>(args)...);
-}
 
 template <class T, class... Args>
 void Engine::getAttribute(const std::string& pfx, T& datum, Args&&... args)

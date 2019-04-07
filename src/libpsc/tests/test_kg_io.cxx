@@ -9,18 +9,14 @@ TEST(KgIo, WriteRead)
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);
-    auto var_double =
-      kg::io::VariableLocalSingleValue<double>{"var_double", writer};
-    writer.put(var_double, "var_double", 99.);
+    writer.putLocal("var_double", 99.);
     writer.close();
   }
 
   {
     auto reader = io.open("test.bp", kg::io::Mode::Read);
-    auto var_double =
-      kg::io::VariableLocalSingleValue<double>{"var_double", reader};
     double dbl;
-    reader.get(var_double, "var_double", dbl);
+    reader.getLocal("var_double", dbl);
     reader.close();
     EXPECT_EQ(dbl, 99.);
   }

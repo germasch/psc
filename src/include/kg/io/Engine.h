@@ -45,9 +45,6 @@ public:
   // put
 
   template <class T, class... Args>
-  void put(T& variable, Args&&... args);
-
-  template <class T, class... Args>
   void putAttribute(const std::string& pfx, const T& datum, Args&&... args);
 
   template <class T, class... Args>
@@ -61,9 +58,6 @@ public:
 
   // ----------------------------------------------------------------------
   // get
-
-  template <class T, class... Args>
-  void get(T& variable, Args&&... args);
 
   template <class T, class... Args>
   void getAttribute(const std::string& pfx, T& datum, Args&&... args);

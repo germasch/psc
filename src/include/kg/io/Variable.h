@@ -101,12 +101,8 @@ public:
   VariableLocalSingleValue(const std::string& name, Engine& engine);
 
   void put(Engine& writer, const T& datum, const Mode launch = Mode::Deferred);
-  static void put(Engine& writer, const std::string& pfx, const T& datum,
-                  const Mode launch = Mode::Deferred);
 
   void get(Engine& reader, T& val, const Mode launch = Mode::Deferred);
-  void get(Engine& reader, const std::string& pfx, T& val,
-           const Mode launch = Mode::Deferred);
 
   Dims shape() const;
 

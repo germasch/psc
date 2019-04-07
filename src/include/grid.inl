@@ -69,7 +69,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
       static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
     kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
     auto var = writer._defineVariable<T>(name_, shape, start, count);
-    writer.put(var, datum[0].data(), launch);
+    var.put(writer, datum[0].data(), launch);
   }
 
   void get(kg::io::Engine& reader, value_type& datum, const Grid_t& grid,
@@ -83,7 +83,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
     assert(var.shape() == shape);
     var.setSelection({start, count});
     datum.resize(count[0]);
-    reader.get(var, datum[0].data(), launch);
+    var.get(reader, datum[0].data(), launch);
   }
 
   std::string name() const { return name_; }
