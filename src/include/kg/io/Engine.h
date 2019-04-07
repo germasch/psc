@@ -45,13 +45,13 @@ public:
   // put
 
   template <class T, class... Args>
+  void put(const std::string& pfx, const T& datum, Args&&... args);
+
+  template <class T, class... Args>
   void putAttribute(const std::string& pfx, const T& datum, Args&&... args);
 
   template <class T, class... Args>
   void putLocal(const std::string& pfx, const T& datum, Args&&... args);
-
-  template <class T, class... Args>
-  void putVar(const std::string& pfx, const T& datum, Args&&... args);
 
   template <template <typename...> class Var, class T, class... Args>
   void put(const std::string& pfx, const T& datum, Args&&... args);
@@ -60,13 +60,13 @@ public:
   // get
 
   template <class T, class... Args>
+  void get(const std::string& pfx, T& datum, Args&&... args);
+
+  template <class T, class... Args>
   void getAttribute(const std::string& pfx, T& datum, Args&&... args);
 
   template <class T, class... Args>
   void getLocal(const std::string& pfx, T& datum, Args&&... args);
-
-  template <class T, class... Args>
-  void getVar(const std::string& pfx, T& datum, Args&&... args);
 
   template <template <typename...> class Var, class T, class... Args>
   void get(const std::string& pfx, T& datum, Args&&... args);

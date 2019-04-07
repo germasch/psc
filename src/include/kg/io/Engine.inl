@@ -39,6 +39,12 @@ Variable<T> Engine::defineVariable(const std::string& name)
 // put
 
 template <class T, class... Args>
+void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
+{
+  put<Variable>(pfx, datum, std::forward<Args>(args)...);
+}
+
+template <class T, class... Args>
 void Engine::putAttribute(const std::string& pfx, const T& datum,
                           Args&&... args)
 {
@@ -49,12 +55,6 @@ template <class T, class... Args>
 void Engine::putLocal(const std::string& pfx, const T& datum, Args&&... args)
 {
   put<VariableLocalSingleValue>(pfx, datum, std::forward<Args>(args)...);
-}
-
-template <class T, class... Args>
-void Engine::putVar(const std::string& pfx, const T& datum, Args&&... args)
-{
-  put<Variable>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <template <typename...> class Var, class T, class... Args>
@@ -83,7 +83,7 @@ void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
 }
 
 template <class T, class... Args>
-void Engine::getVar(const std::string& pfx, T& datum, Args&&... args)
+void Engine::get(const std::string& pfx, T& datum, Args&&... args)
 {
   get<Variable>(pfx, datum, std::forward<Args>(args)...);
 }

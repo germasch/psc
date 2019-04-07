@@ -106,7 +106,7 @@ TEST(Grid, adios2_write)
     auto grid = Grid_t{domain, bc, kinds, norm, dt, n_patches};
 
     auto writer = io.open("test.bp", kg::io::Mode::Write);
-    writer.putVar("grid", grid);
+    writer.put("grid", grid);
     writer.close();
   }
 
@@ -118,7 +118,7 @@ TEST(Grid, adios2_write)
     Grid_t grid;
 
     auto reader = io.open("test.bp", kg::io::Mode::Read);
-    reader.getVar("grid", grid);
+    reader.get("grid", grid);
     reader.close();
 
     EXPECT_EQ(grid.dt, .1);

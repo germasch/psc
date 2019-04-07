@@ -75,14 +75,14 @@ TEST(KgIo, WriteReadCustom)
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);
     auto c = Custom{3, 99.};
-    writer.putVar("var_custom", c);
+    writer.put("var_custom", c);
     writer.close();
   }
 
   {
     auto reader = io.open("test.bp", kg::io::Mode::Read);
     auto c = Custom{};
-    reader.getVar("var_custom", c);
+    reader.get("var_custom", c);
     reader.close();
     EXPECT_EQ(c.i, 3);
     EXPECT_EQ(c.d, 99.);

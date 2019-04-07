@@ -268,9 +268,9 @@ public:
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     writer.putAttribute("ldims", grid.ldims);
-    writer.putVar("domain", grid.domain, launch);
-    writer.putVar("bc", grid.bc, launch);
-    writer.putVar("norm", grid.norm, launch);
+    writer.put("domain", grid.domain, launch);
+    writer.put("bc", grid.bc, launch);
+    writer.put("norm", grid.norm, launch);
     writer.putAttribute("dt", grid.dt);
 
     size_t patches_n_local = grid.patches.size();
@@ -290,7 +290,7 @@ public:
     writer.put<VariableByPatch>("xb", patches_xb, grid, launch);
     writer.put<VariableByPatch>("xe", patches_xe, grid, launch);
 
-    writer.putVar("kinds", grid.kinds, launch);
+    writer.put("kinds", grid.kinds, launch);
     writer.putAttribute("ibn", grid.ibn);
     writer.putAttribute("timestep", grid.timestep_);
 
@@ -302,9 +302,9 @@ public:
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
     reader.getAttribute("ldims", grid.ldims);
-    reader.getVar("domain", grid.domain, launch);
-    reader.getVar("bc", grid.bc, launch);
-    reader.getVar("norm", grid.norm, launch);
+    reader.get("domain", grid.domain, launch);
+    reader.get("bc", grid.bc, launch);
+    reader.get("norm", grid.norm, launch);
     reader.getAttribute("dt", grid.dt);
 
     size_t patches_n_local;
@@ -330,7 +330,7 @@ public:
       patch.xe = patches_xe[p];
     }
 
-    reader.getVar("kinds", grid.kinds, launch);
+    reader.get("kinds", grid.kinds, launch);
     reader.getAttribute("ibn", grid.ibn);
     reader.getAttribute("timestep", grid.timestep_);
   }
