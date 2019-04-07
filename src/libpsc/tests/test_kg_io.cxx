@@ -32,16 +32,14 @@ TEST(KgIo, WriteReadAttr)
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);
-    auto attr_double = kg::io::Attribute<double>{"attr_double", writer};
-    writer.put(attr_double, "attr_double", 99.);
+    writer.put1("attr_double", 99.);
     writer.close();
   }
 
   {
     auto reader = io.open("test.bp", kg::io::Mode::Read);
-    auto attr_double = kg::io::Attribute<double>{"attr_double", reader};
     double dbl;
-    reader.get(attr_double, dbl);
+    reader.get1("attr_double", dbl);
     reader.close();
     EXPECT_EQ(dbl, 99.);
   }

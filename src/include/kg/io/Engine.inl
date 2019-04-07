@@ -46,15 +46,6 @@ void Engine::put(T& variable, Args&&... args)
 }
 
 template <class T, class... Args>
-void Engine::_put(T& variable, const std::string& pfx, Args&&... args)
-{
-  prefixes_.push_back(pfx);
-  mprintf("put pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  variable.put(*this, prefix(), std::forward<Args>(args)...);
-  prefixes_.pop_back();
-}
-
-template <class T, class... Args>
 void Engine::put1(const std::string& pfx, const T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
@@ -83,6 +74,16 @@ void Engine::putVar(const std::string& pfx, const T& datum, Args&&... args)
   prefixes_.pop_back();
 }
 
+template <template <typename> class Var, class T, class... Args>
+void Engine::put(const std::string& pfx, const T* data, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("put<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  Var<T> var{prefix(), *this};
+  var.put(*this, data, std::forward<Args>(args)...);
+  prefixes_.pop_back();
+}
+
 // ----------------------------------------------------------------------
 // get
 
@@ -90,15 +91,6 @@ template <class T, class... Args>
 void Engine::get(T& variable, Args&&... args)
 {
   variable.get(*this, std::forward<Args>(args)...);
-}
-
-template <class T, class... Args>
-void Engine::_get(T& variable, const std::string& pfx, Args&&... args)
-{
-  prefixes_.push_back(pfx);
-  mprintf("get pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  variable.get(*this, prefix(), std::forward<Args>(args)...);
-  prefixes_.pop_back();
 }
 
 template <class T, class... Args>
@@ -127,6 +119,16 @@ void Engine::getVar(const std::string& pfx, T& datum, Args&&... args)
   prefixes_.push_back(pfx);
   mprintf("getVar pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
   Variable<T>::get(*this, datum, std::forward<Args>(args)...);
+  prefixes_.pop_back();
+}
+
+template <template <typename> class Var, class T, class... Args>
+void Engine::get(const std::string& pfx, T* data, Args&&... args)
+{
+  prefixes_.push_back(pfx);
+  mprintf("get<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  Var<T> var{prefix(), *this};
+  var.get(*this, data, std::forward<Args>(args)...);
   prefixes_.pop_back();
 }
 

@@ -58,30 +58,34 @@ struct VariableByPatch<Vec3<T>>
 {
   using value_type = Vec3<T>;
 
-  static void put(kg::io::Engine& writer, const std::string& pfx,
-                  const value_type* data, const Grid_t& grid,
-                  const kg::io::Mode launch = kg::io::Mode::Deferred)
+  VariableByPatch(const std::string& name, kg::io::Engine& engine) : name_{name}
+  {}
+
+  void put(kg::io::Engine& writer, const value_type* data, const Grid_t& grid,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    size_t patches_n_local = grid.n_patches();
-    size_t patches_n_global = grid.nGlobalPatches();
-    size_t patches_start = grid.localPatchInfo(0).global_patch;
-    auto var = writer._defineVariable<T>(
-      pfx, {patches_n_global, 3}, {patches_start, 0}, {patches_n_local, 3});
+    kg::io::Dims shape = {static_cast<size_t>(grid.nGlobalPatches()), 3};
+    kg::io::Dims start = {
+      static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
+    kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
+    auto var = writer._defineVariable<T>(name_, shape, start, count);
     writer.put(var, data[0].data(), launch);
   }
 
-  static void get(kg::io::Engine& reader, const std::string& pfx,
-                  value_type* data, const Grid_t& grid,
-                  const kg::io::Mode launch = kg::io::Mode::Deferred)
+  void get(kg::io::Engine& reader, value_type* data, const Grid_t& grid,
+           const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    size_t patches_n_local = grid.n_patches();
-    size_t patches_n_global = grid.nGlobalPatches();
-    size_t patches_start = grid.localPatchInfo(0).global_patch;
-    auto var = reader._defineVariable<T>(pfx);
-    assert(var.shape() == kg::io::Dims({patches_n_global, 3}));
-    var.setSelection({{patches_start, 0}, {patches_n_local, 3}});
+    kg::io::Dims shape = {static_cast<size_t>(grid.nGlobalPatches()), 3};
+    kg::io::Dims start = {
+      static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
+    kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
+    auto var = reader._defineVariable<T>(name_);
+    assert(var.shape() == shape);
+    var.setSelection({start, count});
     reader.get(var, data[0].data(), launch);
   }
+
+  std::string name() const { return name_; }
 
 private:
   std::string name_;
@@ -273,12 +277,9 @@ public:
       patches_xe[p] = patch.xe;
     }
 
-    auto var_patches_off = VariableByPatch<Int3>{};
-    auto var_patches_xb = VariableByPatch<Real3>{};
-    auto var_patches_xe = VariableByPatch<Real3>{};
-    writer._put(var_patches_off, "off", patches_off.data(), grid, launch);
-    writer._put(var_patches_xb, "xb", patches_xb.data(), grid, launch);
-    writer._put(var_patches_xe, "xe", patches_xe.data(), grid, launch);
+    writer.put<VariableByPatch>("off", patches_off.data(), grid, launch);
+    writer.put<VariableByPatch>("xb", patches_xb.data(), grid, launch);
+    writer.put<VariableByPatch>("xe", patches_xe.data(), grid, launch);
 
     writer.putVar("kinds", grid.kinds, launch);
     writer.put1("ibn", grid.ibn);
@@ -308,12 +309,9 @@ public:
     auto patches_off = std::vector<Int3>(patches_n_local);
     auto patches_xb = std::vector<Real3>(patches_n_local);
     auto patches_xe = std::vector<Real3>(patches_n_local);
-    auto var_patches_off = VariableByPatch<Int3>{};
-    auto var_patches_xb = VariableByPatch<Real3>{};
-    auto var_patches_xe = VariableByPatch<Real3>{};
-    reader._get(var_patches_off, "off", patches_off.data(), grid, launch);
-    reader._get(var_patches_xb, "xb", patches_xb.data(), grid, launch);
-    reader._get(var_patches_xe, "xe", patches_xe.data(), grid, launch);
+    reader.get<VariableByPatch>("off", patches_off.data(), grid, launch);
+    reader.get<VariableByPatch>("xb", patches_xb.data(), grid, launch);
+    reader.get<VariableByPatch>("xe", patches_xe.data(), grid, launch);
 
     reader.performGets(); // need to actually read the temp local vars
     for (int p = 0; p < patches_n_local; p++) {
