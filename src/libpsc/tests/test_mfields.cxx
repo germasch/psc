@@ -1,12 +1,21 @@
 
 #include <gtest/gtest.h>
 
+#undef USE_CUDA // FIXME!!!, SetupFields doesn't work
+
 #include "fields3d.hxx"
 #include "psc_fields_single.h"
 #include "psc_fields_c.h"
 #ifdef USE_CUDA
 #include "psc_fields_cuda.h"
 #endif
+#include "setup_fields.hxx"
+
+#undef USE_CUDA // FIXME!!!, SetupFields doesn't work
+#ifdef USE_CUDA
+#include "../libpsc/cuda/setup_fields_cuda.hxx"
+#endif
+
 
 #include "psc.h" // FIXME, just for EX etc
 
@@ -78,6 +87,29 @@ TYPED_TEST(MfieldsTest, ZeroComp)
   EXPECT_EQ(mflds[0](EY,  0, 0, 0), 0.);
   EXPECT_EQ(mflds[0](EY,  4, 2, 2), 0.);
   EXPECT_EQ(mflds[0](EZ, -1,-1,-1), 5.);
+}
+
+TYPED_TEST(MfieldsTest, SetupFields)
+{
+  using Mfields = TypeParam;
+
+  auto grid = make_grid();
+  auto mflds = Mfields{grid, NR_FIELDS, {}};
+
+  SetupFields<Mfields>::set(mflds, [](int m, double crd[3]) {
+      return m + crd[0] + 100 * crd[1] + 10000 * crd[2];
+    });
+  
+  for (int p = 0; p < mflds.n_patches(); ++p) {
+    mprintf("p = %d\n", p);
+    
+    grid.Foreach_3d(0, 0, [&](int i, int j, int k) {
+#if 0
+	mprintf("[%d, %d, %d] = %06g %06g %06g\n", i, j, k,
+		(double) mflds[p](EX, i, j, k), (double) mflds[p](EY, i, j, k), (double) mflds[p](EZ, i, j, k));
+#endif
+      });
+  }
 }
 
 // ======================================================================
