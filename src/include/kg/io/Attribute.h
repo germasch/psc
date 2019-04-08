@@ -143,27 +143,11 @@ public:
     attr_.put(writer, vec.data(), 3);
   }
 
-  static void put(Engine& writer, const std::string& pfx, const value_type& vec,
-                  const Mode launch = Mode::Deferred)
-  {
-    auto attr = detail::Attribute<DataType>{pfx, writer};
-    attr.put(writer, vec.data(), 3);
-  }
-
   void get(Engine& reader, value_type& data, const Mode launch = Mode::Deferred)
   {
     std::vector<DataType> vals;
     attr_.get(reader, vals);
     data = {vals[0], vals[1], vals[2]};
-  }
-
-  static void get(Engine& writer, const std::string& pfx, value_type& vec,
-                  const Mode launch = Mode::Deferred)
-  {
-    std::vector<DataType> vals;
-    auto attr = detail::Attribute<DataType>{pfx, writer};
-    attr.get(writer, vals);
-    vec = {vals[0], vals[1], vals[2]};
   }
 
   std::string name() const { return attr_.name(); }
