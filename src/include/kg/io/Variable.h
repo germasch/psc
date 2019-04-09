@@ -32,6 +32,7 @@ public:
   void get(Engine& reader, T* data, const Mode launch = Mode::Deferred);
 
   void setSelection(const Box<Dims>& selection);
+  void setMemorySelection(const Box<Dims>& selection);
   void setShape(const Dims& shape);
 
   Dims shape() const;

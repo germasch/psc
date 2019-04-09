@@ -49,6 +49,12 @@ void Variable<T>::setSelection(const Box<Dims>& selection)
 }
 
 template <typename T>
+void Variable<T>::setMemorySelection(const Box<Dims>& selection)
+{
+  var_.SetMemorySelection(selection);
+}
+
+template <typename T>
 void Variable<T>::setShape(const Dims& shape)
 {
   var_.SetShape(shape);
