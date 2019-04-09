@@ -156,6 +156,40 @@ private:
   detail::Attribute<DataType> attr_;
 };
 
+// ======================================================================
+// Attribute<T[N]>
+
+template <class T, std::size_t N>
+class Attribute<T[N]> // typename
+                      // std::enable_if<std::is_adios2_type<T>::value>::type>
+{
+  using DataType = T;
+
+public:
+  using value_type = DataType[N];
+
+  Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
+
+  void put(Engine& writer, const value_type& arr,
+           const Mode launch = Mode::Deferred)
+  {
+    attr_.put(writer, arr, N);
+  }
+
+  void get(Engine& reader, value_type& arr, const Mode launch = Mode::Deferred)
+  {
+    std::vector<DataType> vals;
+    attr_.get(reader, vals);
+    assert(vals.size() == N);
+    std::copy(vals.begin(), vals.end(), arr);
+  }
+
+  std::string name() const { return attr_.name(); }
+
+private:
+  detail::Attribute<DataType> attr_;
+};
+
 } // namespace io
 } // namespace kg
 

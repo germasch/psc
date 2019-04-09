@@ -29,6 +29,7 @@ add_psc_test(test_balance)
 
 if (ADIOS2_FOUND)
   add_psc_test(test_kg_io)
+  add_psc_test(test_mfields_io)
 endif()
 
 macro(add_adios_test name)
