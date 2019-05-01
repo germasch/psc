@@ -16,29 +16,24 @@ struct VariableGlobalSingleValue<Vec3<T>>
 {
   using value_type = Vec3<T>;
 
-  VariableGlobalSingleValue(const std::string& name, Engine& engine)
-    : var_{engine._defineVariable<T>(name, {3})}
-  {}
+  VariableGlobalSingleValue(const std::string& name, Engine& engine) {}
 
   void put(Engine& writer, const Vec3<T>& vec3,
            const Mode launch = Mode::Deferred)
   {
+    auto var = writer._defineVariable<T>(writer.prefix(), {3});
     if (writer.mpiRank() == 0) {
-      var_.setSelection({{0}, {3}});
-      writer.put(var_, vec3.data(), launch);
+      var.setSelection({{0}, {3}});
+      writer.put(var, vec3.data(), launch);
     }
   };
 
   void get(Engine& reader, Vec3<T>& vec3, const Mode launch = Mode::Deferred)
   {
-    var_.setSelection({{0}, {3}});
-    reader.get(var_, vec3.data(), launch);
+    auto var = reader._defineVariable<T>(reader.prefix(), {3});
+    var.setSelection({{0}, {3}});
+    reader.get(var, vec3.data(), launch);
   };
-
-  explicit operator bool() const { return static_cast<bool>(var_); }
-
-private:
-  detail::Variable<T> var_;
 };
 
 } // namespace io
@@ -55,8 +50,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
 {
   using value_type = std::vector<Vec3<T>>;
 
-  VariableByPatch(const std::string& name, kg::io::Engine& engine) : name_{name}
-  {}
+  VariableByPatch(const std::string& name, kg::io::Engine& engine) {}
 
   void put(kg::io::Engine& writer, const value_type& datum, const Grid_t& grid,
            const kg::io::Mode launch = kg::io::Mode::Deferred)
@@ -65,7 +59,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
     kg::io::Dims start = {
       static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
     kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
-    auto var = writer._defineVariable<T>(name_, shape);
+    auto var = writer._defineVariable<T>(writer.prefix(), shape);
     var.setSelection({start, count});
     var.put(writer, datum[0].data(), launch);
   }
@@ -77,17 +71,12 @@ struct VariableByPatch<std::vector<Vec3<T>>>
     kg::io::Dims start = {
       static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
     kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
-    auto var = reader._defineVariable<T>(name_);
+    auto var = reader._defineVariable<T>(reader.prefix());
     assert(var.shape() == shape);
     var.setSelection({start, count});
     datum.resize(count[0]);
     var.get(reader, datum[0].data(), launch);
   }
-
-  std::string name() const { return name_; }
-
-private:
-  std::string name_;
 };
 
 // ======================================================================

@@ -57,11 +57,6 @@ public:
   void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred);
 
   void get(Engine& reader, T& val, const Mode launch = Mode::Deferred);
-
-  std::string Name() const { return var_.Name(); }
-
-private:
-  detail::Variable<T> var_;
 };
 
 // ======================================================================
@@ -77,17 +72,8 @@ public:
 
   void put(Engine& writer, const T* data, const Dims& shape,
            const Mode launch = Mode::Deferred);
-  void put(Engine& writer, const std::vector<T>& vec,
-           const Mode launch = Mode::Deferred);
 
   void get(Engine& reader, T* data, const Mode launch = Mode::Deferred);
-  void get(Engine& reader, std::vector<T>& data,
-           const Mode launch = Mode::Deferred);
-
-  Dims shape() const;
-
-private:
-  detail::Variable<T> var_;
 };
 
 // ======================================================================
@@ -104,13 +90,6 @@ public:
   void put(Engine& writer, const T& datum, const Mode launch = Mode::Deferred);
 
   void get(Engine& reader, T& val, const Mode launch = Mode::Deferred);
-
-  Dims shape() const;
-
-  std::string name() const { return var_.name(); }
-
-private:
-  detail::Variable<T> var_;
 };
 
 } // namespace io
