@@ -38,9 +38,6 @@ public:
                                       const Dims& count = Dims(),
                                       const bool constantDims = false);
 
-  template <typename T>
-  Descr<T> defineVariable(const std::string& name);
-
   // ----------------------------------------------------------------------
   // put
 

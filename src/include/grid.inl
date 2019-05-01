@@ -17,7 +17,7 @@ struct VariableGlobalSingleValue<Vec3<T>>
   using value_type = Vec3<T>;
 
   VariableGlobalSingleValue(const std::string& name, Engine& engine)
-    : var_{engine.defineVariable<T>(name, {3}, {0}, {0})}
+    : var_{engine._defineVariable<T>(name, {3}, {0}, {0})}
   // adios2 FIXME {3} {} {} gives no error, but problems
   {}
 
@@ -41,7 +41,7 @@ struct VariableGlobalSingleValue<Vec3<T>>
   explicit operator bool() const { return static_cast<bool>(var_); }
 
 private:
-  Descr<T> var_;
+  detail::Variable<T> var_;
 };
 
 } // namespace io

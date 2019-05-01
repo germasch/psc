@@ -29,12 +29,6 @@ inline detail::Variable<T> Engine::_defineVariable(const std::string& name,
   }
 }
 
-template <typename T>
-inline Descr<T> Engine::defineVariable(const std::string& name)
-{
-  return {name, *this};
-}
-
 // ----------------------------------------------------------------------
 // put
 
