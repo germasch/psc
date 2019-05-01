@@ -15,7 +15,7 @@ inline Engine::Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm)
 }
 
 template <typename T>
-inline detail::Variable<T> Engine::_defineVariable()
+inline detail::Variable<T> Engine::makeVariable()
 {
   auto var = io_.InquireVariable<T>(prefix());
   if (var) {

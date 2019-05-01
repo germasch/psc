@@ -80,7 +80,7 @@ template <typename T>
 void VariableGlobalSingleValue<T>::put(Engine& writer, const T datum,
                                        const Mode launch)
 {
-  auto var = writer._defineVariable<T>();
+  auto var = writer.makeVariable<T>();
   if (writer.mpiRank() == 0) {
     writer.put(var, datum, launch);
   }
@@ -90,7 +90,7 @@ template <typename T>
 void VariableGlobalSingleValue<T>::get(Engine& reader, T& val,
                                        const Mode launch)
 {
-  auto var = reader._defineVariable<T>();
+  auto var = reader.makeVariable<T>();
   reader.get(var, val, launch);
 }
 
@@ -106,7 +106,7 @@ template <typename T>
 void VariableGlobalSingleArray<T>::put(Engine& writer, const T* data,
                                        const Dims& shape, const Mode launch)
 {
-  auto var = writer._defineVariable<T>();
+  auto var = writer.makeVariable<T>();
   var.setShape(shape);
   if (writer.mpiRank() == 0) {
     var.setSelection({Dims(shape.size()), shape});
@@ -120,7 +120,7 @@ void VariableGlobalSingleArray<T>::get(Engine& reader, T* data,
 {
   // FIXME, without a setSelection, is it guaranteed that the default
   // selection is {{}, shape}?
-  auto var = reader._defineVariable<T>();
+  auto var = reader.makeVariable<T>();
   reader.get(var, data, launch);
 }
 
@@ -136,7 +136,7 @@ template <typename T>
 void VariableLocalSingleValue<T>::put(Engine& writer, const T& datum,
                                       const Mode launch)
 {
-  auto var = writer._defineVariable<T>();
+  auto var = writer.makeVariable<T>();
   var.setShape({adios2::LocalValueDim});
   var.put(writer, datum, launch);
 }
@@ -144,7 +144,7 @@ void VariableLocalSingleValue<T>::put(Engine& writer, const T& datum,
 template <typename T>
 void VariableLocalSingleValue<T>::get(Engine& reader, T& val, const Mode launch)
 {
-  auto var = reader._defineVariable<T>();
+  auto var = reader.makeVariable<T>();
   auto shape = var.shape();
   assert(shape.size() == 1);
   auto dim0 = shape[0];
