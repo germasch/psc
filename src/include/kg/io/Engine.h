@@ -18,7 +18,7 @@ class Variable;
 
 template <typename T>
 class Attribute;
-}
+} // namespace detail
 
 template <typename T>
 class Descr;
@@ -32,8 +32,7 @@ public:
   Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm);
 
   template <typename T>
-  detail::Variable<T> _defineVariable(const std::string& name,
-                                      const Dims& shape = Dims());
+  detail::Variable<T> _defineVariable(const std::string& name);
 
   // ----------------------------------------------------------------------
   // put

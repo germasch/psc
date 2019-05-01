@@ -15,14 +15,13 @@ inline Engine::Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm)
 }
 
 template <typename T>
-inline detail::Variable<T> Engine::_defineVariable(const std::string& name,
-                                                   const Dims& shape)
+inline detail::Variable<T> Engine::_defineVariable(const std::string& name)
 {
   auto var = io_.InquireVariable<T>(name);
   if (var) {
     return var;
   } else {
-    return io_.DefineVariable<T>(name, shape);
+    return io_.DefineVariable<T>(name);
   }
 }
 

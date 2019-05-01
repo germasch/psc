@@ -136,16 +136,15 @@ template <typename T>
 void VariableLocalSingleValue<T>::put(Engine& writer, const T& datum,
                                       const Mode launch)
 {
-  auto var =
-    writer._defineVariable<T>(writer.prefix(), {adios2::LocalValueDim});
+  auto var = writer._defineVariable<T>(writer.prefix());
+  var.setShape({adios2::LocalValueDim});
   var.put(writer, datum, launch);
 }
 
 template <typename T>
 void VariableLocalSingleValue<T>::get(Engine& reader, T& val, const Mode launch)
 {
-  auto var =
-    reader._defineVariable<T>(reader.prefix(), {adios2::LocalValueDim});
+  auto var = reader._defineVariable<T>(reader.prefix());
   auto shape = var.shape();
   assert(shape.size() == 1);
   auto dim0 = shape[0];
