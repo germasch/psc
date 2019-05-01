@@ -41,7 +41,7 @@ struct VariableGlobalSingleValue<Vec3<T>>
   explicit operator bool() const { return static_cast<bool>(var_); }
 
 private:
-  Variable<T> var_;
+  Descr<T> var_;
 };
 
 } // namespace io
@@ -98,12 +98,12 @@ private:
 // FIXME, this should be templated by Grid_<T>::Domain, but can't do that...
 
 template <>
-class kg::io::Variable<Grid_t::Domain>
+class kg::io::Descr<Grid_t::Domain>
 {
 public:
   using value_type = typename Grid_t::Domain;
 
-  Variable(const std::string& pfx, Engine& engine) {}
+  Descr(const std::string& pfx, Engine& engine) {}
 
   static void put(kg::io::Engine& writer, const value_type& domain,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
@@ -132,12 +132,12 @@ public:
 // Variable<GridBc>
 
 template <>
-class kg::io::Variable<GridBc>
+class kg::io::Descr<GridBc>
 {
 public:
   using value_type = GridBc;
 
-  Variable(const std::string& pfx, Engine& engine) {}
+  Descr(const std::string& pfx, Engine& engine) {}
 
   static void put(kg::io::Engine& writer, const value_type& bc,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
@@ -162,12 +162,12 @@ public:
 // Variable<Normalization>
 
 template <>
-class kg::io::Variable<Grid_t::Normalization>
+class kg::io::Descr<Grid_t::Normalization>
 {
 public:
   using value_type = Grid_t::Normalization;
 
-  Variable(const std::string& pfx, Engine& engine) {}
+  Descr(const std::string& pfx, Engine& engine) {}
 
   static void put(kg::io::Engine& writer, const Grid_t::Normalization& norm,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
@@ -202,12 +202,12 @@ public:
 // Variable<Grid::Kinds>
 
 template <>
-class kg::io::Variable<Grid_t::Kinds>
+class kg::io::Descr<Grid_t::Kinds>
 {
   using real_t = Grid_t::real_t;
 
 public:
-  Variable(const std::string& pfx, Engine& engine) {}
+  Descr(const std::string& pfx, Engine& engine) {}
 
   using value_type = Grid_t::Kinds;
 
@@ -253,7 +253,7 @@ public:
 // Variable<Grid_<T>>
 
 template <typename T>
-class kg::io::Variable<Grid_<T>>
+class kg::io::Descr<Grid_<T>>
 {
   using Grid = Grid_<T>;
   using real_t = typename Grid::real_t;
@@ -262,7 +262,7 @@ class kg::io::Variable<Grid_<T>>
 public:
   using value_type = Grid;
 
-  Variable(const std::string& name, kg::io::Engine& engine) {}
+  Descr(const std::string& name, kg::io::Engine& engine) {}
 
   void put(kg::io::Engine& writer, const Grid& grid,
            const kg::io::Mode launch = kg::io::Mode::Deferred)

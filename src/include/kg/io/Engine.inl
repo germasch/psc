@@ -30,7 +30,7 @@ inline detail::Variable<T> Engine::_defineVariable(const std::string& name,
 }
 
 template <typename T>
-inline Variable<T> Engine::defineVariable(const std::string& name)
+inline Descr<T> Engine::defineVariable(const std::string& name)
 {
   return {name, *this};
 }
@@ -41,7 +41,7 @@ inline Variable<T> Engine::defineVariable(const std::string& name)
 template <class T, class... Args>
 inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 {
-  put<Variable>(pfx, datum, std::forward<Args>(args)...);
+  put<Descr>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
@@ -87,7 +87,7 @@ inline void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
 template <class T, class... Args>
 inline void Engine::get(const std::string& pfx, T& datum, Args&&... args)
 {
-  get<Variable>(pfx, datum, std::forward<Args>(args)...);
+  get<Descr>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <template <typename...> class Var, class T, class... Args>

@@ -7,14 +7,14 @@
 // Variable<Mfields>
 
 template <>
-class kg::io::Variable<MfieldsC>
+class kg::io::Descr<MfieldsC>
 {
   using DataType = MfieldsC::real_t;
 
 public:
   using value_type = MfieldsC;
 
-  Variable(const std::string& name, kg::io::Engine& engine) {}
+  Descr(const std::string& name, kg::io::Engine& engine) {}
 
   void put(kg::io::Engine& writer, const value_type& mflds,
            const kg::io::Mode launch = kg::io::Mode::Deferred)

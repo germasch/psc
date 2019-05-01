@@ -48,10 +48,10 @@ struct Custom
 };
 
 template <>
-class kg::io::Variable<Custom>
+class kg::io::Descr<Custom>
 {
 public:
-  Variable(const std::string& pfx, Engine& engine) {}
+  Descr(const std::string& pfx, Engine& engine) {}
 
   static void put(kg::io::Engine& writer, const Custom& c,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)

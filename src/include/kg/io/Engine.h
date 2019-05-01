@@ -21,7 +21,7 @@ class Attribute;
 }
 
 template <typename T>
-class Variable;
+class Descr;
 
 // ======================================================================
 // Engine
@@ -39,7 +39,7 @@ public:
                                       const bool constantDims = false);
 
   template <typename T>
-  Variable<T> defineVariable(const std::string& name);
+  Descr<T> defineVariable(const std::string& name);
 
   // ----------------------------------------------------------------------
   // put
