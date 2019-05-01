@@ -7,7 +7,7 @@ namespace kg
 namespace io
 {
 
-Engine::Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm)
+inline Engine::Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm)
   : engine_{engine}, io_{io}
 {
   MPI_Comm_rank(comm, &mpi_rank_);
@@ -15,11 +15,11 @@ Engine::Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm)
 }
 
 template <typename T>
-detail::Variable<T> Engine::_defineVariable(const std::string& name,
-                                            const Dims& shape,
-                                            const Dims& start,
-                                            const Dims& count,
-                                            const bool constantDims)
+inline detail::Variable<T> Engine::_defineVariable(const std::string& name,
+                                                   const Dims& shape,
+                                                   const Dims& start,
+                                                   const Dims& count,
+                                                   const bool constantDims)
 {
   auto var = io_.InquireVariable<T>(name);
   if (var) {
@@ -30,7 +30,7 @@ detail::Variable<T> Engine::_defineVariable(const std::string& name,
 }
 
 template <typename T>
-Variable<T> Engine::defineVariable(const std::string& name)
+inline Variable<T> Engine::defineVariable(const std::string& name)
 {
   return {name, *this};
 }
@@ -39,29 +39,30 @@ Variable<T> Engine::defineVariable(const std::string& name)
 // put
 
 template <class T, class... Args>
-void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
+inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 {
   put<Variable>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
-void Engine::putAttribute(const std::string& pfx, const T& datum,
-                          Args&&... args)
+inline void Engine::putAttribute(const std::string& pfx, const T& datum,
+                                 Args&&... args)
 {
   put<Attribute>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
-void Engine::putLocal(const std::string& pfx, const T& datum, Args&&... args)
+inline void Engine::putLocal(const std::string& pfx, const T& datum,
+                             Args&&... args)
 {
   put<VariableLocalSingleValue>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <template <typename...> class Var, class T, class... Args>
-void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
+inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
-  //mprintf("put<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  // mprintf("put<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
   Var<T> var{prefix(), *this};
   var.put(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
@@ -71,28 +72,29 @@ void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 // get
 
 template <class T, class... Args>
-void Engine::getAttribute(const std::string& pfx, T& datum, Args&&... args)
+inline void Engine::getAttribute(const std::string& pfx, T& datum,
+                                 Args&&... args)
 {
   get<Attribute>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
-void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
+inline void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
 {
   get<VariableLocalSingleValue>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T, class... Args>
-void Engine::get(const std::string& pfx, T& datum, Args&&... args)
+inline void Engine::get(const std::string& pfx, T& datum, Args&&... args)
 {
   get<Variable>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <template <typename...> class Var, class T, class... Args>
-void Engine::get(const std::string& pfx, T& datum, Args&&... args)
+inline void Engine::get(const std::string& pfx, T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
-  //mprintf("get<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
+  // mprintf("get<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
   Var<T> var{prefix(), *this};
   var.get(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
@@ -101,7 +103,7 @@ void Engine::get(const std::string& pfx, T& datum, Args&&... args)
 // ----------------------------------------------------------------------
 // performPuts
 
-void Engine::performPuts()
+inline void Engine::performPuts()
 {
   engine_.PerformPuts();
 }
@@ -109,7 +111,7 @@ void Engine::performPuts()
 // ----------------------------------------------------------------------
 // performGets
 
-void Engine::performGets()
+inline void Engine::performGets()
 {
   engine_.PerformGets();
 }
@@ -117,16 +119,16 @@ void Engine::performGets()
 // ----------------------------------------------------------------------
 // close
 
-void Engine::close()
+inline void Engine::close()
 {
   engine_.Close();
 }
 
-int Engine::mpiRank() const
+inline int Engine::mpiRank() const
 {
   return mpi_rank_;
 }
-int Engine::mpiSize() const
+inline int Engine::mpiSize() const
 {
   return mpi_size_;
 }
