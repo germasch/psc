@@ -21,7 +21,8 @@ struct VariableGlobalSingleValue<Vec3<T>>
   void put(Engine& writer, const Vec3<T>& vec3,
            const Mode launch = Mode::Deferred)
   {
-    auto var = writer._defineVariable<T>(writer.prefix(), {3});
+    auto var = writer._defineVariable<T>();
+    var.setShape({3});
     if (writer.mpiRank() == 0) {
       var.setSelection({{0}, {3}});
       writer.put(var, vec3.data(), launch);
@@ -30,7 +31,8 @@ struct VariableGlobalSingleValue<Vec3<T>>
 
   void get(Engine& reader, Vec3<T>& vec3, const Mode launch = Mode::Deferred)
   {
-    auto var = reader._defineVariable<T>(reader.prefix(), {3});
+    auto var = reader._defineVariable<T>();
+    var.setShape({3});
     var.setSelection({{0}, {3}});
     reader.get(var, vec3.data(), launch);
   };
@@ -59,7 +61,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
     kg::io::Dims start = {
       static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
     kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
-    auto var = writer._defineVariable<T>(writer.prefix());
+    auto var = writer._defineVariable<T>();
     var.setShape(shape);
     var.setSelection({start, count});
     var.put(writer, datum[0].data(), launch);
@@ -72,7 +74,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
     kg::io::Dims start = {
       static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
     kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
-    auto var = reader._defineVariable<T>(reader.prefix());
+    auto var = reader._defineVariable<T>();
     assert(var.shape() == shape);
     var.setSelection({start, count});
     datum.resize(count[0]);
