@@ -44,39 +44,6 @@ private:
 } // namespace detail
 
 // ======================================================================
-// VariableGlobalSingleValue
-
-template <typename T>
-class VariableGlobalSingleValue
-{
-public:
-  using value_type = T;
-
-  VariableGlobalSingleValue(const std::string& name, Engine& engine);
-
-  void put(Engine& writer, const T datum, const Mode launch = Mode::Deferred);
-
-  void get(Engine& reader, T& val, const Mode launch = Mode::Deferred);
-};
-
-// ======================================================================
-// VariableGlobalSingleArray
-
-template <typename T>
-class VariableGlobalSingleArray
-{
-public:
-  using value_type = T;
-
-  VariableGlobalSingleArray(const std::string& name, Engine& engine);
-
-  void put(Engine& writer, const T* data, const Dims& shape,
-           const Mode launch = Mode::Deferred);
-
-  void get(Engine& reader, T* data, const Mode launch = Mode::Deferred);
-};
-
-// ======================================================================
 // VariableLocalSingleValue
 
 template <typename T>

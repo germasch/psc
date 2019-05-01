@@ -68,62 +68,6 @@ Dims Variable<T>::shape() const
 
 } // namespace detail
 
-// ----------------------------------------------------------------------
-// VariableGlobalSingleValue
-
-template <typename T>
-VariableGlobalSingleValue<T>::VariableGlobalSingleValue(const std::string& name,
-                                                        Engine& engine)
-{}
-
-template <typename T>
-void VariableGlobalSingleValue<T>::put(Engine& writer, const T datum,
-                                       const Mode launch)
-{
-  auto var = writer.makeVariable<T>();
-  if (writer.mpiRank() == 0) {
-    writer.put(var, datum, launch);
-  }
-}
-
-template <typename T>
-void VariableGlobalSingleValue<T>::get(Engine& reader, T& val,
-                                       const Mode launch)
-{
-  auto var = reader.makeVariable<T>();
-  reader.get(var, val, launch);
-}
-
-// ----------------------------------------------------------------------
-// VariableGlobalSingleArray
-
-template <typename T>
-VariableGlobalSingleArray<T>::VariableGlobalSingleArray(const std::string& name,
-                                                        Engine& engine)
-{}
-
-template <typename T>
-void VariableGlobalSingleArray<T>::put(Engine& writer, const T* data,
-                                       const Dims& shape, const Mode launch)
-{
-  auto var = writer.makeVariable<T>();
-  var.setShape(shape);
-  if (writer.mpiRank() == 0) {
-    var.setSelection({Dims(shape.size()), shape});
-    writer.put(var, data, launch);
-  }
-}
-
-template <typename T>
-void VariableGlobalSingleArray<T>::get(Engine& reader, T* data,
-                                       const Mode launch)
-{
-  // FIXME, without a setSelection, is it guaranteed that the default
-  // selection is {{}, shape}?
-  auto var = reader.makeVariable<T>();
-  reader.get(var, data, launch);
-}
-
 // ======================================================================
 // VariableLocalSingleValue
 

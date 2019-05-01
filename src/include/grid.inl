@@ -3,44 +3,6 @@
 
 #include "kg/io.h"
 
-namespace kg
-{
-namespace io
-{
-
-// ======================================================================
-// VariableGlobalSingleValue<Vec3<T>>
-
-template <typename T>
-struct VariableGlobalSingleValue<Vec3<T>>
-{
-  using value_type = Vec3<T>;
-
-  VariableGlobalSingleValue(const std::string& name, Engine& engine) {}
-
-  void put(Engine& writer, const Vec3<T>& vec3,
-           const Mode launch = Mode::Deferred)
-  {
-    auto var = writer.makeVariable<T>();
-    var.setShape({3});
-    if (writer.mpiRank() == 0) {
-      var.setSelection({{0}, {3}});
-      writer.put(var, vec3.data(), launch);
-    }
-  };
-
-  void get(Engine& reader, Vec3<T>& vec3, const Mode launch = Mode::Deferred)
-  {
-    auto var = reader.makeVariable<T>();
-    var.setShape({3});
-    var.setSelection({{0}, {3}});
-    reader.get(var, vec3.data(), launch);
-  };
-};
-
-} // namespace io
-} // namespace kg
-
 // ======================================================================
 // VariableByPatch
 
