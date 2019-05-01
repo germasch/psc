@@ -33,10 +33,7 @@ public:
 
   template <typename T>
   detail::Variable<T> _defineVariable(const std::string& name,
-                                      const Dims& shape = Dims(),
-                                      const Dims& start = Dims(),
-                                      const Dims& count = Dims(),
-                                      const bool constantDims = false);
+                                      const Dims& shape = Dims());
 
   // ----------------------------------------------------------------------
   // put

@@ -99,7 +99,7 @@ void VariableGlobalSingleValue<T>::get(Engine& reader, T& val,
 template <typename T>
 VariableGlobalSingleArray<T>::VariableGlobalSingleArray(const std::string& name,
                                                         Engine& engine)
-  : var_{engine._defineVariable<T>(name, {1}, {0}, {1})} // FIXME?
+  : var_{engine._defineVariable<T>(name)}
 {}
 
 template <typename T>

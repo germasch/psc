@@ -17,24 +17,21 @@ struct VariableGlobalSingleValue<Vec3<T>>
   using value_type = Vec3<T>;
 
   VariableGlobalSingleValue(const std::string& name, Engine& engine)
-    : var_{engine._defineVariable<T>(name, {3}, {0}, {0})}
-  // adios2 FIXME {3} {} {} gives no error, but problems
+    : var_{engine._defineVariable<T>(name, {3})}
   {}
 
   void put(Engine& writer, const Vec3<T>& vec3,
            const Mode launch = Mode::Deferred)
   {
     if (writer.mpiRank() == 0) {
-      var_.setSelection(
-        {{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+      var_.setSelection({{0}, {3}});
       writer.put(var_, vec3.data(), launch);
     }
   };
 
   void get(Engine& reader, Vec3<T>& vec3, const Mode launch = Mode::Deferred)
   {
-    var_.setSelection(
-      {{0}, {3}}); // adios2 FIXME, would be nice to specify {}, {3}
+    var_.setSelection({{0}, {3}});
     reader.get(var_, vec3.data(), launch);
   };
 
@@ -68,7 +65,8 @@ struct VariableByPatch<std::vector<Vec3<T>>>
     kg::io::Dims start = {
       static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
     kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
-    auto var = writer._defineVariable<T>(name_, shape, start, count);
+    auto var = writer._defineVariable<T>(name_, shape);
+    var.setSelection({start, count});
     var.put(writer, datum[0].data(), launch);
   }
 
