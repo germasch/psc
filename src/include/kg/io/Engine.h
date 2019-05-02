@@ -32,7 +32,7 @@ public:
   Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm);
 
   template <typename T>
-  detail::Variable<T> makeVariable();
+  detail::Variable<T> makeVariable(const Dims& shape = {});
 
   // ----------------------------------------------------------------------
   // put

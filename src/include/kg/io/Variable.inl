@@ -80,8 +80,7 @@ template <typename T>
 void VariableLocalSingleValue<T>::put(Engine& writer, const T& datum,
                                       const Mode launch)
 {
-  auto var = writer.makeVariable<T>();
-  var.setShape({adios2::LocalValueDim});
+  auto var = writer.makeVariable<T>({adios2::LocalValueDim});
   var.put(writer, datum, launch);
 }
 
