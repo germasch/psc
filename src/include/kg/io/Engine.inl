@@ -41,11 +41,13 @@ inline void Engine::putAttribute(const std::string& pfx, const T& datum,
   put<Attribute>(pfx, datum, std::forward<Args>(args)...);
 }
 
-template <class T, class... Args>
-inline void Engine::putLocal(const std::string& pfx, const T& datum,
-                             Args&&... args)
+  template <class T>
+inline void Engine::putLocal(const std::string& pfx, const T& datum, Mode launch)
 {
-  put<VariableLocalSingleValue>(pfx, datum, std::forward<Args>(args)...);
+  prefixes_.push_back(pfx);
+  auto var = makeVariable<T>({adios2::LocalValueDim});
+  var.put(*this, datum, launch);
+  prefixes_.pop_back();
 }
 
 template <template <typename...> class Var, class T, class... Args>
@@ -71,7 +73,18 @@ inline void Engine::getAttribute(const std::string& pfx, T& datum,
 template <class T, class... Args>
 inline void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
 {
-  get<VariableLocalSingleValue>(pfx, datum, std::forward<Args>(args)...);
+  prefixes_.push_back(pfx);
+  auto var = makeVariable<T>();
+  auto shape = var.shape();
+  assert(shape.size() == 1);
+  auto dim0 = shape[0];
+  assert(dim0 == mpiSize());
+
+  // FIXME, setSelection doesn't work, so read the whole thing
+  std::vector<T> vals(shape[0]);
+  var.get(*this, vals.data(), std::forward<Args>(args)...);
+  datum = vals[mpiRank()];
+  prefixes_.pop_back();
 }
 
 template <class T, class... Args>

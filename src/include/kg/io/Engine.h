@@ -43,8 +43,8 @@ public:
   template <class T, class... Args>
   void putAttribute(const std::string& pfx, const T& datum, Args&&... args);
 
-  template <class T, class... Args>
-  void putLocal(const std::string& pfx, const T& datum, Args&&... args);
+  template <class T>
+  void putLocal(const std::string& pfx, const T& datum, Mode launch = Mode::Deferred);
 
   template <template <typename...> class Var, class T, class... Args>
   void put(const std::string& pfx, const T& datum, Args&&... args);

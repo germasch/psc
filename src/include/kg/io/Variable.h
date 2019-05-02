@@ -43,22 +43,6 @@ private:
 };
 } // namespace detail
 
-// ======================================================================
-// VariableLocalSingleValue
-
-template <typename T>
-class VariableLocalSingleValue
-{
-public:
-  using value_type = T;
-
-  VariableLocalSingleValue(const std::string& name, Engine& engine);
-
-  void put(Engine& writer, const T& datum, const Mode launch = Mode::Deferred);
-
-  void get(Engine& reader, T& val, const Mode launch = Mode::Deferred);
-};
-
 } // namespace io
 } // namespace kg
 
