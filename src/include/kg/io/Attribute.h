@@ -69,8 +69,6 @@ public:
     attr.get(reader, value);
   }
 
-  std::string name() const { return attr_.name(); }
-
 private:
   detail::Attribute<DataType> attr_;
 };
@@ -113,8 +111,6 @@ public:
     attr.get(reader, vec);
   }
 
-  std::string name() const { return attr_.name(); }
-
 private:
   detail::Attribute<DataType> attr_;
 };
@@ -144,8 +140,6 @@ public:
     attr_.get(reader, vals);
     data = {vals[0], vals[1], vals[2]};
   }
-
-  std::string name() const { return attr_.name(); }
 
 private:
   detail::Attribute<DataType> attr_;
@@ -178,8 +172,6 @@ public:
     assert(vals.size() == N);
     std::copy(vals.begin(), vals.end(), arr);
   }
-
-  std::string name() const { return attr_.name(); }
 
 private:
   detail::Attribute<DataType> attr_;

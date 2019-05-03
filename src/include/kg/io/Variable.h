@@ -36,7 +36,6 @@ public:
   void setShape(const Dims& shape);
 
   Dims shape() const;
-  std::string name() const { return var_.Name(); }
 
 private:
   adios2::Variable<T> var_;
