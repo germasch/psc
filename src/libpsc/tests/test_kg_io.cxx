@@ -51,8 +51,6 @@ template <>
 class kg::io::Descr<Custom>
 {
 public:
-  Descr(const std::string& pfx, Engine& engine) {}
-
   static void put(kg::io::Engine& writer, const Custom& c,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {

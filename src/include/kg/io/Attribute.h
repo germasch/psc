@@ -21,8 +21,6 @@ namespace detail
 template <typename T>
 struct Attribute
 {
-  Attribute(const std::string& name, Engine& engine) {}
-
   void put(Engine& writer, const T* data, size_t size);
   void put(Engine& writer, const T& datum);
 
@@ -43,8 +41,6 @@ class Attribute
   using DataType = T;
 
 public:
-  Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
-
   void put(Engine& writer, const T& value, const Mode launch = Mode::Deferred)
   {
     attr_.put(writer, value);
@@ -83,8 +79,6 @@ class Attribute<std::vector<T>>
 
 public:
   using value_type = std::vector<T>;
-
-  Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
 
   void put(Engine& writer, const value_type& vec,
            const Mode launch = Mode::Deferred)
@@ -126,8 +120,6 @@ class Attribute<Vec3<T>>
 public:
   using value_type = Vec3<T>;
 
-  Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
-
   void put(Engine& writer, const value_type& vec,
            const Mode launch = Mode::Deferred)
   {
@@ -156,8 +148,6 @@ class Attribute<T[N]> // typename
 
 public:
   using value_type = DataType[N];
-
-  Attribute(const std::string& name, Engine& engine) : attr_{name, engine} {}
 
   void put(Engine& writer, const value_type& arr,
            const Mode launch = Mode::Deferred)

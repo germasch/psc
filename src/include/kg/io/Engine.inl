@@ -55,7 +55,7 @@ inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
   // mprintf("put<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  Var<T> var{prefix(), *this};
+  Var<T> var;
   var.put(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
 }
@@ -98,7 +98,7 @@ inline void Engine::get(const std::string& pfx, T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
   // mprintf("get<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
-  Var<T> var{prefix(), *this};
+  Var<T> var;
   var.get(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
 }

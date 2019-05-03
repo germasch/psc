@@ -14,8 +14,6 @@ class kg::io::Descr<MfieldsC>
 public:
   using value_type = MfieldsC;
 
-  Descr(const std::string& name, kg::io::Engine& engine) {}
-
   void put(kg::io::Engine& writer, const value_type& mflds,
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
