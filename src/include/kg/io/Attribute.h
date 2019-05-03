@@ -21,18 +21,13 @@ namespace detail
 template <typename T>
 struct Attribute
 {
-  Attribute(const std::string& name, Engine& engine) : name_{name} {}
+  Attribute(const std::string& name, Engine& engine) {}
 
   void put(Engine& writer, const T* data, size_t size);
   void put(Engine& writer, const T& datum);
 
   void get(Engine& reader, std::vector<T>& data);
   void get(Engine& reader, T& datum);
-
-  std::string name() const { return name_; }
-
-protected:
-  const std::string name_;
 };
 
 }; // namespace detail
