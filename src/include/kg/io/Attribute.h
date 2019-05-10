@@ -38,35 +38,18 @@ struct Attribute
 template <typename T, typename Enable = void>
 class Attribute
 {
-  using DataType = T;
-
 public:
   void put(Engine& writer, const T& value, const Mode launch = Mode::Deferred)
   {
-    attr_.put(writer, value);
-  }
-
-  static void put(Engine& writer, const std::string& pfx, const T& value,
-                  const Mode launch = Mode::Deferred)
-  {
-    auto attr = detail::Attribute<DataType>{pfx, writer};
+    detail::Attribute<T> attr;
     attr.put(writer, value);
   }
 
   void get(Engine& reader, T& value, const Mode launch = Mode::Deferred)
   {
-    attr_.get(reader, value);
-  }
-
-  static void get(Engine& reader, const std::string& pfx, T& value,
-                  const Mode launch = Mode::Deferred)
-  {
-    auto attr = detail::Attribute<DataType>{pfx, reader};
+    detail::Attribute<T> attr;
     attr.get(reader, value);
   }
-
-private:
-  detail::Attribute<DataType> attr_;
 };
 
 // ======================================================================
@@ -75,38 +58,21 @@ private:
 template <class T>
 class Attribute<std::vector<T>>
 {
-  using DataType = T;
-
 public:
   using value_type = std::vector<T>;
 
   void put(Engine& writer, const value_type& vec,
            const Mode launch = Mode::Deferred)
   {
-    attr_.put(writer, vec.data(), vec.size());
-  }
-
-  static void put(Engine& writer, const std::string& pfx, const value_type& vec,
-                  const Mode launch = Mode::Deferred)
-  {
-    auto attr = detail::Attribute<DataType>{pfx, writer};
+    detail::Attribute<T> attr;
     attr.put(writer, vec.data(), vec.size());
   }
 
   void get(Engine& reader, value_type& vec, const Mode launch = Mode::Deferred)
   {
-    attr_.get(reader, vec);
-  }
-
-  static void get(Engine& reader, const std::string& pfx, value_type& vec,
-                  const Mode launch = Mode::Deferred)
-  {
-    auto attr = detail::Attribute<DataType>{pfx, reader};
+    detail::Attribute<T> attr;
     attr.get(reader, vec);
   }
-
-private:
-  detail::Attribute<DataType> attr_;
 };
 
 // ======================================================================
@@ -115,26 +81,24 @@ private:
 template <class T>
 class Attribute<Vec3<T>>
 {
-  using DataType = T;
-
 public:
   using value_type = Vec3<T>;
 
   void put(Engine& writer, const value_type& vec,
            const Mode launch = Mode::Deferred)
   {
-    attr_.put(writer, vec.data(), 3);
+    detail::Attribute<T> attr;
+    attr.put(writer, vec.data(), 3);
   }
 
   void get(Engine& reader, value_type& data, const Mode launch = Mode::Deferred)
   {
-    std::vector<DataType> vals;
-    attr_.get(reader, vals);
+    std::vector<T> vals;
+    detail::Attribute<T> attr;
+    attr.get(reader, vals);
+    assert(vals.size() == 3);
     data = {vals[0], vals[1], vals[2]};
   }
-
-private:
-  detail::Attribute<DataType> attr_;
 };
 
 // ======================================================================
@@ -144,27 +108,24 @@ template <class T, std::size_t N>
 class Attribute<T[N]> // typename
                       // std::enable_if<std::is_adios2_type<T>::value>::type>
 {
-  using DataType = T;
-
 public:
-  using value_type = DataType[N];
+  using value_type = T[N];
 
   void put(Engine& writer, const value_type& arr,
            const Mode launch = Mode::Deferred)
   {
-    attr_.put(writer, arr, N);
+    detail::Attribute<T> attr;
+    attr.put(writer, arr, N);
   }
 
   void get(Engine& reader, value_type& arr, const Mode launch = Mode::Deferred)
   {
-    std::vector<DataType> vals;
-    attr_.get(reader, vals);
+    std::vector<T> vals;
+    detail::Attribute<T> attr;
+    attr.get(reader, vals);
     assert(vals.size() == N);
     std::copy(vals.begin(), vals.end(), arr);
   }
-
-private:
-  detail::Attribute<DataType> attr_;
 };
 
 } // namespace io
