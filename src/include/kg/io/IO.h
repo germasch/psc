@@ -14,7 +14,16 @@ namespace io
 class IO
 {
 public:
-  IO(MPI_Comm comm);
+  IO();
+  virtual ~IO() = 0;
+
+  virtual Engine open(const std::string& name, const adios2::Mode mode) = 0;
+};
+
+class IOAdios : IO
+{
+public:
+  IOAdios(MPI_Comm comm);
 
   Engine open(const std::string& name, const adios2::Mode mode);
 

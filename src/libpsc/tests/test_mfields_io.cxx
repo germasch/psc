@@ -55,7 +55,7 @@ TYPED_TEST(MfieldsTest, WriteRead)
     return m + crd[0] + 100 * crd[1] + 10000 * crd[2];
   });
 
-  auto io = kg::io::IO(MPI_COMM_WORLD);
+  auto io = kg::io::IOAdios(MPI_COMM_WORLD);
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);
@@ -94,7 +94,7 @@ TYPED_TEST(MfieldsTest, WriteWithGhostsRead)
     return m + crd[0] + 100 * crd[1] + 10000 * crd[2];
   });
 
-  auto io = kg::io::IO(MPI_COMM_WORLD);
+  auto io = kg::io::IOAdios(MPI_COMM_WORLD);
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);
@@ -134,7 +134,7 @@ TYPED_TEST(MfieldsTest, WriteReadWithGhosts)
     return m + crd[0] + 100 * crd[1] + 10000 * crd[2];
   });
 
-  auto io = kg::io::IO(MPI_COMM_WORLD);
+  auto io = kg::io::IOAdios(MPI_COMM_WORLD);
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);

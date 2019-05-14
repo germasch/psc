@@ -5,7 +5,7 @@
 
 TEST(KgIo, WriteRead)
 {
-  auto io = kg::io::IO(MPI_COMM_WORLD);
+  auto io = kg::io::IOAdios(MPI_COMM_WORLD);
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);
@@ -24,7 +24,7 @@ TEST(KgIo, WriteRead)
 
 TEST(KgIo, WriteReadAttr)
 {
-  auto io = kg::io::IO(MPI_COMM_WORLD);
+  auto io = kg::io::IOAdios(MPI_COMM_WORLD);
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);
@@ -68,7 +68,7 @@ public:
 
 TEST(KgIo, WriteReadCustom)
 {
-  auto io = kg::io::IO(MPI_COMM_WORLD);
+  auto io = kg::io::IOAdios(MPI_COMM_WORLD);
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);

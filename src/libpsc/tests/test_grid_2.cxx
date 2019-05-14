@@ -91,7 +91,7 @@ TEST(Grid, Kinds)
 
 TEST(Grid, adios2_write)
 {
-  auto io = kg::io::IO(MPI_COMM_WORLD);
+  auto io = kg::io::IOAdios(MPI_COMM_WORLD);
 
   {
     auto domain = Grid_t::Domain{{8, 4, 2},
