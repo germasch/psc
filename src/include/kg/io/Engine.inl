@@ -7,8 +7,45 @@ namespace kg
 namespace io
 {
 
-inline Engine::Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm)
+// ======================================================================
+// FileAdios
+
+inline FileAdios::FileAdios(adios2::Engine engine, adios2::IO io)
   : engine_{engine}, io_{io}
+{}
+
+inline void FileAdios::close()
+{
+  engine_.Close();
+}
+
+inline void FileAdios::performPuts()
+{
+  engine_.PerformPuts();
+}
+
+inline void FileAdios::performGets()
+{
+  engine_.PerformGets();
+}
+
+template <typename T>
+inline void FileAdios::put(adios2::Variable<T>& var, const T* data, const Mode launch)
+{
+  engine_.Put(var, data, launch);
+}
+
+template <typename T>
+inline void FileAdios::get(adios2::Variable<T>& var, T* data, const Mode launch)
+{
+  engine_.Get(var, data, launch);
+}
+
+// ======================================================================
+// Engine
+
+inline Engine::Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
+  : file_{engine, io}
 {
   MPI_Comm_rank(comm, &mpi_rank_);
   MPI_Comm_size(comm, &mpi_size_);
@@ -17,11 +54,11 @@ inline Engine::Engine(adios2::Engine engine, adios2::IO& io, MPI_Comm comm)
 template <typename T>
 inline detail::Variable<T> Engine::makeVariable(const Dims& shape)
 {
-  auto var = io_.InquireVariable<T>(prefix());
+  auto var = file_.io_.InquireVariable<T>(prefix());
   if (var) {
     return var;
   } else {
-    return io_.DefineVariable<T>(prefix(), shape);
+    return file_.io_.DefineVariable<T>(prefix(), shape);
   }
 }
 
@@ -41,8 +78,9 @@ inline void Engine::putAttribute(const std::string& pfx, const T& datum,
   put<Attribute>(pfx, datum, std::forward<Args>(args)...);
 }
 
-  template <class T>
-inline void Engine::putLocal(const std::string& pfx, const T& datum, Mode launch)
+template <class T>
+inline void Engine::putLocal(const std::string& pfx, const T& datum,
+                             Mode launch)
 {
   prefixes_.push_back(pfx);
   auto var = makeVariable<T>({adios2::LocalValueDim});
@@ -108,7 +146,7 @@ inline void Engine::get(const std::string& pfx, T& datum, Args&&... args)
 
 inline void Engine::performPuts()
 {
-  engine_.PerformPuts();
+  file_.performPuts();
 }
 
 // ----------------------------------------------------------------------
@@ -116,7 +154,7 @@ inline void Engine::performPuts()
 
 inline void Engine::performGets()
 {
-  engine_.PerformGets();
+  file_.performGets();
 }
 
 // ----------------------------------------------------------------------
@@ -124,13 +162,14 @@ inline void Engine::performGets()
 
 inline void Engine::close()
 {
-  engine_.Close();
+  file_.close();
 }
 
 inline int Engine::mpiRank() const
 {
   return mpi_rank_;
 }
+
 inline int Engine::mpiSize() const
 {
   return mpi_size_;
