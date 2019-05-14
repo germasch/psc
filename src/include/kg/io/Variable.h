@@ -31,15 +31,21 @@ public:
   void get(Engine& reader, T& datum, const Mode launch = Mode::Deferred);
   void get(Engine& reader, T* data, const Mode launch = Mode::Deferred);
 
+  void setShape(const Dims& shape);
   void setSelection(const Box<Dims>& selection);
   void setMemorySelection(const Box<Dims>& selection);
-  void setShape(const Dims& shape);
 
   Dims shape() const;
 
 private:
-  adios2::Dims shape_;
-  adios2::Variable<T> var_;
+  adios2::Variable<T> makeVariable() const;
+  
+private:
+  std::string name_;
+  Dims shape_;
+  Box<Dims> selection_;
+  Box<Dims> memory_selection_;
+  adios2::IO io_;
 };
 } // namespace detail
 
