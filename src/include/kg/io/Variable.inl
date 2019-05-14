@@ -15,9 +15,14 @@ namespace detail
 // detail::Variable
 
 template <typename T>
-Variable<T>::Variable(adios2::Variable<T> var) : var_{var}
-{}
-
+Variable<T>::Variable(const std::string &name, const Dims& shape, adios2::IO io)
+{
+  var_ = io.InquireVariable<T>(name);
+  if (!var_) {
+    var_ = io.DefineVariable<T>(name, shape);
+  }
+}
+  
 template <typename T>
 void Variable<T>::put(Engine& writer, const T& datum, const Mode launch)
 {
@@ -57,6 +62,7 @@ void Variable<T>::setMemorySelection(const Box<Dims>& selection)
 template <typename T>
 void Variable<T>::setShape(const Dims& shape)
 {
+  shape_ = shape;
   var_.SetShape(shape);
 }
 

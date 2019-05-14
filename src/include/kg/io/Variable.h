@@ -23,7 +23,7 @@ class Variable
 public:
   using value_type = T;
 
-  Variable(adios2::Variable<T> var);
+  Variable(const std::string& name, const Dims& shape, adios2::IO io);
 
   void put(Engine& writer, const T& datum, const Mode launch = Mode::Deferred);
   void put(Engine& writer, const T* data, const Mode launch = Mode::Deferred);
@@ -38,6 +38,7 @@ public:
   Dims shape() const;
 
 private:
+  adios2::Dims shape_;
   adios2::Variable<T> var_;
 };
 } // namespace detail

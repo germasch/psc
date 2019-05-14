@@ -54,12 +54,7 @@ inline Engine::Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
 template <typename T>
 inline detail::Variable<T> Engine::makeVariable(const Dims& shape)
 {
-  auto var = file_.io_.InquireVariable<T>(prefix());
-  if (var) {
-    return var;
-  } else {
-    return file_.io_.DefineVariable<T>(prefix(), shape);
-  }
+  return {prefix(), shape, file_.io_};
 }
 
 // ----------------------------------------------------------------------
