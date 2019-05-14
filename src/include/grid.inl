@@ -21,7 +21,8 @@ struct VariableByPatch<std::vector<Vec3<T>>>
     kg::io::Dims start = {
       static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
     kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
-    auto var = writer.makeVariable<T>(shape);
+    auto var = writer.makeVariable<T>();
+    var.setShape(shape);
     var.setSelection({start, count});
     var.put(writer, datum[0].data(), launch);
   }

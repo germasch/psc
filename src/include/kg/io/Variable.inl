@@ -15,8 +15,8 @@ namespace detail
 // detail::Variable
 
 template <typename T>
-Variable<T>::Variable(const std::string& name, const Dims& shape, adios2::IO io)
-  : name_{name}, shape_{shape}, io_{io}
+Variable<T>::Variable(const std::string& name, adios2::IO io)
+  : name_{name}, io_{io}
 {}
 
 template <typename T>

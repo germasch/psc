@@ -23,7 +23,7 @@ class Variable
 public:
   using value_type = T;
 
-  Variable(const std::string& name, const Dims& shape, adios2::IO io);
+  Variable(const std::string& name, adios2::IO io);
 
   void put(Engine& writer, const T& datum, const Mode launch = Mode::Deferred);
   void put(Engine& writer, const T* data, const Mode launch = Mode::Deferred);

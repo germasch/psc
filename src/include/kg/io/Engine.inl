@@ -52,9 +52,9 @@ inline Engine::Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
 }
 
 template <typename T>
-inline detail::Variable<T> Engine::makeVariable(const Dims& shape)
+inline detail::Variable<T> Engine::makeVariable()
 {
-  return {prefix(), shape, file_.io_};
+  return {prefix(), file_.io_};
 }
 
 // ----------------------------------------------------------------------
@@ -78,7 +78,8 @@ inline void Engine::putLocal(const std::string& pfx, const T& datum,
                              Mode launch)
 {
   prefixes_.push_back(pfx);
-  auto var = makeVariable<T>({adios2::LocalValueDim});
+  auto var = makeVariable<T>();
+  var.setShape({adios2::LocalValueDim});
   var.put(*this, datum, launch);
   prefixes_.pop_back();
 }
