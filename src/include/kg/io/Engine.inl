@@ -30,15 +30,15 @@ inline void FileAdios::performGets()
 }
 
 template <typename T>
-inline void FileAdios::put(adios2::Variable<T>& var, const T* data, const Mode launch)
+inline void FileAdios::put(detail::Variable<T>& var, const T* data, const Mode launch)
 {
-  engine_.Put(var, data, launch);
+  engine_.Put(var.makeVariable(), data, launch);
 }
 
 template <typename T>
-inline void FileAdios::get(adios2::Variable<T>& var, T* data, const Mode launch)
+inline void FileAdios::get(detail::Variable<T>& var, T* data, const Mode launch)
 {
-  engine_.Get(var, data, launch);
+  engine_.Get(var.makeVariable(), data, launch);
 }
 
 // ======================================================================

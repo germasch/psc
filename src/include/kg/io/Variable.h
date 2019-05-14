@@ -37,7 +37,6 @@ public:
 
   Dims shape() const;
 
-private:
   adios2::Variable<T> makeVariable() const;
   
 private:

@@ -42,9 +42,12 @@ public:
   void performGets();
 
   template <typename T>
-  void put(adios2::Variable<T>& var, const T* data, const Mode launch);
+  void put(detail::Variable<T>& var, const T* data, const Mode launch);
   template <typename T>
-  void get(adios2::Variable<T>& var, T* data, const Mode launch);
+  void get(detail::Variable<T>& var, T* data, const Mode launch);
+
+  template <typename T>
+  Dims getShape(detail::Variable<T>& var) const;
 
 private:
   adios2::Engine engine_;

@@ -22,29 +22,25 @@ Variable<T>::Variable(const std::string& name, adios2::IO io)
 template <typename T>
 void Variable<T>::put(Engine& writer, const T& datum, const Mode launch)
 {
-  auto var = makeVariable();
-  writer.file_.put(var, &datum, launch);
+  writer.file_.put(*this, &datum, launch);
 }
 
 template <typename T>
 void Variable<T>::put(Engine& writer, const T* data, const Mode launch)
 {
-  auto var = makeVariable();
-  writer.file_.put(var, data, launch);
+  writer.file_.put(*this, data, launch);
 }
 
 template <typename T>
 void Variable<T>::get(Engine& reader, T& datum, const Mode launch)
 {
-  auto var = makeVariable();
-  reader.file_.get(var, datum, launch);
+  reader.file_.get(*this, datum, launch);
 }
 
 template <typename T>
 void Variable<T>::get(Engine& reader, T* data, const Mode launch)
 {
-  auto var = makeVariable();
-  reader.file_.get(var, data, launch);
+  reader.file_.get(*this, data, launch);
 }
 
 template <typename T>
