@@ -4,10 +4,6 @@ namespace kg
 namespace io
 {
 
-inline IO::IO() {}
-
-inline IO::~IO() {}
-
 inline IOAdios::IOAdios(MPI_Comm comm) : comm_{comm}, ad_{comm, adios2::DebugON}
 {}
 

@@ -9,18 +9,9 @@ namespace io
 {
 
 // ======================================================================
-// IO
+// IOAdios
 
-class IO
-{
-public:
-  IO();
-  virtual ~IO() = 0;
-
-  virtual Engine open(const std::string& name, const adios2::Mode mode) = 0;
-};
-
-class IOAdios : IO
+class IOAdios
 {
 public:
   IOAdios(MPI_Comm comm);
