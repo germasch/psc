@@ -96,7 +96,7 @@ private:
 };
 
 // ======================================================================
-// Mparticles
+// MparticlesSimple
 
 template<typename P>
 struct MparticlesSimple : MparticlesBase
@@ -232,4 +232,11 @@ private:
 public: // FIXME
   ParticleIndexer<real_t> pi_;
 };
+
+template<typename P>
+const typename MparticlesSimple<P>::Convert MparticlesSimple<P>::convert_to_;
+
+template<typename P>
+const typename MparticlesSimple<P>::Convert MparticlesSimple<P>::convert_from_;
+
 

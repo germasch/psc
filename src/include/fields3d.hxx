@@ -494,6 +494,12 @@ struct Mfields : MfieldsBase
   int im[3]; //> extent for each patch (incl. ghostpoints)
 };
 
+template<typename F>
+const typename Mfields<F>::Convert Mfields<F>::convert_to_;
+
+template<typename F>
+const typename Mfields<F>::Convert Mfields<F>::convert_from_;
+
 // ======================================================================
 // MfieldsStateFromMfields
 
@@ -519,5 +525,11 @@ struct MfieldsStateFromMfields : MfieldsStateBase
 private:
   Mfields mflds_;
 };
+
+template<typename F>
+const typename MfieldsStateFromMfields<F>::Convert MfieldsStateFromMfields<F>::convert_to_;
+
+template<typename F>
+const typename MfieldsStateFromMfields<F>::Convert MfieldsStateFromMfields<F>::convert_from_;
 
 #endif

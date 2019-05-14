@@ -354,3 +354,9 @@ private:
   Grid* vgrid_;
 };
 
+template<typename P>
+const typename MparticlesBase::Convert MparticlesVpic_<P>::convert_to_;
+
+template<typename P>
+const typename MparticlesBase::Convert MparticlesVpic_<P>::convert_from_;
+
