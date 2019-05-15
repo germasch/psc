@@ -40,6 +40,7 @@ public:
   Box<Dims> selection() const;
   Box<Dims> memorySelection() const;
 
+  Dims getShape() const;
   adios2::Variable<T> makeVariable() const;
   
 private:

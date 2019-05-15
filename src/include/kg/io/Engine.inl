@@ -128,7 +128,7 @@ inline void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
   auto var = makeVariable<T>();
-  auto shape = var.shape();
+  auto shape = var.getShape();
   assert(shape.size() == 1);
   auto dim0 = shape[0];
   assert(dim0 == mpiSize());

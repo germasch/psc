@@ -70,6 +70,12 @@ std::string Variable<T>::name() const
 template <typename T>
 Dims Variable<T>::shape() const
 {
+  return shape_;
+}
+
+template <typename T>
+Dims Variable<T>::getShape() const
+{
   auto var = makeVariable();
   return var.Shape();
 }
