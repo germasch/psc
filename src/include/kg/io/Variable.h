@@ -35,7 +35,10 @@ public:
   void setSelection(const Box<Dims>& selection);
   void setMemorySelection(const Box<Dims>& selection);
 
+  std::string name() const;
   Dims shape() const;
+  Box<Dims> selection() const;
+  Box<Dims> memorySelection() const;
 
   adios2::Variable<T> makeVariable() const;
   

@@ -62,10 +62,28 @@ void Variable<T>::setShape(const Dims& shape)
 }
 
 template <typename T>
+std::string Variable<T>::name() const
+{
+  return name_;
+}
+
+template <typename T>
 Dims Variable<T>::shape() const
 {
   auto var = makeVariable();
   return var.Shape();
+}
+
+template <typename T>
+Box<Dims> Variable<T>::selection() const
+{
+  return selection_;
+}
+
+template <typename T>
+Box<Dims> Variable<T>::memorySelection() const
+{
+  return memory_selection_;
 }
 
 template <typename T>
