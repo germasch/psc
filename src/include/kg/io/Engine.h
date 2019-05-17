@@ -39,11 +39,16 @@ public:
   void performGets();
 
   template <typename T>
-  void putVariable(const std::string& name, detail::Variable<T>& var,
-                   const T* data, Mode launch, const Dims& shape);
+  void putVariable(const std::string& name,
+                   const T* data, Mode launch, const Dims& shape,
+		   const Box<Dims>& selection,
+		   const Box<Dims>& memory_selection);
+  
   template <typename T>
-  void getVariable(const std::string& name, detail::Variable<T>& var, T* data,
-                   Mode launch = Mode::Deferred);
+  void getVariable(const std::string& name, T* data,
+                   Mode launch,
+		   const Box<Dims>& selection,
+		   const Box<Dims>& memory_selection);
 
   template <typename T>
   Dims shape(const std::string& name) const;
@@ -95,8 +100,8 @@ public:
   template <class T, class... Args>
   void getAttribute(const std::string& pfx, T& datum, Args&&... args);
 
-  template <class T, class... Args>
-  void getLocal(const std::string& pfx, T& datum, Args&&... args);
+  template <class T>
+  void getLocal(const std::string& pfx, T& datum, Mode launch = Mode::Deferred);
 
   template <template <typename...> class Var, class T, class... Args>
   void get(const std::string& pfx, T& datum, Args&&... args);
