@@ -40,7 +40,7 @@ public:
 
   template <typename T>
   void putVariable(const std::string& name, detail::Variable<T>& var,
-                   const T* data, Mode launch = Mode::Deferred);
+                   const T* data, Mode launch, const Dims& shape);
   template <typename T>
   void getVariable(const std::string& name, detail::Variable<T>& var, T* data,
                    Mode launch = Mode::Deferred);
@@ -56,11 +56,6 @@ public:
 
   template <typename T>
   void putAttribute(const std::string& name, const T& datum);
-
-private:
-  template <typename T>
-  adios2::Variable<T> makeAdiosVariable(const std::string& name,
-                                        const detail::Variable<T>& var) const;
 
 private:
   adios2::Engine engine_;

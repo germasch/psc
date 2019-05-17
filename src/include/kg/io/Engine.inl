@@ -32,9 +32,19 @@ inline void FileAdios::performGets()
 template <typename T>
 inline void FileAdios::putVariable(const std::string& name,
                                    detail::Variable<T>& var, const T* data,
-                                   const Mode launch)
+                                   const Mode launch, const Dims& shape)
 {
-  engine_.Put(makeAdiosVariable(name, var), data, launch);
+  auto v = io_.InquireVariable<T>(name);
+  if (!v) {
+    v = io_.DefineVariable<T>(name, shape);
+  }
+  if (!var.selection().first.empty()) {
+    v.SetSelection(var.selection());
+  }
+  if (!var.memorySelection().first.empty()) {
+    v.SetMemorySelection(var.memorySelection());
+  }
+  engine_.Put(v, data, launch);
 }
 
 template <typename T>
@@ -42,15 +52,23 @@ inline void FileAdios::getVariable(const std::string& name,
                                    detail::Variable<T>& var, T* data,
                                    const Mode launch)
 {
-  engine_.Get(makeAdiosVariable(name, var), data, launch);
+  auto& io = const_cast<adios2::IO&>(io_); // FIXME
+  auto v = io.InquireVariable<T>(name);
+  if (!var.selection().first.empty()) {
+    v.SetSelection(var.selection());
+  }
+  if (!var.memorySelection().first.empty()) {
+    v.SetMemorySelection(var.memorySelection());
+  }
+  engine_.Get(v, data, launch);
 }
 
 template <typename T>
 inline Dims FileAdios::shape(const std::string& name) const
 {
   auto& io = const_cast<adios2::IO&>(io_); // FIXME
-  auto var = io.InquireVariable<T>(name);
-  return var.Shape();
+  auto v = io.InquireVariable<T>(name);
+  return v.Shape();
 }
 
 template <typename T>
@@ -91,25 +109,6 @@ inline void FileAdios::putAttribute(const std::string& name, const T& datum)
   }
 }
 
-template <typename T>
-inline adios2::Variable<T> FileAdios::makeAdiosVariable(
-  const std::string& name, const detail::Variable<T>& variable) const
-{
-  auto& io = const_cast<adios2::IO&>(io_); // FIXME
-  auto var = io.InquireVariable<T>(name);
-  if (!var) {
-    var = io.DefineVariable<T>(name, variable.shape());
-  }
-  if (!variable.selection().first.empty()) {
-    var.SetSelection(variable.selection());
-  }
-  if (!variable.memorySelection().first.empty()) {
-    var.SetMemorySelection(variable.memorySelection());
-  }
-
-  return var;
-}
-
 // ======================================================================
 // Engine
 
@@ -127,7 +126,7 @@ template <typename T>
 inline void Engine::putVariable(detail::Variable<T>& var, const T* data,
                                 const Mode launch)
 {
-  file_.putVariable(prefix(), var, data, launch);
+  file_.putVariable(prefix(), var, data, launch, var.shape());
 }
 
 template <typename T>
@@ -162,7 +161,7 @@ inline void Engine::putLocal(const std::string& pfx, const T& datum,
   prefixes_.push_back(pfx);
   auto var = detail::Variable<T>{};
   var.setShape({adios2::LocalValueDim});
-  file_.putVariable(prefix(), var, &datum, launch);
+  file_.putVariable(prefix(), var, &datum, launch, var.shape());
   prefixes_.pop_back();
 }
 
