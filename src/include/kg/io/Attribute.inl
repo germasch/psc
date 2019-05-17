@@ -12,47 +12,25 @@ namespace detail
 template <typename T>
 void Attribute<T>::put(Engine& writer, const T* data, size_t size)
 {
-  if (writer.mpiRank() != 0) { // FIXME, should we do this?
-    return;
-  }
-  auto attr = writer.file_.io_.InquireAttribute<T>(writer.prefix());
-  if (attr) {
-    mprintf("attr '%s' already exists -- ignoring it!\n", writer.prefix().c_str());
-  } else {
-    writer.file_.io_.DefineAttribute<T>(writer.prefix(), data, size);
-  }
+  writer.put(*this, data, size);
 }
 
 template <typename T>
 void Attribute<T>::put(Engine& writer, const T& datum)
 {
-  if (writer.mpiRank() != 0) { // FIXME, should we do this?
-    return;
-  }
-  auto attr = writer.file_.io_.InquireAttribute<T>(writer.prefix());
-  if (attr) {
-    mprintf("attr '%s' already exists -- ignoring it!\n", writer.prefix().c_str());
-  } else {
-    writer.file_.io_.DefineAttribute<T>(writer.prefix(), datum);
-  }
+  writer.put(*this, datum);
 }
 
 template <typename T>
 void Attribute<T>::get(Engine& reader, std::vector<T>& data)
 {
-  auto attr = reader.file_.io_.InquireAttribute<T>(reader.prefix());
-  assert(attr);
-  data = attr.Data();
+  reader.get(*this, data);
 }
 
 template <typename T>
 void Attribute<T>::get(Engine& reader, T& datum)
 {
-  auto attr = reader.file_.io_.InquireAttribute<T>(reader.prefix());
-  assert(attr);
-  auto data = attr.Data();
-  assert(data.size() == 1);
-  datum = data[0];
+  reader.get(*this, datum);
 }
 
 } // namespace detail

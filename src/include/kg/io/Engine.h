@@ -80,6 +80,12 @@ public:
   void put(detail::Variable<T>& var, const T* data,
            const Mode launch = Mode::Deferred);
 
+  template <typename T>
+  void put(detail::Attribute<T>& attr, const T* data, size_t size);
+
+  template <typename T>
+  void put(detail::Attribute<T>& attr, const T& datum);
+
   template <class T, class... Args>
   void put(const std::string& pfx, const T& datum, Args&&... args);
 
@@ -99,6 +105,12 @@ public:
   template <typename T>
   void get(detail::Variable<T>& var, T* data,
            const Mode launch = Mode::Deferred);
+
+  template <typename T>
+  void get(detail::Attribute<T>& attr, std::vector<T>& data);
+
+  template <typename T>
+  void get(detail::Attribute<T>& attr, T& datum);
 
   template <class T, class... Args>
   void get(const std::string& pfx, T& datum, Args&&... args);

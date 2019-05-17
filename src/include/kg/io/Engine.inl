@@ -93,6 +93,34 @@ inline void Engine::put(detail::Variable<T>& var, const T* data,
   file_.put(var, data, launch);
 }
 
+template <typename T>
+inline void Engine::put(detail::Attribute<T>& attr, const T* data, size_t size)
+{
+  if (mpiRank() != 0) { // FIXME, should we do this?
+    return;
+  }
+  auto adios2Attr = file_.io_.InquireAttribute<T>(prefix());
+  if (adios2Attr) {
+    mprintf("attr '%s' already exists -- ignoring it!\n", prefix().c_str());
+  } else {
+    file_.io_.DefineAttribute<T>(prefix(), data, size);
+  }
+}
+
+template <typename T>
+inline void Engine::put(detail::Attribute<T>& attr, const T& datum)
+{
+  if (mpiRank() != 0) { // FIXME, should we do this?
+    return;
+  }
+  auto adios2Attr = file_.io_.InquireAttribute<T>(prefix());
+  if (adios2Attr) {
+    mprintf("attr '%s' already exists -- ignoring it!\n", prefix().c_str());
+  } else {
+    file_.io_.DefineAttribute<T>(prefix(), datum);
+  }
+}
+
 template <class T, class... Args>
 inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 {
@@ -131,10 +159,27 @@ inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 // get
 
 template <typename T>
-inline void Engine::get(detail::Variable<T>& var, T* data,
-                        const Mode launch)
+inline void Engine::get(detail::Variable<T>& var, T* data, const Mode launch)
 {
   file_.get(var, data, launch);
+}
+
+template <typename T>
+inline void Engine::get(detail::Attribute<T>& attr, std::vector<T>& data)
+{
+  auto adios2Attr = file_.io_.InquireAttribute<T>(prefix());
+  assert(adios2Attr);
+  data = adios2Attr.Data();
+}
+
+template <typename T>
+inline void Engine::get(detail::Attribute<T>& attr, T& datum)
+{
+  auto adios2Attr = file_.io_.InquireAttribute<T>(prefix());
+  assert(adios2Attr);
+  auto data = adios2Attr.Data();
+  assert(data.size() == 1);
+  datum = data[0];
 }
 
 template <class T, class... Args>
