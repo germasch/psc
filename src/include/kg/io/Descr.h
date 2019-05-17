@@ -24,19 +24,6 @@ public:
 };
 
 // ======================================================================
-// Descr<Vec3>
-
-template <typename T>
-class Descr<Vec3<T>>
-{
-public:
-  using value_type = Vec3<T>;
-
-  void put(Engine& writer, const value_type& vec, Mode launch = Mode::Deferred);
-  void get(Engine& reader, value_type& data, Mode launch = Mode::Deferred);
-};
-
-// ======================================================================
 // Descr<T[N]>
 
 template <typename T, size_t N>
@@ -48,6 +35,32 @@ public:
 
   void put(Engine& writer, const value_type& arr, Mode launch = Mode::Deferred);
   void get(Engine& reader, value_type& arr, Mode launch = Mode::Deferred);
+};
+
+// ======================================================================
+// Descr<std::vector>
+
+template <class T>
+class Descr<std::vector<T>>
+{
+public:
+  using value_type = std::vector<T>;
+
+  void put(Engine& writer, const value_type& vec, Mode launch = Mode::Deferred);
+  void get(Engine& reader, value_type& vec, Mode launch = Mode::Deferred);
+};
+
+// ======================================================================
+// Descr<Vec3>
+
+template <typename T>
+class Descr<Vec3<T>>
+{
+public:
+  using value_type = Vec3<T>;
+
+  void put(Engine& writer, const value_type& vec, Mode launch = Mode::Deferred);
+  void get(Engine& reader, value_type& data, Mode launch = Mode::Deferred);
 };
 
 } // namespace io

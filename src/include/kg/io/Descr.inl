@@ -44,6 +44,24 @@ inline void Descr<T[N]>::get(Engine& reader, Descr<T[N]>::value_type& arr,
 }
 
 // ======================================================================
+// Descr<std::vector<T>>
+
+template <class T>
+inline void Descr<std::vector<T>>::put(Engine& writer,
+                                           const std::vector<T>& vec,
+                                           Mode launch)
+{
+  writer.writeAttribute(vec.data(), vec.size());
+}
+
+template <class T>
+inline void Descr<std::vector<T>>::get(Engine& reader, std::vector<T>& vec,
+                                           Mode launch)
+{
+  reader.getAttribute(vec);
+}
+
+// ======================================================================
 // Descr<Vec3<T>>
 
 template <class T>

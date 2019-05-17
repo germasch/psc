@@ -161,9 +161,9 @@ public:
       names[kind] = kinds[kind].name;
     }
 
-    writer.putAttribute("names", names, kg::io::Mode::Sync);
-    writer.putAttribute("q", q, kg::io::Mode::Sync);
-    writer.putAttribute("m", m, kg::io::Mode::Sync);
+    writer.put("names", names, kg::io::Mode::Sync);
+    writer.put("q", q, kg::io::Mode::Sync);
+    writer.put("m", m, kg::io::Mode::Sync);
   }
 
   static void get(Engine& reader, Grid_t::Kinds& kinds,
@@ -172,10 +172,10 @@ public:
     auto q = std::vector<real_t>{};
     auto m = std::vector<real_t>{};
     auto names = std::vector<std::string>{};
-    reader.getAttribute("names", names, kg::io::Mode::Sync);
-    reader.getAttribute("q", q, kg::io::Mode::Sync);
-    reader.getAttribute("m", m, kg::io::Mode::Sync);
-    reader.getAttribute("names", names);
+    reader.get("names", names, kg::io::Mode::Sync);
+    reader.get("q", q, kg::io::Mode::Sync);
+    reader.get("m", m, kg::io::Mode::Sync);
+    reader.get("names", names);
 
     kinds.resize(q.size());
     for (int kind = 0; kind < q.size(); kind++) {
@@ -202,11 +202,11 @@ public:
   void put(kg::io::Engine& writer, const Grid& grid,
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.putAttribute("ldims", grid.ldims);
+    writer.put("ldims", grid.ldims);
     writer.put("domain", grid.domain, launch);
     writer.put("bc", grid.bc, launch);
     writer.put("norm", grid.norm, launch);
-    writer.putAttribute("dt", grid.dt);
+    writer.put("dt", grid.dt);
 
     size_t patches_n_local = grid.patches.size();
     writer.putLocal("n_local", patches_n_local);
@@ -226,8 +226,8 @@ public:
     writer.put<VariableByPatch>("xe", patches_xe, grid, launch);
 
     writer.put("kinds", grid.kinds, launch);
-    writer.putAttribute("ibn", grid.ibn);
-    writer.putAttribute("timestep", grid.timestep_);
+    writer.put("ibn", grid.ibn);
+    writer.put("timestep", grid.timestep_);
 
     writer.performPuts(); // because we're writing temp local vars (the
                           // patches_*)
@@ -236,11 +236,11 @@ public:
   void get(kg::io::Engine& reader, Grid& grid,
            const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    reader.getAttribute("ldims", grid.ldims);
+    reader.get("ldims", grid.ldims);
     reader.get("domain", grid.domain, launch);
     reader.get("bc", grid.bc, launch);
     reader.get("norm", grid.norm, launch);
-    reader.getAttribute("dt", grid.dt);
+    reader.get("dt", grid.dt);
 
     size_t patches_n_local;
     reader.getLocal("n_local", patches_n_local, launch);
@@ -266,7 +266,7 @@ public:
     }
 
     reader.get("kinds", grid.kinds, launch);
-    reader.getAttribute("ibn", grid.ibn);
-    reader.getAttribute("timestep", grid.timestep_);
+    reader.get("ibn", grid.ibn);
+    reader.get("timestep", grid.timestep_);
   }
 };
