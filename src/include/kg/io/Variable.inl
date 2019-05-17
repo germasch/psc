@@ -15,7 +15,7 @@ namespace detail
 // detail::Variable
 
 template <typename T>
-Variable<T>::Variable(const std::string& name, adios2::IO io)
+Variable<T>::Variable(const std::string& name)
   : name_{name}
 {}
 

@@ -80,7 +80,7 @@ inline Engine::Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
 template <typename T>
 inline detail::Variable<T> Engine::makeVariable()
 {
-  return {prefix(), file_.io_};
+  return {prefix()};
 }
 
 // ----------------------------------------------------------------------

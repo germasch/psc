@@ -1,21 +1,15 @@
 
 #pragma once
 
-#include <adios2.h>
-
 namespace kg
 {
 namespace io
 {
 
-class Engine;
-
 namespace detail
 {
 // ======================================================================
-// Variable
-//
-// This general version handles T being one of the base adios2 types (only!)
+// detail::Variable
 
 template <typename T>
 class Variable
@@ -23,7 +17,7 @@ class Variable
 public:
   using value_type = T;
 
-  Variable(const std::string& name, adios2::IO io);
+  Variable(const std::string& name);
 
   void setShape(const Dims& shape);
   void setSelection(const Box<Dims>& selection);
