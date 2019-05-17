@@ -39,15 +39,15 @@ public:
   void performGets();
 
   template <typename T>
-  void putVariable(detail::Variable<T>& var, const T* data,
-		   const Mode launch = Mode::Deferred);
+  void putVariable(const std::string& name, detail::Variable<T>& var,
+                   const T* data, Mode launch = Mode::Deferred);
   template <typename T>
-  void getVariable(detail::Variable<T>& var, T* data,
-		   const Mode launch = Mode::Deferred);
+  void getVariable(const std::string& name, detail::Variable<T>& var, T* data,
+                   Mode launch = Mode::Deferred);
 
   template <typename T>
   Dims shape(const std::string& name) const;
-  
+
   template <typename T>
   void getAttribute(const std::string& name, std::vector<T>& data);
 
@@ -59,7 +59,8 @@ public:
 
 private:
   template <typename T>
-  adios2::Variable<T> makeAdiosVariable(const detail::Variable<T>& var) const;
+  adios2::Variable<T> makeAdiosVariable(const std::string& name,
+                                        const detail::Variable<T>& var) const;
 
 private:
   adios2::Engine engine_;
