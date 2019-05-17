@@ -6,64 +6,19 @@
 #include <deque>
 #include <iostream>
 
+#include "Descr.h"
+#include "FileAdios2.h"
+
 namespace kg
 {
 namespace io
 {
-
-namespace detail
-{
-template <typename T>
-class Variable;
-} // namespace detail
-
-template <typename T>
-class Descr;
 
 // ======================================================================
 // Variable
 
 template <typename T>
 class Variable;
-
-// ======================================================================
-// FileAdios
-
-class FileAdios
-{
-public:
-  FileAdios(adios2::Engine engine, adios2::IO io);
-
-  void close();
-  void performPuts();
-  void performGets();
-
-  template <typename T>
-  void putVariable(const std::string& name, const T* data, Mode launch,
-                   const Dims& shape, const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
-
-  template <typename T>
-  void getVariable(const std::string& name, T* data, Mode launch,
-                   const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
-
-  template <typename T>
-  Dims shape(const std::string& name) const;
-
-  template <typename T>
-  void getAttribute(const std::string& name, std::vector<T>& data);
-
-  template <typename T>
-  void putAttribute(const std::string& name, const T* data, size_t size);
-
-  template <typename T>
-  void putAttribute(const std::string& name, const T& datum);
-
-private:
-  adios2::Engine engine_;
-  adios2::IO io_;
-};
 
 // ======================================================================
 // Engine
@@ -167,7 +122,7 @@ public:
   }
 
 private:
-  FileAdios file_;
+  FileAdios2 file_;
   std::deque<std::string> prefixes_;
   int mpi_rank_;
   int mpi_size_;
