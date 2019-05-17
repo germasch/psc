@@ -27,8 +27,6 @@ public:
     auto shape = kg::io::Dims{n_comps, static_cast<size_t>(gdims[2]),
                               static_cast<size_t>(gdims[1]),
                               static_cast<size_t>(gdims[0])};
-    auto var = kg::io::detail::Variable<DataType>{};
-    var.setShape(shape);
     for (int p = 0; p < grid.n_patches(); p++) {
       auto& patch = grid.patches[p];
       auto start = kg::io::Dims{0, static_cast<size_t>(patch.off[2]),
@@ -43,9 +41,8 @@ public:
       auto im = kg::io::Dims{n_comps, static_cast<size_t>(mflds.im[2]),
                              static_cast<size_t>(mflds.im[1]),
                              static_cast<size_t>(mflds.im[0])};
-      var.setSelection({start, count});
-      var.setMemorySelection({ib, im});
-      writer.putVariable(var, mflds.data[p].get());
+      writer.putVariable(mflds.data[p].get(), launch, shape, {start, count},
+                         {ib, im});
     }
   }
 
@@ -64,7 +61,6 @@ public:
                               static_cast<size_t>(gdims[1]),
                               static_cast<size_t>(gdims[0])};
     assert(reader.variableShape<DataType>() == shape);
-    auto var = kg::io::detail::Variable<DataType>{};
     for (int p = 0; p < grid.n_patches(); p++) {
       auto& patch = grid.patches[p];
       auto start = kg::io::Dims{0, static_cast<size_t>(patch.off[2]),
@@ -79,10 +75,7 @@ public:
       auto im = kg::io::Dims{n_comps, static_cast<size_t>(mflds.im[2]),
                              static_cast<size_t>(mflds.im[1]),
                              static_cast<size_t>(mflds.im[0])};
-      var.setSelection({start, count});
-      var.setMemorySelection({ib, im});
-      reader.getVariable(var, mflds.data[p].get());
+      reader.getVariable(mflds.data[p].get(), launch, {start, count}, {ib, im});
     }
   }
 };
-

@@ -125,11 +125,11 @@ inline Engine::Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
 // put
 
 template <typename T>
-inline void Engine::putVariable(detail::Variable<T>& var, const T* data,
-                                const Mode launch)
+inline void Engine::putVariable(const T* data, const Mode launch,
+                                const Dims& shape, const Box<Dims>& selection,
+                                const Box<Dims>& memory_selection)
 {
-  file_.putVariable(prefix(), data, launch, var.shape(), var.selection(),
-                    var.memorySelection());
+  file_.putVariable(prefix(), data, launch, shape, selection, memory_selection);
 }
 
 template <typename T>
@@ -183,11 +183,11 @@ inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 // get
 
 template <typename T>
-inline void Engine::getVariable(detail::Variable<T>& var, T* data,
-                                const Mode launch)
+inline void Engine::getVariable(T* data, const Mode launch,
+                                const Box<Dims>& selection,
+                                const Box<Dims>& memory_selection)
 {
-  file_.getVariable(prefix(), data, launch, var.selection(),
-                    var.memorySelection());
+  file_.getVariable(prefix(), data, launch, selection, memory_selection);
 }
 
 template <typename T>

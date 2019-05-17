@@ -39,16 +39,14 @@ public:
   void performGets();
 
   template <typename T>
-  void putVariable(const std::string& name,
-                   const T* data, Mode launch, const Dims& shape,
-		   const Box<Dims>& selection,
-		   const Box<Dims>& memory_selection);
-  
+  void putVariable(const std::string& name, const T* data, Mode launch,
+                   const Dims& shape, const Box<Dims>& selection,
+                   const Box<Dims>& memory_selection);
+
   template <typename T>
-  void getVariable(const std::string& name, T* data,
-                   Mode launch,
-		   const Box<Dims>& selection,
-		   const Box<Dims>& memory_selection);
+  void getVariable(const std::string& name, T* data, Mode launch,
+                   const Box<Dims>& selection,
+                   const Box<Dims>& memory_selection);
 
   template <typename T>
   Dims shape(const std::string& name) const;
@@ -126,12 +124,13 @@ public:
   // internal
 
   template <typename T>
-  void putVariable(detail::Variable<T>& var, const T* data,
-                   const Mode launch = Mode::Deferred);
+  void putVariable(const T* data, const Mode launch, const Dims& shape,
+                   const Box<Dims>& selection = {},
+                   const Box<Dims>& memory_selection = {});
 
   template <typename T>
-  void getVariable(detail::Variable<T>& var, T* data,
-                   const Mode launch = Mode::Deferred);
+  void getVariable(T* data, const Mode launch, const Box<Dims>& selection = {},
+                   const Box<Dims>& memory_selection = {});
 
   template <typename T>
   void writeAttribute(const T& datum);
@@ -172,9 +171,6 @@ private:
   std::deque<std::string> prefixes_;
   int mpi_rank_;
   int mpi_size_;
-
-  template <typename T>
-  friend class detail::Variable;
 };
 
 } // namespace io
