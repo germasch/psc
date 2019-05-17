@@ -40,14 +40,11 @@ public:
   Box<Dims> selection() const;
   Box<Dims> memorySelection() const;
 
-  adios2::Variable<T> makeVariable() const;
-  
 private:
   std::string name_;
   Dims shape_;
   Box<Dims> selection_;
   Box<Dims> memory_selection_;
-  adios2::IO io_;
 };
 } // namespace detail
 
