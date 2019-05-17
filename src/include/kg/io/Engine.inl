@@ -261,9 +261,9 @@ inline void Engine::performGets()
 // getShape
 
 template <typename T>
-inline Dims Engine::getShape(const std::string& name)
+inline Dims Engine::variableShape()
 {
-  return file_.getShape<T>(name);
+  return file_.getShape<T>(prefix());
 }
 
 // ----------------------------------------------------------------------

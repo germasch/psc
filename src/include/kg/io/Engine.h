@@ -119,10 +119,10 @@ public:
   void performGets();
 
   // ----------------------------------------------------------------------
-  // getShape
+  // variableShape
 
   template <typename T>
-  Dims getShape(const std::string& name);
+  Dims variableShape();
 
   // ----------------------------------------------------------------------
   // internal

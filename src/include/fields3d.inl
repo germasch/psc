@@ -63,7 +63,7 @@ public:
     auto shape = kg::io::Dims{n_comps, static_cast<size_t>(gdims[2]),
                               static_cast<size_t>(gdims[1]),
                               static_cast<size_t>(gdims[0])};
-    assert(reader.getShape<DataType>(reader.prefix()) == shape);
+    assert(reader.variableShape<DataType>() == shape);
     auto var = reader.makeVariable<DataType>();
     for (int p = 0; p < grid.n_patches(); p++) {
       auto& patch = grid.patches[p];
