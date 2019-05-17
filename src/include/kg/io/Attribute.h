@@ -20,13 +20,7 @@ namespace detail
 
 template <typename T>
 struct Attribute
-{
-  void put(Engine& writer, const T* data, size_t size);
-  void put(Engine& writer, const T& datum);
-
-  void get(Engine& reader, std::vector<T>& data);
-  void get(Engine& reader, T& datum);
-};
+{};
 
 }; // namespace detail
 
