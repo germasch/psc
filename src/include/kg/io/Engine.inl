@@ -33,34 +33,34 @@ template <typename T>
 inline void FileAdios::put(detail::Variable<T>& var, const T* data,
                            const Mode launch)
 {
-  engine_.Put(makeVariable(var), data, launch);
+  engine_.Put(makeAdiosVariable(var), data, launch);
 }
 
 template <typename T>
 inline void FileAdios::get(detail::Variable<T>& var, T* data, const Mode launch)
 {
-  engine_.Get(makeVariable(var), data, launch);
+  engine_.Get(makeAdiosVariable(var), data, launch);
 }
 
 template <typename T>
 inline Dims FileAdios::getShape(detail::Variable<T>& var) const
 {
-  return makeVariable(var).Shape();
+  return makeAdiosVariable(var).Shape();
 }
 
 template <typename T>
-inline adios2::Variable<T> FileAdios::makeVariable(
+inline adios2::Variable<T> FileAdios::makeAdiosVariable(
   const detail::Variable<T>& variable) const
 {
-  auto& io = const_cast<adios2::IO&>(io_);
+  auto& io = const_cast<adios2::IO&>(io_); // FIXME
   auto var = io.InquireVariable<T>(variable.name());
   if (!var) {
     var = io.DefineVariable<T>(variable.name(), variable.shape());
   }
-  if (variable.selection().first.size() != 0) {
+  if (!variable.selection().first.empty()) {
     var.SetSelection(variable.selection());
   }
-  if (variable.memorySelection().first.size() != 0) {
+  if (!variable.memorySelection().first.empty()) {
     var.SetMemorySelection(variable.memorySelection());
   }
 

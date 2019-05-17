@@ -51,13 +51,14 @@ public:
   template <typename T>
   Dims getShape(detail::Variable<T>& var) const;
 
+private:
   template <typename T>
-  adios2::Variable<T> makeVariable(const detail::Variable<T>& var) const;
+  adios2::Variable<T> makeAdiosVariable(const detail::Variable<T>& var) const;
 
 private:
   adios2::Engine engine_;
 
-public:
+public: // FIXME
   adios2::IO io_;
 };
 
