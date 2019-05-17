@@ -49,6 +49,42 @@ inline Dims FileAdios::getShape(detail::Variable<T>& var) const
 }
 
 template <typename T>
+inline void FileAdios::getAttribute(const std::string& name, std::vector<T>& data)
+{
+  auto attr = io_.InquireAttribute<T>(name);
+  assert(attr);
+  data = attr.Data();
+}
+
+template <typename T>
+inline void FileAdios::putAttribute(const std::string& name, const T* data, size_t size)
+{
+  // if (mpiRank() != 0) { // FIXME, should we do this?
+  //   return;
+  // }
+  auto attr = io_.InquireAttribute<T>(name);
+  if (attr) {
+    mprintf("attr '%s' already exists -- ignoring it!\n", name.c_str());
+  } else {
+    io_.DefineAttribute<T>(name, data, size);
+  }
+}  
+
+template <typename T>
+inline void FileAdios::putAttribute(const std::string& name, const T& datum)
+{
+  // if (mpiRank() != 0) { // FIXME, should we do this?
+  //   return;
+  // }
+  auto attr = io_.InquireAttribute<T>(name);
+  if (attr) {
+    mprintf("attr '%s' already exists -- ignoring it!\n", name.c_str());
+  } else {
+    io_.DefineAttribute<T>(name, datum);
+  }
+}  
+
+template <typename T>
 inline adios2::Variable<T> FileAdios::makeAdiosVariable(
   const detail::Variable<T>& variable) const
 {
@@ -96,29 +132,13 @@ inline void Engine::put(detail::Variable<T>& var, const T* data,
 template <typename T>
 inline void Engine::put(detail::Attribute<T>& attr, const T* data, size_t size)
 {
-  if (mpiRank() != 0) { // FIXME, should we do this?
-    return;
-  }
-  auto adios2Attr = file_.io_.InquireAttribute<T>(prefix());
-  if (adios2Attr) {
-    mprintf("attr '%s' already exists -- ignoring it!\n", prefix().c_str());
-  } else {
-    file_.io_.DefineAttribute<T>(prefix(), data, size);
-  }
+  file_.putAttribute(prefix(), data, size);
 }
 
 template <typename T>
 inline void Engine::put(detail::Attribute<T>& attr, const T& datum)
 {
-  if (mpiRank() != 0) { // FIXME, should we do this?
-    return;
-  }
-  auto adios2Attr = file_.io_.InquireAttribute<T>(prefix());
-  if (adios2Attr) {
-    mprintf("attr '%s' already exists -- ignoring it!\n", prefix().c_str());
-  } else {
-    file_.io_.DefineAttribute<T>(prefix(), datum);
-  }
+  file_.putAttribute(prefix(), datum);
 }
 
 template <class T, class... Args>
@@ -167,17 +187,14 @@ inline void Engine::get(detail::Variable<T>& var, T* data, const Mode launch)
 template <typename T>
 inline void Engine::get(detail::Attribute<T>& attr, std::vector<T>& data)
 {
-  auto adios2Attr = file_.io_.InquireAttribute<T>(prefix());
-  assert(adios2Attr);
-  data = adios2Attr.Data();
+  file_.getAttribute(prefix(), data);
 }
 
 template <typename T>
 inline void Engine::get(detail::Attribute<T>& attr, T& datum)
 {
-  auto adios2Attr = file_.io_.InquireAttribute<T>(prefix());
-  assert(adios2Attr);
-  auto data = adios2Attr.Data();
+  auto data = std::vector<T>{};
+  file_.getAttribute(prefix(), data);
   assert(data.size() == 1);
   datum = data[0];
 }

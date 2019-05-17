@@ -51,14 +51,21 @@ public:
   template <typename T>
   Dims getShape(detail::Variable<T>& var) const;
 
+  template <typename T>
+  void getAttribute(const std::string& name, std::vector<T>& data);
+
+  template <typename T>
+  void putAttribute(const std::string& name, const T* data, size_t size);
+
+  template <typename T>
+  void putAttribute(const std::string& name, const T& datum);
+
 private:
   template <typename T>
   adios2::Variable<T> makeAdiosVariable(const detail::Variable<T>& var) const;
 
 private:
   adios2::Engine engine_;
-
-public: // FIXME
   adios2::IO io_;
 };
 
