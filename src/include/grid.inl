@@ -35,7 +35,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
       static_cast<size_t>(grid.localPatchInfo(0).global_patch), 0};
     kg::io::Dims count = {static_cast<size_t>(grid.n_patches()), 3};
     auto var = reader.makeVariable<T>();
-    assert(reader.getShape(var) == shape);
+    assert(reader.getShape<T>(reader.prefix()) == shape);
     var.setSelection({start, count});
     datum.resize(count[0]);
     reader.getVariable(var, datum[0].data(), launch);

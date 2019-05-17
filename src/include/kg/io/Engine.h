@@ -122,7 +122,7 @@ public:
   // getShape
 
   template <typename T>
-  Dims getShape(detail::Variable<T>& var);
+  Dims getShape(const std::string& name);
 
   // ----------------------------------------------------------------------
   // internal
