@@ -67,6 +67,21 @@ public:
   void get(Engine& reader, value_type& data, Mode launch = Mode::Deferred);
 };
 
+
+// ======================================================================
+// Local<T>
+//
+// single value
+// (FIXME, should be adios2 T only)
+
+template <typename T, typename Enable = void>
+class Local
+{
+public:
+  void put(Engine& writer, const T& value, Mode launch = Mode::Deferred);
+  void get(Engine& reader, T& value, Mode launch = Mode::Deferred);
+};
+
 } // namespace io
 } // namespace kg
 

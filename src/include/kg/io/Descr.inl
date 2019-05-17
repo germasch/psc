@@ -18,7 +18,7 @@ inline void Descr<T, Enable>::put(Engine& writer, const T& value, Mode launch)
 template <class T, class Enable>
 inline void Descr<T, Enable>::get(Engine& reader, T& value, Mode launch)
 {
-  reader.putAttribute(value);
+  reader.getAttribute(value);
 }
 
 // ======================================================================
@@ -74,6 +74,27 @@ inline void Descr<Vec3<T>>::get(Engine& reader, Vec3<T>& vec, Mode launch)
   reader.getAttribute(vals);
   assert(vals.size() == 3);
   vec = {vals[0], vals[1], vals[2]};
+}
+
+// ======================================================================
+// Local<T>
+
+template <class T, class Enable>
+inline void Local<T, Enable>::put(Engine& writer, const T& value, Mode launch)
+{
+  writer.putVariable(&value, launch, {adios2::LocalValueDim});
+}
+
+template <class T, class Enable>
+inline void Local<T, Enable>::get(Engine& reader, T& value, Mode launch)
+{
+  auto shape = reader.variableShape<T>();
+  assert(shape == Dims{static_cast<size_t>(reader.mpiSize())});
+
+  // FIXME, setSelection doesn't work, so read the whole thing
+  std::vector<T> vals(shape[0]);
+  reader.getVariable(vals.data(), launch);
+  value = vals[reader.mpiRank()];
 }
 
 } // namespace io

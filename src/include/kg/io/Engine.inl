@@ -19,26 +19,6 @@ inline Engine::Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
 // ----------------------------------------------------------------------
 // put
 
-template <typename T>
-inline void Engine::putVariable(const T* data, const Mode launch,
-                                const Dims& shape, const Box<Dims>& selection,
-                                const Box<Dims>& memory_selection)
-{
-  file_.putVariable(prefix(), data, launch, shape, selection, memory_selection);
-}
-
-template <typename T>
-inline void Engine::putAttribute(const T& datum)
-{
-  file_.putAttribute(prefix(), datum);
-}
-
-template <typename T>
-inline void Engine::putAttribute(const T* data, size_t size)
-{
-  file_.putAttribute(prefix(), data, size);
-}
-
 template <class T, class... Args>
 inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 {
@@ -49,9 +29,7 @@ template <class T>
 inline void Engine::putLocal(const std::string& pfx, const T& datum,
                              Mode launch)
 {
-  prefixes_.push_back(pfx);
-  putVariable(&datum, launch, {adios2::LocalValueDim});
-  prefixes_.pop_back();
+  put<Local>(pfx, datum, launch);
 }
 
 template <template <typename...> class Var, class T, class... Args>
@@ -66,41 +44,10 @@ inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 // ----------------------------------------------------------------------
 // get
 
-template <typename T>
-inline void Engine::getVariable(T* data, const Mode launch,
-                                const Box<Dims>& selection,
-                                const Box<Dims>& memory_selection)
-{
-  file_.getVariable(prefix(), data, launch, selection, memory_selection);
-}
-
-template <typename T>
-inline void Engine::getAttribute(T& datum)
-{
-  auto data = std::vector<T>{};
-  file_.getAttribute(prefix(), data);
-  assert(data.size() == 1);
-  datum = data[0];
-}
-
-template <typename T>
-inline void Engine::getAttribute(std::vector<T>& data)
-{
-  file_.getAttribute(prefix(), data);
-}
-
 template <class T>
 inline void Engine::getLocal(const std::string& pfx, T& datum, Mode launch)
 {
-  prefixes_.push_back(pfx);
-  auto shape = file_.shape<T>(prefix());
-  assert(shape == Dims{static_cast<size_t>(mpiSize())});
-
-  // FIXME, setSelection doesn't work, so read the whole thing
-  std::vector<T> vals(shape[0]);
-  getVariable(vals.data(), launch);
-  datum = vals[mpiRank()];
-  prefixes_.pop_back();
+  get<Local>(pfx, datum, launch);
 }
 
 template <class T, class... Args>
@@ -133,6 +80,52 @@ inline void Engine::performPuts()
 inline void Engine::performGets()
 {
   file_.performGets();
+}
+
+// ----------------------------------------------------------------------
+// internal
+
+template <typename T>
+inline void Engine::putVariable(const T* data, const Mode launch,
+                                const Dims& shape, const Box<Dims>& selection,
+                                const Box<Dims>& memory_selection)
+{
+  file_.putVariable(prefix(), data, launch, shape, selection, memory_selection);
+}
+
+template <typename T>
+inline void Engine::putAttribute(const T& datum)
+{
+  file_.putAttribute(prefix(), datum);
+}
+
+template <typename T>
+inline void Engine::putAttribute(const T* data, size_t size)
+{
+  file_.putAttribute(prefix(), data, size);
+}
+
+template <typename T>
+inline void Engine::getVariable(T* data, const Mode launch,
+                                const Box<Dims>& selection,
+                                const Box<Dims>& memory_selection)
+{
+  file_.getVariable(prefix(), data, launch, selection, memory_selection);
+}
+
+template <typename T>
+inline void Engine::getAttribute(T& datum)
+{
+  auto data = std::vector<T>{};
+  file_.getAttribute(prefix(), data);
+  assert(data.size() == 1);
+  datum = data[0];
+}
+
+template <typename T>
+inline void Engine::getAttribute(std::vector<T>& data)
+{
+  file_.getAttribute(prefix(), data);
 }
 
 // ----------------------------------------------------------------------
