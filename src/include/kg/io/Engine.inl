@@ -120,12 +120,6 @@ inline Engine::Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
   MPI_Comm_size(comm, &mpi_size_);
 }
 
-template <typename T>
-inline detail::Variable<T> Engine::makeVariable()
-{
-  return {prefix()};
-}
-
 // ----------------------------------------------------------------------
 // put
 
@@ -166,7 +160,7 @@ inline void Engine::putLocal(const std::string& pfx, const T& datum,
                              Mode launch)
 {
   prefixes_.push_back(pfx);
-  auto var = makeVariable<T>();
+  auto var = detail::Variable<T>{};
   var.setShape({adios2::LocalValueDim});
   file_.putVariable(prefix(), var, &datum, launch);
   prefixes_.pop_back();
@@ -222,7 +216,7 @@ inline void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
   assert(shape == Dims{static_cast<size_t>(mpiSize())});
 
   // FIXME, setSelection doesn't work, so read the whole thing
-  auto var = makeVariable<T>();
+  auto var = detail::Variable<T>{};
   std::vector<T> vals(shape[0]);
   file_.getVariable(prefix(), var, vals.data(), std::forward<Args>(args)...);
   datum = vals[mpiRank()];

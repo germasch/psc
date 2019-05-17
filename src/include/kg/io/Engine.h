@@ -75,9 +75,6 @@ class Engine
 public:
   Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm);
 
-  template <typename T>
-  detail::Variable<T> makeVariable();
-
   // ----------------------------------------------------------------------
   // put
 

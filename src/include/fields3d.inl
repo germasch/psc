@@ -27,7 +27,7 @@ public:
     auto shape = kg::io::Dims{n_comps, static_cast<size_t>(gdims[2]),
                               static_cast<size_t>(gdims[1]),
                               static_cast<size_t>(gdims[0])};
-    auto var = writer.makeVariable<DataType>();
+    auto var = kg::io::detail::Variable<DataType>{};
     var.setShape(shape);
     for (int p = 0; p < grid.n_patches(); p++) {
       auto& patch = grid.patches[p];
@@ -64,7 +64,7 @@ public:
                               static_cast<size_t>(gdims[1]),
                               static_cast<size_t>(gdims[0])};
     assert(reader.variableShape<DataType>() == shape);
-    auto var = reader.makeVariable<DataType>();
+    auto var = kg::io::detail::Variable<DataType>{};
     for (int p = 0; p < grid.n_patches(); p++) {
       auto& patch = grid.patches[p];
       auto start = kg::io::Dims{0, static_cast<size_t>(patch.off[2]),

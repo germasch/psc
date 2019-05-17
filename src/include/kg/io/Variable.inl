@@ -15,11 +15,6 @@ namespace detail
 // detail::Variable
 
 template <typename T>
-Variable<T>::Variable(const std::string& name)
-  : name_{name}
-{}
-
-template <typename T>
 void Variable<T>::setSelection(const Box<Dims>& selection)
 {
   selection_ = selection;
@@ -35,12 +30,6 @@ template <typename T>
 void Variable<T>::setShape(const Dims& shape)
 {
   shape_ = shape;
-}
-
-template <typename T>
-std::string Variable<T>::name() const
-{
-  return name_;
 }
 
 template <typename T>
