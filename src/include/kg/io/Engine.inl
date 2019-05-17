@@ -49,7 +49,8 @@ inline Dims FileAdios::getShape(detail::Variable<T>& var) const
 }
 
 template <typename T>
-inline void FileAdios::getAttribute(const std::string& name, std::vector<T>& data)
+inline void FileAdios::getAttribute(const std::string& name,
+                                    std::vector<T>& data)
 {
   auto attr = io_.InquireAttribute<T>(name);
   assert(attr);
@@ -57,7 +58,8 @@ inline void FileAdios::getAttribute(const std::string& name, std::vector<T>& dat
 }
 
 template <typename T>
-inline void FileAdios::putAttribute(const std::string& name, const T* data, size_t size)
+inline void FileAdios::putAttribute(const std::string& name, const T* data,
+                                    size_t size)
 {
   // if (mpiRank() != 0) { // FIXME, should we do this?
   //   return;
@@ -68,7 +70,7 @@ inline void FileAdios::putAttribute(const std::string& name, const T* data, size
   } else {
     io_.DefineAttribute<T>(name, data, size);
   }
-}  
+}
 
 template <typename T>
 inline void FileAdios::putAttribute(const std::string& name, const T& datum)
@@ -82,7 +84,7 @@ inline void FileAdios::putAttribute(const std::string& name, const T& datum)
   } else {
     io_.DefineAttribute<T>(name, datum);
   }
-}  
+}
 
 template <typename T>
 inline adios2::Variable<T> FileAdios::makeAdiosVariable(
@@ -123,8 +125,8 @@ inline detail::Variable<T> Engine::makeVariable()
 // put
 
 template <typename T>
-inline void Engine::put(detail::Variable<T>& var, const T* data,
-                        const Mode launch)
+inline void Engine::putVariable(detail::Variable<T>& var, const T* data,
+                                const Mode launch)
 {
   file_.put(var, data, launch);
 }
@@ -179,7 +181,7 @@ inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 // get
 
 template <typename T>
-inline void Engine::get(detail::Variable<T>& var, T* data, const Mode launch)
+inline void Engine::getVariable(detail::Variable<T>& var, T* data, const Mode launch)
 {
   file_.get(var, data, launch);
 }

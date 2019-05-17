@@ -24,7 +24,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
     auto var = writer.makeVariable<T>();
     var.setShape(shape);
     var.setSelection({start, count});
-    writer.put(var, datum[0].data(), launch);
+    writer.putVariable(var, datum[0].data(), launch);
   }
 
   void get(kg::io::Engine& reader, value_type& datum, const Grid_t& grid,
@@ -38,7 +38,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
     assert(reader.getShape(var) == shape);
     var.setSelection({start, count});
     datum.resize(count[0]);
-    reader.get(var, datum[0].data(), launch);
+    reader.getVariable(var, datum[0].data(), launch);
   }
 };
 

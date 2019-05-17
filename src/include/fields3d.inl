@@ -45,7 +45,7 @@ public:
                              static_cast<size_t>(mflds.im[0])};
       var.setSelection({start, count});
       var.setMemorySelection({ib, im});
-      writer.put(var, mflds.data[p].get());
+      writer.putVariable(var, mflds.data[p].get());
     }
   }
 
@@ -81,7 +81,7 @@ public:
                              static_cast<size_t>(mflds.im[0])};
       var.setSelection({start, count});
       var.setMemorySelection({ib, im});
-      reader.get(var, mflds.data[p].get());
+      reader.getVariable(var, mflds.data[p].get());
     }
   }
 };
