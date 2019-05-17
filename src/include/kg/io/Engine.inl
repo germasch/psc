@@ -43,7 +43,7 @@ inline void FileAdios::get(detail::Variable<T>& var, T* data, const Mode launch)
 }
 
 template <typename T>
-inline Dims FileAdios::getShape(const std::string &name) const
+inline Dims FileAdios::shape(const std::string &name) const
 {
   auto& io = const_cast<adios2::IO&>(io_); // FIXME
   auto var = io.InquireVariable<T>(name);
@@ -214,11 +214,11 @@ template <class T, class... Args>
 inline void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
-  auto var = makeVariable<T>();
-  auto shape = file_.getShape<T>(prefix());
+  auto shape = file_.shape<T>(prefix());
   assert(shape == Dims{static_cast<size_t>(mpiSize())});
 
   // FIXME, setSelection doesn't work, so read the whole thing
+  auto var = makeVariable<T>();
   std::vector<T> vals(shape[0]);
   file_.get(var, vals.data(), std::forward<Args>(args)...);
   datum = vals[mpiRank()];
@@ -263,7 +263,7 @@ inline void Engine::performGets()
 template <typename T>
 inline Dims Engine::variableShape()
 {
-  return file_.getShape<T>(prefix());
+  return file_.shape<T>(prefix());
 }
 
 // ----------------------------------------------------------------------
