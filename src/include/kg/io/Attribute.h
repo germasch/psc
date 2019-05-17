@@ -39,17 +39,8 @@ template <typename T, typename Enable = void>
 class Attribute
 {
 public:
-  void put(Engine& writer, const T& value, const Mode launch = Mode::Deferred)
-  {
-    detail::Attribute<T> attr;
-    attr.put(writer, value);
-  }
-
-  void get(Engine& reader, T& value, const Mode launch = Mode::Deferred)
-  {
-    detail::Attribute<T> attr;
-    attr.get(reader, value);
-  }
+  void put(Engine& writer, const T& value, Mode launch = Mode::Deferred);
+  void get(Engine& reader, T& value, Mode launch = Mode::Deferred);
 };
 
 // ======================================================================
@@ -61,18 +52,8 @@ class Attribute<std::vector<T>>
 public:
   using value_type = std::vector<T>;
 
-  void put(Engine& writer, const value_type& vec,
-           const Mode launch = Mode::Deferred)
-  {
-    detail::Attribute<T> attr;
-    attr.put(writer, vec.data(), vec.size());
-  }
-
-  void get(Engine& reader, value_type& vec, const Mode launch = Mode::Deferred)
-  {
-    detail::Attribute<T> attr;
-    attr.get(reader, vec);
-  }
+  void put(Engine& writer, const value_type& vec, Mode launch = Mode::Deferred);
+  void get(Engine& reader, value_type& vec, Mode launch = Mode::Deferred);
 };
 
 // ======================================================================
@@ -84,48 +65,22 @@ class Attribute<Vec3<T>>
 public:
   using value_type = Vec3<T>;
 
-  void put(Engine& writer, const value_type& vec,
-           const Mode launch = Mode::Deferred)
-  {
-    detail::Attribute<T> attr;
-    attr.put(writer, vec.data(), 3);
-  }
-
-  void get(Engine& reader, value_type& data, const Mode launch = Mode::Deferred)
-  {
-    std::vector<T> vals;
-    detail::Attribute<T> attr;
-    attr.get(reader, vals);
-    assert(vals.size() == 3);
-    data = {vals[0], vals[1], vals[2]};
-  }
+  void put(Engine& writer, const value_type& vec, Mode launch = Mode::Deferred);
+  void get(Engine& reader, value_type& data, Mode launch = Mode::Deferred);
 };
 
 // ======================================================================
 // Attribute<T[N]>
 
-template <class T, std::size_t N>
+template <class T, size_t N>
 class Attribute<T[N]> // typename
                       // std::enable_if<std::is_adios2_type<T>::value>::type>
 {
 public:
   using value_type = T[N];
 
-  void put(Engine& writer, const value_type& arr,
-           const Mode launch = Mode::Deferred)
-  {
-    detail::Attribute<T> attr;
-    attr.put(writer, arr, N);
-  }
-
-  void get(Engine& reader, value_type& arr, const Mode launch = Mode::Deferred)
-  {
-    std::vector<T> vals;
-    detail::Attribute<T> attr;
-    attr.get(reader, vals);
-    assert(vals.size() == N);
-    std::copy(vals.begin(), vals.end(), arr);
-  }
+  void put(Engine& writer, const value_type& arr, Mode launch = Mode::Deferred);
+  void get(Engine& reader, value_type& arr, Mode launch = Mode::Deferred);
 };
 
 } // namespace io
