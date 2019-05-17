@@ -46,7 +46,7 @@ public:
            const Mode launch = Mode::Deferred);
 
   template <typename T>
-  Dims getShape(detail::Variable<T>& var) const;
+  Dims getShape(const std::string& name) const;
 
   template <typename T>
   void getAttribute(const std::string& name, std::vector<T>& data);
