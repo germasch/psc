@@ -28,13 +28,13 @@ inline void Engine::putVariable(const T* data, const Mode launch,
 }
 
 template <typename T>
-inline void Engine::writeAttribute(const T& datum)
+inline void Engine::putAttribute(const T& datum)
 {
   file_.putAttribute(prefix(), datum);
 }
 
 template <typename T>
-inline void Engine::writeAttribute(const T* data, size_t size)
+inline void Engine::putAttribute(const T* data, size_t size)
 {
   file_.putAttribute(prefix(), data, size);
 }

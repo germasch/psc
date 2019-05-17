@@ -78,10 +78,10 @@ public:
                    const Box<Dims>& memory_selection = {});
 
   template <typename T>
-  void writeAttribute(const T& datum);
+  void putAttribute(const T& datum);
 
   template <typename T>
-  void writeAttribute(const T* data, size_t size);
+  void putAttribute(const T* data, size_t size);
 
   template <typename T>
   void getAttribute(T& datum);

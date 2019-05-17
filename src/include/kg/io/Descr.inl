@@ -10,19 +10,17 @@ namespace io
 // Descr<T>
 
 template <class T, class Enable>
-inline void Descr<T, Enable>::put(Engine& writer, const T& value,
-                                      Mode launch)
+inline void Descr<T, Enable>::put(Engine& writer, const T& value, Mode launch)
 {
-  writer.writeAttribute(value);
+  writer.putAttribute(value);
 }
 
 template <class T, class Enable>
 inline void Descr<T, Enable>::get(Engine& reader, T& value, Mode launch)
 {
-  reader.getAttribute(value);
+  reader.putAttribute(value);
 }
 
-  
 // ======================================================================
 // Descr<T[N]>
 
@@ -30,7 +28,7 @@ template <class T, size_t N>
 inline void Descr<T[N]>::put(Engine& writer, const Descr<T[N]>::value_type& arr,
                              Mode launch)
 {
-  writer.writeAttribute(arr, N);
+  writer.putAttribute(arr, N);
 }
 
 template <class T, size_t N>
@@ -48,15 +46,14 @@ inline void Descr<T[N]>::get(Engine& reader, Descr<T[N]>::value_type& arr,
 
 template <class T>
 inline void Descr<std::vector<T>>::put(Engine& writer,
-                                           const std::vector<T>& vec,
-                                           Mode launch)
+                                       const std::vector<T>& vec, Mode launch)
 {
-  writer.writeAttribute(vec.data(), vec.size());
+  writer.putAttribute(vec.data(), vec.size());
 }
 
 template <class T>
 inline void Descr<std::vector<T>>::get(Engine& reader, std::vector<T>& vec,
-                                           Mode launch)
+                                       Mode launch)
 {
   reader.getAttribute(vec);
 }
@@ -65,10 +62,9 @@ inline void Descr<std::vector<T>>::get(Engine& reader, std::vector<T>& vec,
 // Descr<Vec3<T>>
 
 template <class T>
-inline void Descr<Vec3<T>>::put(Engine& writer, const Vec3<T>& vec,
-                                    Mode launch)
+inline void Descr<Vec3<T>>::put(Engine& writer, const Vec3<T>& vec, Mode launch)
 {
-  writer.writeAttribute(vec.data(), 3);
+  writer.putAttribute(vec.data(), 3);
 }
 
 template <class T>
