@@ -130,15 +130,15 @@ inline void Engine::put(detail::Variable<T>& var, const T* data,
 }
 
 template <typename T>
-inline void Engine::put(detail::Attribute<T>& attr, const T* data, size_t size)
+inline void Engine::writeAttribute(const T& datum)
 {
-  file_.putAttribute(prefix(), data, size);
+  file_.putAttribute(prefix(), datum);
 }
 
 template <typename T>
-inline void Engine::put(detail::Attribute<T>& attr, const T& datum)
+inline void Engine::writeAttribute(const T* data, size_t size)
 {
-  file_.putAttribute(prefix(), datum);
+  file_.putAttribute(prefix(), data, size);
 }
 
 template <class T, class... Args>
@@ -185,18 +185,18 @@ inline void Engine::get(detail::Variable<T>& var, T* data, const Mode launch)
 }
 
 template <typename T>
-inline void Engine::get(detail::Attribute<T>& attr, std::vector<T>& data)
-{
-  file_.getAttribute(prefix(), data);
-}
-
-template <typename T>
-inline void Engine::get(detail::Attribute<T>& attr, T& datum)
+inline void Engine::getAttribute(T& datum)
 {
   auto data = std::vector<T>{};
   file_.getAttribute(prefix(), data);
   assert(data.size() == 1);
   datum = data[0];
+}
+
+template <typename T>
+inline void Engine::getAttribute(std::vector<T>& data)
+{
+  file_.getAttribute(prefix(), data);
 }
 
 template <class T, class... Args>

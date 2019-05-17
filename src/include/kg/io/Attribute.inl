@@ -13,15 +13,13 @@ template <class T, class Enable>
 inline void Attribute<T, Enable>::put(Engine& writer, const T& value,
                                       Mode launch)
 {
-  detail::Attribute<T> attr;
-  writer.put(attr, value);
+  writer.writeAttribute(value);
 }
 
 template <class T, class Enable>
 inline void Attribute<T, Enable>::get(Engine& reader, T& value, Mode launch)
 {
-  detail::Attribute<T> attr;
-  reader.get(attr, value);
+  reader.getAttribute(value);
 }
 
 // ======================================================================
@@ -32,16 +30,14 @@ inline void Attribute<std::vector<T>>::put(Engine& writer,
                                            const std::vector<T>& vec,
                                            Mode launch)
 {
-  detail::Attribute<T> attr;
-  writer.put(attr, vec.data(), vec.size());
+  writer.writeAttribute(vec.data(), vec.size());
 }
 
 template <class T>
 inline void Attribute<std::vector<T>>::get(Engine& reader, std::vector<T>& vec,
                                            Mode launch)
 {
-  detail::Attribute<T> attr;
-  reader.get(attr, vec);
+  reader.getAttribute(vec);
 }
 
 // ======================================================================
@@ -51,16 +47,14 @@ template <class T>
 inline void Attribute<Vec3<T>>::put(Engine& writer, const Vec3<T>& vec,
                                     Mode launch)
 {
-  detail::Attribute<T> attr;
-  writer.put(attr, vec.data(), 3);
+  writer.writeAttribute(vec.data(), 3);
 }
 
 template <class T>
 inline void Attribute<Vec3<T>>::get(Engine& reader, Vec3<T>& vec, Mode launch)
 {
   std::vector<T> vals;
-  detail::Attribute<T> attr;
-  reader.get(attr, vals);
+  reader.getAttribute(vals);
   assert(vals.size() == 3);
   vec = {vals[0], vals[1], vals[2]};
 }
@@ -73,8 +67,7 @@ inline void Attribute<T[N]>::put(Engine& writer,
                                  const Attribute<T[N]>::value_type& arr,
                                  Mode launch)
 {
-  detail::Attribute<T> attr;
-  writer.put(attr, arr, N);
+  writer.writeAttribute(arr, N);
 }
 
 template <class T, size_t N>
@@ -83,8 +76,7 @@ inline void Attribute<T[N]>::get(Engine& reader,
                                  Mode launch)
 {
   std::vector<T> vals;
-  detail::Attribute<T> attr;
-  reader.get(attr, vals);
+  reader.getAttribute(vals);
   assert(vals.size() == N);
   std::copy(vals.begin(), vals.end(), arr);
 }

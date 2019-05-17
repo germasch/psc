@@ -10,20 +10,6 @@ namespace io
 
 class Engine;
 
-namespace detail
-{
-
-// ======================================================================
-// detail::Attribute
-//
-// Handles T being one of the base adios2 types (or arrays thereof)
-
-template <typename T>
-struct Attribute
-{};
-
-}; // namespace detail
-
 // ======================================================================
 // Attribute<T>
 //
