@@ -51,9 +51,10 @@ public:
 
   template <typename T>
   adios2::Variable<T> makeVariable(const detail::Variable<T>& var) const;
-  
+
 private:
   adios2::Engine engine_;
+
 public:
   adios2::IO io_;
 };
@@ -109,6 +110,12 @@ public:
   // performGets
 
   void performGets();
+
+  // ----------------------------------------------------------------------
+  // getShape
+
+  template <typename T>
+  Dims getShape(detail::Variable<T>& var);
 
   // ----------------------------------------------------------------------
   // close

@@ -74,13 +74,6 @@ Dims Variable<T>::shape() const
 }
 
 template <typename T>
-Dims Variable<T>::getShape() const
-{
-  auto var = makeVariable();
-  return var.Shape();
-}
-
-template <typename T>
 Box<Dims> Variable<T>::selection() const
 {
   return selection_;

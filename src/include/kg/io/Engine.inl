@@ -30,7 +30,8 @@ inline void FileAdios::performGets()
 }
 
 template <typename T>
-inline void FileAdios::put(detail::Variable<T>& var, const T* data, const Mode launch)
+inline void FileAdios::put(detail::Variable<T>& var, const T* data,
+                           const Mode launch)
 {
   engine_.Put(makeVariable(var), data, launch);
 }
@@ -42,7 +43,14 @@ inline void FileAdios::get(detail::Variable<T>& var, T* data, const Mode launch)
 }
 
 template <typename T>
-inline adios2::Variable<T> FileAdios::makeVariable(const detail::Variable<T>& variable) const
+inline Dims FileAdios::getShape(detail::Variable<T>& var) const
+{
+  return makeVariable(var).Shape();
+}
+
+template <typename T>
+inline adios2::Variable<T> FileAdios::makeVariable(
+  const detail::Variable<T>& variable) const
 {
   auto& io = const_cast<adios2::IO&>(io_);
   auto var = io.InquireVariable<T>(variable.name());
@@ -59,7 +67,6 @@ inline adios2::Variable<T> FileAdios::makeVariable(const detail::Variable<T>& va
   return var;
 }
 
-  
 // ======================================================================
 // Engine
 
@@ -128,7 +135,7 @@ inline void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
   auto var = makeVariable<T>();
-  auto shape = var.getShape();
+  auto shape = file_.getShape(var);
   assert(shape.size() == 1);
   auto dim0 = shape[0];
   assert(dim0 == mpiSize());
@@ -170,6 +177,15 @@ inline void Engine::performPuts()
 inline void Engine::performGets()
 {
   file_.performGets();
+}
+
+// ----------------------------------------------------------------------
+// getShape
+
+template <typename T>
+inline Dims Engine::getShape(detail::Variable<T>& var)
+{
+  return file_.getShape(var);
 }
 
 // ----------------------------------------------------------------------
