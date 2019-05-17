@@ -1,5 +1,6 @@
 
 #include "Attribute.h"
+#include "Descr.h"
 
 namespace kg
 {

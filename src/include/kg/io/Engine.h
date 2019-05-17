@@ -6,16 +6,12 @@
 #include <deque>
 #include <iostream>
 
-#include "Descr.h"
 #include "FileAdios2.h"
 
 namespace kg
 {
 namespace io
 {
-
-// ======================================================================
-// Variable
 
 template <typename T>
 class Variable;

@@ -51,23 +51,23 @@ public:
   static void put(kg::io::Engine& writer, const value_type& domain,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.putAttribute("gdims", domain.gdims, launch);
-    writer.putAttribute("length", domain.length, launch);
-    writer.putAttribute("corner", domain.corner, launch);
-    writer.putAttribute("np", domain.np, launch);
-    writer.putAttribute("ldims", domain.ldims, launch);
-    writer.putAttribute("dx", domain.dx, launch);
+    writer.put("gdims", domain.gdims, launch);
+    writer.put("length", domain.length, launch);
+    writer.put("corner", domain.corner, launch);
+    writer.put("np", domain.np, launch);
+    writer.put("ldims", domain.ldims, launch);
+    writer.put("dx", domain.dx, launch);
   }
 
   static void get(Engine& reader, value_type& domain,
                   const Mode launch = Mode::Deferred)
   {
-    reader.getAttribute("gdims", domain.gdims, launch);
-    reader.getAttribute("length", domain.length, launch);
-    reader.getAttribute("corner", domain.corner, launch);
-    reader.getAttribute("np", domain.np, launch);
-    reader.getAttribute("ldims", domain.ldims, launch);
-    reader.getAttribute("dx", domain.dx, launch);
+    reader.get("gdims", domain.gdims, launch);
+    reader.get("length", domain.length, launch);
+    reader.get("corner", domain.corner, launch);
+    reader.get("np", domain.np, launch);
+    reader.get("ldims", domain.ldims, launch);
+    reader.get("dx", domain.dx, launch);
   }
 };
 
@@ -83,19 +83,19 @@ public:
   static void put(kg::io::Engine& writer, const value_type& bc,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.putAttribute("fld_lo", bc.fld_lo, launch);
-    writer.putAttribute("fld_hi", bc.fld_hi, launch);
-    writer.putAttribute("prt_lo", bc.prt_lo, launch);
-    writer.putAttribute("prt_hi", bc.prt_hi, launch);
+    writer.put("fld_lo", bc.fld_lo, launch);
+    writer.put("fld_hi", bc.fld_hi, launch);
+    writer.put("prt_lo", bc.prt_lo, launch);
+    writer.put("prt_hi", bc.prt_hi, launch);
   }
 
   static void get(Engine& reader, value_type& bc,
                   const Mode launch = Mode::Deferred)
   {
-    reader.getAttribute("fld_lo", bc.fld_lo, launch);
-    reader.getAttribute("fld_hi", bc.fld_hi, launch);
-    reader.getAttribute("prt_lo", bc.prt_lo, launch);
-    reader.getAttribute("prt_hi", bc.prt_hi, launch);
+    reader.get("fld_lo", bc.fld_lo, launch);
+    reader.get("fld_hi", bc.fld_hi, launch);
+    reader.get("prt_lo", bc.prt_lo, launch);
+    reader.get("prt_hi", bc.prt_hi, launch);
   }
 };
 
@@ -111,29 +111,29 @@ public:
   static void put(kg::io::Engine& writer, const Grid_t::Normalization& norm,
                   const kg::io::Mode launch = kg::io::Mode::Deferred)
   {
-    writer.putAttribute("cc", norm.cc, launch);
-    writer.putAttribute("fnqs", norm.fnqs, launch);
-    writer.putAttribute("eta", norm.eta, launch);
-    writer.putAttribute("beta", norm.beta, launch);
-    writer.putAttribute("cori", norm.cori, launch);
-    writer.putAttribute("b0", norm.b0, launch);
-    writer.putAttribute("rho0", norm.rho0, launch);
-    writer.putAttribute("phi0", norm.phi0, launch);
-    writer.putAttribute("a0", norm.a0, launch);
+    writer.put("cc", norm.cc, launch);
+    writer.put("fnqs", norm.fnqs, launch);
+    writer.put("eta", norm.eta, launch);
+    writer.put("beta", norm.beta, launch);
+    writer.put("cori", norm.cori, launch);
+    writer.put("b0", norm.b0, launch);
+    writer.put("rho0", norm.rho0, launch);
+    writer.put("phi0", norm.phi0, launch);
+    writer.put("a0", norm.a0, launch);
   }
 
   static void get(Engine& reader, Grid_t::Normalization& norm,
                   const Mode launch = Mode::Deferred)
   {
-    reader.getAttribute("cc", norm.cc, launch);
-    reader.getAttribute("fnqs", norm.fnqs, launch);
-    reader.getAttribute("eta", norm.eta, launch);
-    reader.getAttribute("beta", norm.beta, launch);
-    reader.getAttribute("cori", norm.cori, launch);
-    reader.getAttribute("b0", norm.b0, launch);
-    reader.getAttribute("rho0", norm.rho0, launch);
-    reader.getAttribute("phi0", norm.phi0, launch);
-    reader.getAttribute("a0", norm.a0, launch);
+    reader.get("cc", norm.cc, launch);
+    reader.get("fnqs", norm.fnqs, launch);
+    reader.get("eta", norm.eta, launch);
+    reader.get("beta", norm.beta, launch);
+    reader.get("cori", norm.cori, launch);
+    reader.get("b0", norm.b0, launch);
+    reader.get("rho0", norm.rho0, launch);
+    reader.get("phi0", norm.phi0, launch);
+    reader.get("a0", norm.a0, launch);
   }
 };
 

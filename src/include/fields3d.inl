@@ -19,8 +19,8 @@ public:
   {
     const Grid_t& grid = mflds.grid();
 
-    writer.putAttribute("ib", mflds.ib, launch);
-    writer.putAttribute("im", mflds.im, launch);
+    writer.put("ib", mflds.ib, launch);
+    writer.put("im", mflds.im, launch);
 
     auto& gdims = grid.domain.gdims;
     size_t n_comps = mflds.n_comps();
@@ -52,8 +52,8 @@ public:
     const Grid_t& grid = mflds.grid();
 
     // FIXME, should just check for consistency? (# ghosts might differ, too)
-    // reader.getAttribute("ib", mflds.ib, launch);
-    // reader.getAttribute("im", mflds.im, launch);
+    // reader.get("ib", mflds.ib, launch);
+    // reader.get("im", mflds.im, launch);
 
     auto& gdims = grid.domain.gdims;
     size_t n_comps = mflds.n_comps();

@@ -59,27 +59,5 @@ inline void Attribute<Vec3<T>>::get(Engine& reader, Vec3<T>& vec, Mode launch)
   vec = {vals[0], vals[1], vals[2]};
 }
 
-// ======================================================================
-// Attribute<T[N]>
-
-template <class T, size_t N>
-inline void Attribute<T[N]>::put(Engine& writer,
-                                 const Attribute<T[N]>::value_type& arr,
-                                 Mode launch)
-{
-  writer.writeAttribute(arr, N);
-}
-
-template <class T, size_t N>
-inline void Attribute<T[N]>::get(Engine& reader,
-                                 Attribute<T[N]>::value_type& arr,
-                                 Mode launch)
-{
-  std::vector<T> vals;
-  reader.getAttribute(vals);
-  assert(vals.size() == N);
-  std::copy(vals.begin(), vals.end(), arr);
-}
-
 } // namespace io
 } // namespace kg

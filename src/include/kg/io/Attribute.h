@@ -49,20 +49,6 @@ public:
   void get(Engine& reader, value_type& data, Mode launch = Mode::Deferred);
 };
 
-// ======================================================================
-// Attribute<T[N]>
-
-template <class T, size_t N>
-class Attribute<T[N]> // typename
-                      // std::enable_if<std::is_adios2_type<T>::value>::type>
-{
-public:
-  using value_type = T[N];
-
-  void put(Engine& writer, const value_type& arr, Mode launch = Mode::Deferred);
-  void get(Engine& reader, value_type& arr, Mode launch = Mode::Deferred);
-};
-
 } // namespace io
 } // namespace kg
 
