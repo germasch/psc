@@ -39,15 +39,15 @@ public:
   void performGets();
 
   template <typename T>
-  void put(detail::Variable<T>& var, const T* data,
-           const Mode launch = Mode::Deferred);
+  void putVariable(detail::Variable<T>& var, const T* data,
+		   const Mode launch = Mode::Deferred);
   template <typename T>
-  void get(detail::Variable<T>& var, T* data,
-           const Mode launch = Mode::Deferred);
+  void getVariable(detail::Variable<T>& var, T* data,
+		   const Mode launch = Mode::Deferred);
 
   template <typename T>
   Dims shape(const std::string& name) const;
-
+  
   template <typename T>
   void getAttribute(const std::string& name, std::vector<T>& data);
 

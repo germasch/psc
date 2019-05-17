@@ -30,14 +30,14 @@ inline void FileAdios::performGets()
 }
 
 template <typename T>
-inline void FileAdios::put(detail::Variable<T>& var, const T* data,
-                           const Mode launch)
+inline void FileAdios::putVariable(detail::Variable<T>& var, const T* data,
+				   const Mode launch)
 {
   engine_.Put(makeAdiosVariable(var), data, launch);
 }
 
 template <typename T>
-inline void FileAdios::get(detail::Variable<T>& var, T* data, const Mode launch)
+inline void FileAdios::getVariable(detail::Variable<T>& var, T* data, const Mode launch)
 {
   engine_.Get(makeAdiosVariable(var), data, launch);
 }
@@ -130,7 +130,7 @@ template <typename T>
 inline void Engine::putVariable(detail::Variable<T>& var, const T* data,
                                 const Mode launch)
 {
-  file_.put(var, data, launch);
+  file_.putVariable(var, data, launch);
 }
 
 template <typename T>
@@ -165,7 +165,7 @@ inline void Engine::putLocal(const std::string& pfx, const T& datum,
   prefixes_.push_back(pfx);
   auto var = makeVariable<T>();
   var.setShape({adios2::LocalValueDim});
-  file_.put(var, &datum, launch);
+  file_.putVariable(var, &datum, launch);
   prefixes_.pop_back();
 }
 
@@ -185,7 +185,7 @@ inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 template <typename T>
 inline void Engine::getVariable(detail::Variable<T>& var, T* data, const Mode launch)
 {
-  file_.get(var, data, launch);
+  file_.getVariable(var, data, launch);
 }
 
 template <typename T>
@@ -220,7 +220,7 @@ inline void Engine::getLocal(const std::string& pfx, T& datum, Args&&... args)
   // FIXME, setSelection doesn't work, so read the whole thing
   auto var = makeVariable<T>();
   std::vector<T> vals(shape[0]);
-  file_.get(var, vals.data(), std::forward<Args>(args)...);
+  file_.getVariable(var, vals.data(), std::forward<Args>(args)...);
   datum = vals[mpiRank()];
   prefixes_.pop_back();
 }
