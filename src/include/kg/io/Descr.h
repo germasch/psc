@@ -1,10 +1,14 @@
 
 #pragma once
 
+#include "vec3.hxx"
+
 namespace kg
 {
 namespace io
 {
+
+class Engine;
 
 template <typename T, typename Enable = void>
 class Descr;

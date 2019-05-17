@@ -30,9 +30,6 @@ public:
   template <class T, class... Args>
   void put(const std::string& pfx, const T& datum, Args&&... args);
 
-  template <class T, class... Args>
-  void putAttribute(const std::string& pfx, const T& datum, Args&&... args);
-
   template <class T>
   void putLocal(const std::string& pfx, const T& datum,
                 Mode launch = Mode::Deferred);
@@ -45,9 +42,6 @@ public:
 
   template <class T, class... Args>
   void get(const std::string& pfx, T& datum, Args&&... args);
-
-  template <class T, class... Args>
-  void getAttribute(const std::string& pfx, T& datum, Args&&... args);
 
   template <class T>
   void getLocal(const std::string& pfx, T& datum, Mode launch = Mode::Deferred);

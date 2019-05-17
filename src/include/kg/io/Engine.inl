@@ -1,5 +1,4 @@
 
-#include "Attribute.h"
 #include "Descr.h"
 
 namespace kg
@@ -46,13 +45,6 @@ inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
   put<Descr>(pfx, datum, std::forward<Args>(args)...);
 }
 
-template <class T, class... Args>
-inline void Engine::putAttribute(const std::string& pfx, const T& datum,
-                                 Args&&... args)
-{
-  put<Attribute>(pfx, datum, std::forward<Args>(args)...);
-}
-
 template <class T>
 inline void Engine::putLocal(const std::string& pfx, const T& datum,
                              Mode launch)
@@ -95,13 +87,6 @@ template <typename T>
 inline void Engine::getAttribute(std::vector<T>& data)
 {
   file_.getAttribute(prefix(), data);
-}
-
-template <class T, class... Args>
-inline void Engine::getAttribute(const std::string& pfx, T& datum,
-                                 Args&&... args)
-{
-  get<Attribute>(pfx, datum, std::forward<Args>(args)...);
 }
 
 template <class T>

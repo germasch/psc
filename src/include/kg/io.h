@@ -16,7 +16,6 @@ using Box = adios2::Box<T>;
 } // namespace io
 } // namespace kg
 
-#include "io/Attribute.h"
 #include "io/Descr.h"
 #include "io/Engine.h"
 #include "io/IO.h"
