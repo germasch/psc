@@ -25,12 +25,6 @@ public:
 
   Variable(const std::string& name, adios2::IO io);
 
-  void put(Engine& writer, const T& datum, const Mode launch = Mode::Deferred);
-  void put(Engine& writer, const T* data, const Mode launch = Mode::Deferred);
-
-  void get(Engine& reader, T& datum, const Mode launch = Mode::Deferred);
-  void get(Engine& reader, T* data, const Mode launch = Mode::Deferred);
-
   void setShape(const Dims& shape);
   void setSelection(const Box<Dims>& selection);
   void setMemorySelection(const Box<Dims>& selection);

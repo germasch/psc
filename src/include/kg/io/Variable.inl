@@ -20,30 +20,6 @@ Variable<T>::Variable(const std::string& name, adios2::IO io)
 {}
 
 template <typename T>
-void Variable<T>::put(Engine& writer, const T& datum, const Mode launch)
-{
-  writer.file_.put(*this, &datum, launch);
-}
-
-template <typename T>
-void Variable<T>::put(Engine& writer, const T* data, const Mode launch)
-{
-  writer.file_.put(*this, data, launch);
-}
-
-template <typename T>
-void Variable<T>::get(Engine& reader, T& datum, const Mode launch)
-{
-  reader.file_.get(*this, datum, launch);
-}
-
-template <typename T>
-void Variable<T>::get(Engine& reader, T* data, const Mode launch)
-{
-  reader.file_.get(*this, data, launch);
-}
-
-template <typename T>
 void Variable<T>::setSelection(const Box<Dims>& selection)
 {
   selection_ = selection;
