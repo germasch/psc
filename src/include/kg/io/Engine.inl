@@ -1,6 +1,5 @@
 
 #include "Attribute.h"
-#include "Variable.h"
 
 namespace kg
 {
@@ -162,10 +161,7 @@ inline void Engine::putLocal(const std::string& pfx, const T& datum,
                              Mode launch)
 {
   prefixes_.push_back(pfx);
-  auto var = detail::Variable<T>{};
-  var.setShape({adios2::LocalValueDim});
-  file_.putVariable(prefix(), &datum, launch, var.shape(), var.selection(),
-                    var.memorySelection());
+  putVariable(&datum, launch, {adios2::LocalValueDim});
   prefixes_.pop_back();
 }
 
@@ -173,7 +169,6 @@ template <template <typename...> class Var, class T, class... Args>
 inline void Engine::put(const std::string& pfx, const T& datum, Args&&... args)
 {
   prefixes_.push_back(pfx);
-  // mprintf("put<Var> pfx %s -- %s\n", pfx.c_str(), prefix().c_str());
   Var<T> var;
   var.put(*this, datum, std::forward<Args>(args)...);
   prefixes_.pop_back();
@@ -220,10 +215,8 @@ inline void Engine::getLocal(const std::string& pfx, T& datum, Mode launch)
   assert(shape == Dims{static_cast<size_t>(mpiSize())});
 
   // FIXME, setSelection doesn't work, so read the whole thing
-  auto var = detail::Variable<T>{};
   std::vector<T> vals(shape[0]);
-  file_.getVariable(prefix(), vals.data(), launch, var.selection(),
-                    var.memorySelection());
+  getVariable(vals.data(), launch);
   datum = vals[mpiRank()];
   prefixes_.pop_back();
 }
