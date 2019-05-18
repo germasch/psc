@@ -112,7 +112,7 @@ public:
   }
 
 private:
-  FileAdios2 file_;
+  File file_;
   std::deque<std::string> prefixes_;
   int mpi_rank_;
   int mpi_size_;

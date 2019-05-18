@@ -63,7 +63,7 @@ inline void FileAdios2::getVariable(const std::string& name, T* data,
 }
 
 template <typename T>
-inline Dims FileAdios2::shape(const std::string& name) const
+inline Dims FileAdios2::shapeVariable(const std::string& name) const
 {
   auto& io = const_cast<adios2::IO&>(io_); // FIXME
   auto v = io.InquireVariable<T>(name);

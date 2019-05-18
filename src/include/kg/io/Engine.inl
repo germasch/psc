@@ -129,12 +129,12 @@ inline void Engine::getAttribute(std::vector<T>& data)
 }
 
 // ----------------------------------------------------------------------
-// getShape
+// variableShape
 
 template <typename T>
 inline Dims Engine::variableShape()
 {
-  return file_.shape<T>(prefix());
+  return file_.shapeVariable<T>(prefix());
 }
 
 // ----------------------------------------------------------------------
