@@ -126,6 +126,7 @@ template class Test<std::string>;
 
 // ----------------------------------------------------------------------
 
+#if 0
 #include "MetaStuff/include/Meta.h"
 #include "MetaStuff/example/Person.h"
 
@@ -185,6 +186,7 @@ void test4()
 		   });
   
 }
+#endif
 
 // ======================================================================
 
