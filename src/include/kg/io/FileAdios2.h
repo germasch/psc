@@ -3,6 +3,8 @@
 
 #include <adios2.h>
 
+#include "mpark/variant.hpp"
+
 namespace kg
 {
 namespace io
@@ -14,33 +16,24 @@ namespace io
 class FileBase
 {
 public:
+  using TypePointer = mpark::variant<int*, unsigned long*, double*>;
+  using TypeConstPointer =
+    mpark::variant<const int*, const unsigned long*, const double*>;
+
   virtual ~FileBase() = default;
 
   virtual void close() = 0;
   virtual void performPuts() = 0;
   virtual void performGets() = 0;
 
-  template <typename T>
-  void putVariable(const std::string& name, const T* data, Mode launch,
-                   const Dims& shape, const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
+  virtual void putVariable(const std::string& name, TypeConstPointer data,
+                           Mode launch, const Dims& shape,
+                           const Box<Dims>& selection,
+                           const Box<Dims>& memory_selection) = 0;
 
-  template <typename T>
-  void getVariable(const std::string& name, T* data, Mode launch,
-                   const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
-
-  template <typename T>
-  Dims shapeVariable(const std::string& name) const;
-
-  template <typename T>
-  void getAttribute(const std::string& name, std::vector<T>& data);
-
-  template <typename T>
-  void putAttribute(const std::string& name, const T* data, size_t size);
-
-  template <typename T>
-  void putAttribute(const std::string& name, const T& datum);
+  virtual void getVariable(const std::string& name, TypePointer data, Mode launch,
+			   const Box<Dims>& selection,
+			   const Box<Dims>& memory_selection) = 0;
 };
 
 // ======================================================================
@@ -55,15 +48,13 @@ public:
   void performPuts() override;
   void performGets() override;
 
-  template <typename T>
-  void putVariable(const std::string& name, const T* data, Mode launch,
+  void putVariable(const std::string& name, TypeConstPointer data, Mode launch,
                    const Dims& shape, const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
+                   const Box<Dims>& memory_selection) override;
 
-  template <typename T>
-  void getVariable(const std::string& name, T* data, Mode launch,
+  void getVariable(const std::string& name, TypePointer data, Mode launch,
                    const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
+                   const Box<Dims>& memory_selection) override;
 
   template <typename T>
   Dims shapeVariable(const std::string& name) const;
@@ -78,6 +69,20 @@ public:
   void putAttribute(const std::string& name, const T& datum);
 
 private:
+  struct PutVariable;
+
+  template <typename T>
+  void putVariable(const std::string& name, const T* data, Mode launch,
+                   const Dims& shape, const Box<Dims>& selection,
+                   const Box<Dims>& memory_selection);
+
+  struct GetVariable;
+
+  template <typename T>
+  void getVariable(const std::string& name, T* data, Mode launch,
+                   const Box<Dims>& selection,
+                   const Box<Dims>& memory_selection);
+
   adios2::Engine engine_;
   adios2::IO io_;
 };
@@ -102,7 +107,9 @@ public:
                    const Dims& shape, const Box<Dims>& selection,
                    const Box<Dims>& memory_selection)
   {
-    impl_->putVariable(name, data, launch, shape, selection, memory_selection);
+    FileBase::TypeConstPointer dataVar = data;
+    impl_->putVariable(name, dataVar, launch, shape, selection,
+                       memory_selection);
   }
 
   template <typename T>
@@ -110,7 +117,8 @@ public:
                    const Box<Dims>& selection,
                    const Box<Dims>& memory_selection)
   {
-    impl_->getVariable(name, data, launch, selection, memory_selection);
+    FileBase::TypePointer dataVar = data;
+    impl_->getVariable(name, dataVar, launch, selection, memory_selection);
   }
 
   template <typename T>
