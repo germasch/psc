@@ -9,16 +9,51 @@ namespace io
 {
 
 // ======================================================================
+// FileBase
+
+class FileBase
+{
+public:
+  virtual ~FileBase() = default;
+
+  virtual void close() = 0;
+  virtual void performPuts() = 0;
+  virtual void performGets() = 0;
+
+  template <typename T>
+  void putVariable(const std::string& name, const T* data, Mode launch,
+                   const Dims& shape, const Box<Dims>& selection,
+                   const Box<Dims>& memory_selection);
+
+  template <typename T>
+  void getVariable(const std::string& name, T* data, Mode launch,
+                   const Box<Dims>& selection,
+                   const Box<Dims>& memory_selection);
+
+  template <typename T>
+  Dims shapeVariable(const std::string& name) const;
+
+  template <typename T>
+  void getAttribute(const std::string& name, std::vector<T>& data);
+
+  template <typename T>
+  void putAttribute(const std::string& name, const T* data, size_t size);
+
+  template <typename T>
+  void putAttribute(const std::string& name, const T& datum);
+};
+
+// ======================================================================
 // FileAdios2
 
-class FileAdios2
+class FileAdios2 : FileBase
 {
 public:
   FileAdios2(adios2::Engine engine, adios2::IO io);
 
-  void close();
-  void performPuts();
-  void performGets();
+  void close() override;
+  void performPuts() override;
+  void performGets() override;
 
   template <typename T>
   void putVariable(const std::string& name, const T* data, Mode launch,
@@ -56,20 +91,11 @@ public:
   File(adios2::Engine engine, adios2::IO io) : impl_{new FileAdios2{engine, io}}
   {}
 
-  void close()
-  {
-    impl_->close();
-  }
-  
-  void performPuts()
-  {
-    impl_->performPuts();
-  }
-  
-  void performGets()
-  {
-    impl_->performGets();
-  }
+  void close() { impl_->close(); }
+
+  void performPuts() { impl_->performPuts(); }
+
+  void performGets() { impl_->performGets(); }
 
   template <typename T>
   void putVariable(const std::string& name, const T* data, Mode launch,
@@ -110,7 +136,6 @@ public:
   {
     impl_->putAttribute(name, datum);
   }
-
 
 private:
   std::unique_ptr<FileAdios2> impl_;
