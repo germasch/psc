@@ -16,9 +16,10 @@ namespace io
 class FileBase
 {
 public:
-  using TypePointer = mpark::variant<int*, unsigned long*, double*, std::string*>;
-  using TypeConstPointer =
-    mpark::variant<const int*, const unsigned long*, const double*, const std::string*>;
+  using TypePointer =
+    mpark::variant<int*, unsigned long*, double*, std::string*>;
+  using TypeConstPointer = mpark::variant<const int*, const unsigned long*,
+                                          const double*, const std::string*>;
 
   virtual ~FileBase() = default;
 
@@ -31,14 +32,15 @@ public:
                            const Box<Dims>& selection,
                            const Box<Dims>& memory_selection) = 0;
 
-  virtual void getVariable(const std::string& name, TypePointer data, Mode launch,
-			   const Box<Dims>& selection,
-			   const Box<Dims>& memory_selection) = 0;
+  virtual void getVariable(const std::string& name, TypePointer data,
+                           Mode launch, const Box<Dims>& selection,
+                           const Box<Dims>& memory_selection) = 0;
   virtual Dims shapeVariable(const std::string& name) const = 0;
 
   virtual void getAttribute(const std::string& name, TypePointer data) = 0;
-  virtual void putAttribute(const std::string& name, TypeConstPointer data, size_t size) = 0;
-  virtual Dims shapeAttribute(const std::string& name) const = 0;
+  virtual void putAttribute(const std::string& name, TypeConstPointer data,
+                            size_t size) = 0;
+  virtual size_t sizeAttribute(const std::string& name) const = 0;
 };
 
 // ======================================================================
@@ -62,8 +64,9 @@ public:
   Dims shapeVariable(const std::string& name) const override;
 
   void getAttribute(const std::string& name, TypePointer data) override;
-  void putAttribute(const std::string& name, TypeConstPointer data, size_t size) override;
-  Dims shapeAttribute(const std::string& name) const override;
+  void putAttribute(const std::string& name, TypeConstPointer data,
+                    size_t size) override;
+  size_t sizeAttribute(const std::string& name) const override;
 
 private:
   struct PutVariable;
@@ -131,12 +134,9 @@ public:
   }
 
   template <typename T>
-  void getAttribute(const std::string& name, std::vector<T>& vec)
+  void getAttribute(const std::string& name, T* data)
   {
-    auto shape = impl_->shapeAttribute(name);
-    assert(shape.size() == 1);
-    vec.resize(shape[0]);
-    FileBase::TypePointer dataVar = vec.data();
+    FileBase::TypePointer dataVar = data;
     impl_->getAttribute(name, dataVar);
   }
 
@@ -147,15 +147,9 @@ public:
     impl_->putAttribute(name, dataVar, size);
   }
 
-  template <typename T>
-  void putAttribute(const std::string& name, const T& datum)
+  size_t sizeAttribute(const std::string& name) const
   {
-    putAttribute(name, &datum, 1);
-  }
-
-  Dims shapeAttribute(const std::string& name) const
-  {
-    return impl_->shapeAttribute(name);
+    return impl_->sizeAttribute(name);
   }
 
 private:

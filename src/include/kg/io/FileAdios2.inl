@@ -211,12 +211,13 @@ struct FileAdios2::PutAttribute
   size_t size;
 };
 
-inline void FileAdios2::putAttribute(const std::string& name, TypeConstPointer data, size_t size)
+inline void FileAdios2::putAttribute(const std::string& name,
+                                     TypeConstPointer data, size_t size)
 {
   mpark::visit(PutAttribute{*this, name, size}, data);
 }
 
-inline Dims FileAdios2::shapeAttribute(const std::string& name) const
+inline size_t FileAdios2::sizeAttribute(const std::string& name) const
 {
   auto& io = const_cast<adios2::IO&>(io_); // FIXME
   auto type = io.AttributeType(name);
@@ -229,7 +230,7 @@ inline Dims FileAdios2::shapeAttribute(const std::string& name) const
     auto a = io.InquireAttribute<T>(name);                                     \
     auto vec = a.Data();                                                       \
     /* adios2 FIXME, no way to distinguish single value */                     \
-    return {vec.size()};                                                       \
+    return vec.size();                                                         \
   }
   ADIOS2_FOREACH_ATTRIBUTE_STDTYPE_1ARG(make_case)
 #undef make_case

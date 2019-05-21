@@ -96,7 +96,7 @@ inline void Engine::putVariable(const T* data, const Mode launch,
 template <typename T>
 inline void Engine::putAttribute(const T& datum)
 {
-  file_.putAttribute(prefix(), datum);
+  file_.putAttribute(prefix(), &datum, 1);
 }
 
 template <typename T>
@@ -116,16 +116,17 @@ inline void Engine::getVariable(T* data, const Mode launch,
 template <typename T>
 inline void Engine::getAttribute(T& datum)
 {
-  auto data = std::vector<T>{};
-  file_.getAttribute(prefix(), data);
-  assert(data.size() == 1);
-  datum = data[0];
+  auto size = file_.sizeAttribute(prefix());
+  assert(size == 1);
+  file_.getAttribute(prefix(), &datum);
 }
 
 template <typename T>
-inline void Engine::getAttribute(std::vector<T>& data)
+inline void Engine::getAttribute(std::vector<T>& vec)
 {
-  file_.getAttribute(prefix(), data);
+  auto size = file_.sizeAttribute(prefix());
+  vec.resize(size);
+  file_.getAttribute(prefix(), vec.data());
 }
 
 // ----------------------------------------------------------------------
