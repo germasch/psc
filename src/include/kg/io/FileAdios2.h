@@ -46,7 +46,7 @@ public:
 // ======================================================================
 // FileAdios2
 
-class FileAdios2 : FileBase
+class FileAdios2 : public FileBase
 {
 public:
   FileAdios2(adios2::Engine engine, adios2::IO io);
@@ -153,7 +153,7 @@ public:
   }
 
 private:
-  std::unique_ptr<FileAdios2> impl_;
+  std::unique_ptr<FileBase> impl_;
 };
 
 } // namespace io
