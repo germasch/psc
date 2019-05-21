@@ -102,8 +102,7 @@ inline void FileAdios2::putVariable(const std::string& name,
 struct FileAdios2::GetVariable
 {
   GetVariable(FileAdios2& self, const std::string& name, Mode launch,
-              const Box<Dims>& selection,
-              const Box<Dims>& memory_selection)
+              const Box<Dims>& selection, const Box<Dims>& memory_selection)
     : self{self},
       name{name},
       launch{launch},
@@ -124,30 +123,30 @@ struct FileAdios2::GetVariable
   const Box<Dims>& memory_selection;
 };
 
-inline void FileAdios2::getVariable(const std::string& name,
-                                    TypePointer data, Mode launch,
-                                    const Box<Dims>& selection,
+inline void FileAdios2::getVariable(const std::string& name, TypePointer data,
+                                    Mode launch, const Box<Dims>& selection,
                                     const Box<Dims>& memory_selection)
 {
-  mpark::visit(
-    GetVariable{*this, name, launch, selection, memory_selection}, data);
+  mpark::visit(GetVariable{*this, name, launch, selection, memory_selection},
+               data);
 }
 
-template <typename T>
 inline Dims FileAdios2::shapeVariable(const std::string& name) const
 {
   auto& io = const_cast<adios2::IO&>(io_); // FIXME
-  auto v = io.InquireVariable<T>(name);
-  return v.Shape();
-}
+  auto type = io.VariableType(name);
 
-template <typename T>
-inline void FileAdios2::getAttribute(const std::string& name,
-                                     std::vector<T>& data)
-{
-  auto attr = io_.InquireAttribute<T>(name);
-  assert(attr);
-  data = attr.Data();
+  if (0) {
+  }
+#define make_case(T)                                                           \
+  else if (type == adios2::GetType<T>())                                       \
+  {                                                                            \
+    auto v = io.InquireVariable<T>(name);                                      \
+    return v.Shape();                                                          \
+  }
+  ADIOS2_FOREACH_STDTYPE_1ARG(make_case)
+#undef make_case
+  assert(0);
 }
 
 template <typename T>
@@ -161,22 +160,80 @@ inline void FileAdios2::putAttribute(const std::string& name, const T* data,
   if (attr) {
     mprintf("attr '%s' already exists -- ignoring it!\n", name.c_str());
   } else {
+    // FIXME? we're never using "single value", just an array of size 1
     io_.DefineAttribute<T>(name, data, size);
   }
 }
 
 template <typename T>
-inline void FileAdios2::putAttribute(const std::string& name, const T& datum)
+inline void FileAdios2::getAttribute(const std::string& name, T* data)
 {
-  // if (mpiRank() != 0) { // FIXME, should we do this?
-  //   return;
-  // }
   auto attr = io_.InquireAttribute<T>(name);
-  if (attr) {
-    mprintf("attr '%s' already exists -- ignoring it!\n", name.c_str());
-  } else {
-    io_.DefineAttribute<T>(name, datum);
+  auto vec = attr.Data();
+  std::copy(vec.begin(), vec.end(), data);
+}
+
+struct FileAdios2::GetAttribute
+{
+  GetAttribute(FileAdios2& self, const std::string& name)
+    : self{self}, name{name}
+  {}
+
+  template <typename T>
+  void operator()(T* data)
+  {
+    self.getAttribute(name, data);
   }
+
+  FileAdios2& self;
+  const std::string& name;
+};
+
+inline void FileAdios2::getAttribute(const std::string& name, TypePointer data)
+{
+  mpark::visit(GetAttribute{*this, name}, data);
+}
+
+struct FileAdios2::PutAttribute
+{
+  PutAttribute(FileAdios2& self, const std::string& name, size_t size)
+    : self{self}, name{name}, size{size}
+  {}
+
+  template <typename T>
+  void operator()(T* data)
+  {
+    self.putAttribute(name, data, size);
+  }
+
+  FileAdios2& self;
+  const std::string& name;
+  size_t size;
+};
+
+inline void FileAdios2::putAttribute(const std::string& name, TypeConstPointer data, size_t size)
+{
+  mpark::visit(PutAttribute{*this, name, size}, data);
+}
+
+inline Dims FileAdios2::shapeAttribute(const std::string& name) const
+{
+  auto& io = const_cast<adios2::IO&>(io_); // FIXME
+  auto type = io.AttributeType(name);
+
+  if (0) {
+  }
+#define make_case(T)                                                           \
+  else if (type == adios2::GetType<T>())                                       \
+  {                                                                            \
+    auto a = io.InquireAttribute<T>(name);                                     \
+    auto vec = a.Data();                                                       \
+    /* adios2 FIXME, no way to distinguish single value */                     \
+    return {vec.size()};                                                       \
+  }
+  ADIOS2_FOREACH_ATTRIBUTE_STDTYPE_1ARG(make_case)
+#undef make_case
+  assert(0);
 }
 
 } // namespace io

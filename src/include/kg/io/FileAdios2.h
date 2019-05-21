@@ -16,9 +16,9 @@ namespace io
 class FileBase
 {
 public:
-  using TypePointer = mpark::variant<int*, unsigned long*, double*>;
+  using TypePointer = mpark::variant<int*, unsigned long*, double*, std::string*>;
   using TypeConstPointer =
-    mpark::variant<const int*, const unsigned long*, const double*>;
+    mpark::variant<const int*, const unsigned long*, const double*, const std::string*>;
 
   virtual ~FileBase() = default;
 
@@ -34,6 +34,11 @@ public:
   virtual void getVariable(const std::string& name, TypePointer data, Mode launch,
 			   const Box<Dims>& selection,
 			   const Box<Dims>& memory_selection) = 0;
+  virtual Dims shapeVariable(const std::string& name) const = 0;
+
+  virtual void getAttribute(const std::string& name, TypePointer data) = 0;
+  virtual void putAttribute(const std::string& name, TypeConstPointer data, size_t size) = 0;
+  virtual Dims shapeAttribute(const std::string& name) const = 0;
 };
 
 // ======================================================================
@@ -51,37 +56,36 @@ public:
   void putVariable(const std::string& name, TypeConstPointer data, Mode launch,
                    const Dims& shape, const Box<Dims>& selection,
                    const Box<Dims>& memory_selection) override;
-
   void getVariable(const std::string& name, TypePointer data, Mode launch,
                    const Box<Dims>& selection,
                    const Box<Dims>& memory_selection) override;
+  Dims shapeVariable(const std::string& name) const override;
 
-  template <typename T>
-  Dims shapeVariable(const std::string& name) const;
-
-  template <typename T>
-  void getAttribute(const std::string& name, std::vector<T>& data);
-
-  template <typename T>
-  void putAttribute(const std::string& name, const T* data, size_t size);
-
-  template <typename T>
-  void putAttribute(const std::string& name, const T& datum);
+  void getAttribute(const std::string& name, TypePointer data) override;
+  void putAttribute(const std::string& name, TypeConstPointer data, size_t size) override;
+  Dims shapeAttribute(const std::string& name) const override;
 
 private:
   struct PutVariable;
+  struct GetVariable;
+  struct GetAttribute;
+  struct PutAttribute;
 
   template <typename T>
   void putVariable(const std::string& name, const T* data, Mode launch,
                    const Dims& shape, const Box<Dims>& selection,
                    const Box<Dims>& memory_selection);
 
-  struct GetVariable;
-
   template <typename T>
   void getVariable(const std::string& name, T* data, Mode launch,
                    const Box<Dims>& selection,
                    const Box<Dims>& memory_selection);
+
+  template <typename T>
+  void getAttribute(const std::string& name, T* data);
+
+  template <typename T>
+  void putAttribute(const std::string& name, const T* data, size_t size);
 
   adios2::Engine engine_;
   adios2::IO io_;
@@ -121,28 +125,37 @@ public:
     impl_->getVariable(name, dataVar, launch, selection, memory_selection);
   }
 
-  template <typename T>
   Dims shapeVariable(const std::string& name) const
   {
-    return impl_->shapeVariable<T>(name);
+    return impl_->shapeVariable(name);
   }
 
   template <typename T>
-  void getAttribute(const std::string& name, std::vector<T>& data)
+  void getAttribute(const std::string& name, std::vector<T>& vec)
   {
-    impl_->getAttribute(name, data);
+    auto shape = impl_->shapeAttribute(name);
+    assert(shape.size() == 1);
+    vec.resize(shape[0]);
+    FileBase::TypePointer dataVar = vec.data();
+    impl_->getAttribute(name, dataVar);
   }
 
   template <typename T>
   void putAttribute(const std::string& name, const T* data, size_t size)
   {
-    impl_->putAttribute(name, data, size);
+    FileBase::TypeConstPointer dataVar = data;
+    impl_->putAttribute(name, dataVar, size);
   }
 
   template <typename T>
   void putAttribute(const std::string& name, const T& datum)
   {
-    impl_->putAttribute(name, datum);
+    putAttribute(name, &datum, 1);
+  }
+
+  Dims shapeAttribute(const std::string& name) const
+  {
+    return impl_->shapeAttribute(name);
   }
 
 private:
