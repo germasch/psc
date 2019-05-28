@@ -82,7 +82,7 @@ inline void Descr<Vec3<T>>::get(Engine& reader, Vec3<T>& vec, Mode launch)
 template <class T, class Enable>
 inline void Local<T, Enable>::put(Engine& writer, const T& value, Mode launch)
 {
-  writer.putVariable(&value, launch, {adios2::LocalValueDim});
+  writer.putVariable(&value, launch, {LocalValueDim});
 }
 
 template <class T, class Enable>

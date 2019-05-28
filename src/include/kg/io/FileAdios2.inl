@@ -8,8 +8,10 @@ namespace io
 // FileAdios2
 
 inline FileAdios2::FileAdios2(adios2::ADIOS& ad, const std::string& name, Mode mode)
+  : ad_{ad}
 {
-  io_ = ad.DeclareIO("io-" + name);
+  io_name_ = "io-" + name;
+  io_ = ad.DeclareIO(io_name_);
   adios2::Mode adios2_mode;
   if (mode == Mode::Read) {
     adios2_mode = adios2::Mode::Read;
@@ -24,7 +26,7 @@ inline FileAdios2::FileAdios2(adios2::ADIOS& ad, const std::string& name, Mode m
 inline void FileAdios2::close()
 {
   engine_.Close();
-  // FIXME, remove IO?
+  ad_.RemoveIO(io_name_);
 }
 
 inline void FileAdios2::performPuts()

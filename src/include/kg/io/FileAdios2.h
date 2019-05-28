@@ -60,6 +60,8 @@ private:
 
   adios2::Engine engine_;
   adios2::IO io_;
+  adios2::ADIOS& ad_; // FIXME, could go away
+  std::string io_name_; // FIXME, needs io.Name() and/or Remove by name
 };
 
 } // namespace io

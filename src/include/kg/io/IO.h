@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Engine.h"
+#include "FileAdios2.h"
 
 namespace kg
 {
