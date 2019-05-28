@@ -4,9 +4,7 @@ namespace kg
 namespace io
 {
 
-inline File::File(adios2::Engine engine, adios2::IO io)
-  : impl_{new FileAdios2{engine, io}}
-{}
+inline File::File(FileBase* impl) : impl_{impl} {}
 
 inline void File::close()
 {

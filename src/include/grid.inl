@@ -15,7 +15,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
   using value_type = std::vector<Vec3<T>>;
 
   void put(kg::io::Engine& writer, const value_type& datum, const Grid_t& grid,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+           const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     kg::io::Dims shape = {static_cast<size_t>(grid.nGlobalPatches()), 3};
     kg::io::Dims start = {
@@ -25,7 +25,7 @@ struct VariableByPatch<std::vector<Vec3<T>>>
   }
 
   void get(kg::io::Engine& reader, value_type& datum, const Grid_t& grid,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+           const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     kg::io::Dims shape = {static_cast<size_t>(grid.nGlobalPatches()), 3};
     kg::io::Dims start = {
@@ -49,7 +49,7 @@ public:
   using value_type = typename Grid_t::Domain;
 
   static void put(kg::io::Engine& writer, const value_type& domain,
-                  const kg::io::Mode launch = kg::io::Mode::Deferred)
+                  const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     writer.put("gdims", domain.gdims, launch);
     writer.put("length", domain.length, launch);
@@ -60,7 +60,7 @@ public:
   }
 
   static void get(Engine& reader, value_type& domain,
-                  const Mode launch = Mode::Deferred)
+                  const Mode launch = Mode::NonBlocking)
   {
     reader.get("gdims", domain.gdims, launch);
     reader.get("length", domain.length, launch);
@@ -81,7 +81,7 @@ public:
   using value_type = GridBc;
 
   static void put(kg::io::Engine& writer, const value_type& bc,
-                  const kg::io::Mode launch = kg::io::Mode::Deferred)
+                  const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     writer.put("fld_lo", bc.fld_lo, launch);
     writer.put("fld_hi", bc.fld_hi, launch);
@@ -90,7 +90,7 @@ public:
   }
 
   static void get(Engine& reader, value_type& bc,
-                  const Mode launch = Mode::Deferred)
+                  const Mode launch = Mode::NonBlocking)
   {
     reader.get("fld_lo", bc.fld_lo, launch);
     reader.get("fld_hi", bc.fld_hi, launch);
@@ -109,7 +109,7 @@ public:
   using value_type = Grid_t::Normalization;
 
   static void put(kg::io::Engine& writer, const Grid_t::Normalization& norm,
-                  const kg::io::Mode launch = kg::io::Mode::Deferred)
+                  const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     writer.put("cc", norm.cc, launch);
     writer.put("fnqs", norm.fnqs, launch);
@@ -123,7 +123,7 @@ public:
   }
 
   static void get(Engine& reader, Grid_t::Normalization& norm,
-                  const Mode launch = Mode::Deferred)
+                  const Mode launch = Mode::NonBlocking)
   {
     reader.get("cc", norm.cc, launch);
     reader.get("fnqs", norm.fnqs, launch);
@@ -149,7 +149,7 @@ public:
   using value_type = Grid_t::Kinds;
 
   static void put(kg::io::Engine& writer, const Grid_t::Kinds& kinds,
-                  const kg::io::Mode launch = kg::io::Mode::Deferred)
+                  const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     auto n_kinds = kinds.size();
     auto names = std::vector<std::string>(n_kinds);
@@ -161,20 +161,20 @@ public:
       names[kind] = kinds[kind].name;
     }
 
-    writer.put("names", names, kg::io::Mode::Sync);
-    writer.put("q", q, kg::io::Mode::Sync);
-    writer.put("m", m, kg::io::Mode::Sync);
+    writer.put("names", names, kg::io::Mode::Blocking);
+    writer.put("q", q, kg::io::Mode::Blocking);
+    writer.put("m", m, kg::io::Mode::Blocking);
   }
 
   static void get(Engine& reader, Grid_t::Kinds& kinds,
-                  const Mode launch = Mode::Deferred)
+                  const Mode launch = Mode::NonBlocking)
   {
     auto q = std::vector<real_t>{};
     auto m = std::vector<real_t>{};
     auto names = std::vector<std::string>{};
-    reader.get("names", names, kg::io::Mode::Sync);
-    reader.get("q", q, kg::io::Mode::Sync);
-    reader.get("m", m, kg::io::Mode::Sync);
+    reader.get("names", names, kg::io::Mode::Blocking);
+    reader.get("q", q, kg::io::Mode::Blocking);
+    reader.get("m", m, kg::io::Mode::Blocking);
     reader.get("names", names);
 
     kinds.resize(q.size());
@@ -200,7 +200,7 @@ public:
   using value_type = Grid;
 
   void put(kg::io::Engine& writer, const Grid& grid,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+           const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     writer.put("ldims", grid.ldims);
     writer.put("domain", grid.domain, launch);
@@ -234,7 +234,7 @@ public:
   }
 
   void get(kg::io::Engine& reader, Grid& grid,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+           const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     reader.get("ldims", grid.ldims);
     reader.get("domain", grid.domain, launch);

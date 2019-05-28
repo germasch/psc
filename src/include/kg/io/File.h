@@ -14,7 +14,7 @@ namespace io
 class File
 {
 public:
-  File(adios2::Engine engine, adios2::IO io);
+  File(FileBase* impl);
 
   void close();
   void performPuts();

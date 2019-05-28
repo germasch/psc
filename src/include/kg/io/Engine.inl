@@ -9,8 +9,8 @@ namespace io
 // ======================================================================
 // Engine
 
-inline Engine::Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm)
-  : file_{engine, io}
+inline Engine::Engine(File&& file, MPI_Comm comm)
+  : file_{std::move(file)}
 {
   MPI_Comm_rank(comm, &mpi_rank_);
   MPI_Comm_size(comm, &mpi_size_);

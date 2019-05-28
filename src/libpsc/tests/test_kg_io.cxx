@@ -52,14 +52,14 @@ class kg::io::Descr<Custom>
 {
 public:
   static void put(kg::io::Engine& writer, const Custom& c,
-                  const kg::io::Mode launch = kg::io::Mode::Deferred)
+                  const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     writer.put("i", c.i, launch);
     writer.putLocal("d", c.d, launch);
   }
 
   static void get(kg::io::Engine& reader, Custom& c,
-                  const kg::io::Mode launch = kg::io::Mode::Deferred)
+                  const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     reader.get("i", c.i, launch);
     reader.getLocal("d", c.d, launch);

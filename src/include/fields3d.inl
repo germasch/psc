@@ -15,7 +15,7 @@ public:
   using value_type = MfieldsC;
 
   void put(kg::io::Engine& writer, const value_type& mflds,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+           const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     const Grid_t& grid = mflds.grid();
 
@@ -47,7 +47,7 @@ public:
   }
 
   void get(kg::io::Engine& reader, value_type& mflds,
-           const kg::io::Mode launch = kg::io::Mode::Deferred)
+           const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
     const Grid_t& grid = mflds.grid();
 

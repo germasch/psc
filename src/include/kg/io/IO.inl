@@ -19,7 +19,8 @@ inline Engine IOAdios::open(const std::string& name, const Mode mode)
   } else {
     assert(0);
   }
-  return {io.Open(name, adios2_mode), io, comm_};
+  File file{new FileAdios2{io.Open(name, adios2_mode), io}};
+  return {std::move(file), comm_};
 }
 
 } // namespace io

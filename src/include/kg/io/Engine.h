@@ -22,7 +22,7 @@ class Variable;
 class Engine
 {
 public:
-  Engine(adios2::Engine engine, adios2::IO io, MPI_Comm comm);
+  Engine(File&& file, MPI_Comm comm);
 
   // ----------------------------------------------------------------------
   // put
@@ -32,7 +32,7 @@ public:
 
   template <class T>
   void putLocal(const std::string& pfx, const T& datum,
-                Mode launch = Mode::Deferred);
+                Mode launch = Mode::NonBlocking);
 
   template <template <typename...> class Var, class T, class... Args>
   void put(const std::string& pfx, const T& datum, Args&&... args);
@@ -44,7 +44,7 @@ public:
   void get(const std::string& pfx, T& datum, Args&&... args);
 
   template <class T>
-  void getLocal(const std::string& pfx, T& datum, Mode launch = Mode::Deferred);
+  void getLocal(const std::string& pfx, T& datum, Mode launch = Mode::NonBlocking);
 
   template <template <typename...> class Var, class T, class... Args>
   void get(const std::string& pfx, T& datum, Args&&... args);

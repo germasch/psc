@@ -12,15 +12,19 @@ enum class Mode
 {
   Write,
   Read,
-  Sync,
-  Deferred,
+  Blocking,
+  NonBlocking,
 };
 
 using size_t = std::size_t;
 
 using Dims = std::vector<size_t>;
 
-using Extents = std::pair<Dims, Dims>;
+struct Extents
+{
+  Dims start;
+  Dims count;
+};
 
 } // namespace io
 } // namespace kg

@@ -23,8 +23,8 @@ template <typename T, typename Enable>
 class Descr
 {
 public:
-  void put(Engine& writer, const T& value, Mode launch = Mode::Deferred);
-  void get(Engine& reader, T& value, Mode launch = Mode::Deferred);
+  void put(Engine& writer, const T& value, Mode launch = Mode::NonBlocking);
+  void get(Engine& reader, T& value, Mode launch = Mode::NonBlocking);
 };
 
 // ======================================================================
@@ -37,8 +37,8 @@ class Descr<T[N]> // typename
 public:
   using value_type = T[N];
 
-  void put(Engine& writer, const value_type& arr, Mode launch = Mode::Deferred);
-  void get(Engine& reader, value_type& arr, Mode launch = Mode::Deferred);
+  void put(Engine& writer, const value_type& arr, Mode launch = Mode::NonBlocking);
+  void get(Engine& reader, value_type& arr, Mode launch = Mode::NonBlocking);
 };
 
 // ======================================================================
@@ -50,8 +50,8 @@ class Descr<std::vector<T>>
 public:
   using value_type = std::vector<T>;
 
-  void put(Engine& writer, const value_type& vec, Mode launch = Mode::Deferred);
-  void get(Engine& reader, value_type& vec, Mode launch = Mode::Deferred);
+  void put(Engine& writer, const value_type& vec, Mode launch = Mode::NonBlocking);
+  void get(Engine& reader, value_type& vec, Mode launch = Mode::NonBlocking);
 };
 
 // ======================================================================
@@ -63,8 +63,8 @@ class Descr<Vec3<T>>
 public:
   using value_type = Vec3<T>;
 
-  void put(Engine& writer, const value_type& vec, Mode launch = Mode::Deferred);
-  void get(Engine& reader, value_type& data, Mode launch = Mode::Deferred);
+  void put(Engine& writer, const value_type& vec, Mode launch = Mode::NonBlocking);
+  void get(Engine& reader, value_type& data, Mode launch = Mode::NonBlocking);
 };
 
 
@@ -78,8 +78,8 @@ template <typename T, typename Enable = void>
 class Local
 {
 public:
-  void put(Engine& writer, const T& value, Mode launch = Mode::Deferred);
-  void get(Engine& reader, T& value, Mode launch = Mode::Deferred);
+  void put(Engine& writer, const T& value, Mode launch = Mode::NonBlocking);
+  void get(Engine& reader, T& value, Mode launch = Mode::NonBlocking);
 };
 
 } // namespace io

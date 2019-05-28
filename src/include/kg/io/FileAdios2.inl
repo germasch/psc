@@ -36,11 +36,11 @@ inline void FileAdios2::putVariable(const std::string& name, const T* data,
   if (!v) {
     v = io_.DefineVariable<T>(name, shape);
   }
-  if (!selection.first.empty()) {
-    v.SetSelection(selection);
+  if (!selection.start.empty()) {
+    v.SetSelection({selection.start, selection.count});
   }
-  if (!memory_selection.first.empty()) {
-    v.SetMemorySelection(memory_selection);
+  if (!memory_selection.start.empty()) {
+    v.SetMemorySelection({memory_selection.start, memory_selection.count});
   }
   engine_.Put(v, data, adios2Mode(launch));
 }
@@ -53,11 +53,11 @@ inline void FileAdios2::getVariable(const std::string& name, T* data,
 {
   auto& io = const_cast<adios2::IO&>(io_); // FIXME
   auto v = io.InquireVariable<T>(name);
-  if (!selection.first.empty()) {
-    v.SetSelection(selection);
+  if (!selection.start.empty()) {
+    v.SetSelection({selection.start, selection.count});
   }
-  if (!memory_selection.first.empty()) {
-    v.SetMemorySelection(memory_selection);
+  if (!memory_selection.start.empty()) {
+    v.SetMemorySelection({memory_selection.start, memory_selection.count});
   }
   engine_.Get(v, data, adios2Mode(launch));
 }
@@ -239,9 +239,9 @@ inline size_t FileAdios2::sizeAttribute(const std::string& name) const
 
 inline adios2::Mode FileAdios2::adios2Mode(Mode mode)
 {
-  if (mode == Mode::Sync) {
+  if (mode == Mode::Blocking) {
     return adios2::Mode::Sync;
-  } else if (mode == Mode::Deferred) {
+  } else if (mode == Mode::NonBlocking) {
     return adios2::Mode::Deferred;
   }
   assert(0);
