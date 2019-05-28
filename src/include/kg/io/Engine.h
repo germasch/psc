@@ -70,12 +70,12 @@ public:
 
   template <typename T>
   void putVariable(const T* data, const Mode launch, const Dims& shape,
-                   const Box<Dims>& selection = {},
-                   const Box<Dims>& memory_selection = {});
+                   const Extents& selection = {},
+                   const Extents& memory_selection = {});
 
   template <typename T>
-  void getVariable(T* data, const Mode launch, const Box<Dims>& selection = {},
-                   const Box<Dims>& memory_selection = {});
+  void getVariable(T* data, const Mode launch, const Extents& selection = {},
+                   const Extents& memory_selection = {});
 
   template <typename T>
   void putAttribute(const T& datum);

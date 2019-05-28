@@ -16,7 +16,7 @@ class IOAdios
 public:
   IOAdios(MPI_Comm comm);
 
-  Engine open(const std::string& name, const adios2::Mode mode);
+  Engine open(const std::string& name, const Mode mode);
 
 private:
   MPI_Comm comm_; // FIXME, should probably be MPI_Comm_dup'd, but then one

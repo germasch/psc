@@ -29,8 +29,8 @@ inline void FileAdios2::performGets()
 template <typename T>
 inline void FileAdios2::putVariable(const std::string& name, const T* data,
                                     const Mode launch, const Dims& shape,
-                                    const Box<Dims>& selection,
-                                    const Box<Dims>& memory_selection)
+                                    const Extents& selection,
+                                    const Extents& memory_selection)
 {
   auto v = io_.InquireVariable<T>(name);
   if (!v) {
@@ -42,14 +42,14 @@ inline void FileAdios2::putVariable(const std::string& name, const T* data,
   if (!memory_selection.first.empty()) {
     v.SetMemorySelection(memory_selection);
   }
-  engine_.Put(v, data, launch);
+  engine_.Put(v, data, adios2Mode(launch));
 }
 
 template <typename T>
 inline void FileAdios2::getVariable(const std::string& name, T* data,
                                     const Mode launch,
-                                    const Box<Dims>& selection,
-                                    const Box<Dims>& memory_selection)
+                                    const Extents& selection,
+                                    const Extents& memory_selection)
 {
   auto& io = const_cast<adios2::IO&>(io_); // FIXME
   auto v = io.InquireVariable<T>(name);
@@ -59,14 +59,14 @@ inline void FileAdios2::getVariable(const std::string& name, T* data,
   if (!memory_selection.first.empty()) {
     v.SetMemorySelection(memory_selection);
   }
-  engine_.Get(v, data, launch);
+  engine_.Get(v, data, adios2Mode(launch));
 }
 
 struct FileAdios2::PutVariable
 {
   PutVariable(FileAdios2& self, const std::string& name, Mode launch,
-              const Dims& shape, const Box<Dims>& selection,
-              const Box<Dims>& memory_selection)
+              const Dims& shape, const Extents& selection,
+              const Extents& memory_selection)
     : self{self},
       name{name},
       launch{launch},
@@ -85,15 +85,15 @@ struct FileAdios2::PutVariable
   const std::string& name;
   Mode launch;
   const Dims& shape;
-  const Box<Dims>& selection;
-  const Box<Dims>& memory_selection;
+  const Extents& selection;
+  const Extents& memory_selection;
 };
 
 inline void FileAdios2::putVariable(const std::string& name,
                                     TypeConstPointer data, Mode launch,
                                     const Dims& shape,
-                                    const Box<Dims>& selection,
-                                    const Box<Dims>& memory_selection)
+                                    const Extents& selection,
+                                    const Extents& memory_selection)
 {
   mpark::visit(
     PutVariable{*this, name, launch, shape, selection, memory_selection}, data);
@@ -102,7 +102,7 @@ inline void FileAdios2::putVariable(const std::string& name,
 struct FileAdios2::GetVariable
 {
   GetVariable(FileAdios2& self, const std::string& name, Mode launch,
-              const Box<Dims>& selection, const Box<Dims>& memory_selection)
+              const Extents& selection, const Extents& memory_selection)
     : self{self},
       name{name},
       launch{launch},
@@ -119,13 +119,13 @@ struct FileAdios2::GetVariable
   FileAdios2& self;
   const std::string& name;
   Mode launch;
-  const Box<Dims>& selection;
-  const Box<Dims>& memory_selection;
+  const Extents& selection;
+  const Extents& memory_selection;
 };
 
 inline void FileAdios2::getVariable(const std::string& name, TypePointer data,
-                                    Mode launch, const Box<Dims>& selection,
-                                    const Box<Dims>& memory_selection)
+                                    Mode launch, const Extents& selection,
+                                    const Extents& memory_selection)
 {
   mpark::visit(GetVariable{*this, name, launch, selection, memory_selection},
                data);
@@ -234,6 +234,16 @@ inline size_t FileAdios2::sizeAttribute(const std::string& name) const
   }
   ADIOS2_FOREACH_ATTRIBUTE_STDTYPE_1ARG(make_case)
 #undef make_case
+  assert(0);
+}
+
+inline adios2::Mode FileAdios2::adios2Mode(Mode mode)
+{
+  if (mode == Mode::Sync) {
+    return adios2::Mode::Sync;
+  } else if (mode == Mode::Deferred) {
+    return adios2::Mode::Deferred;
+  }
   assert(0);
 }
 

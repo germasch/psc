@@ -27,12 +27,12 @@ public:
 
   virtual void putVariable(const std::string& name, TypeConstPointer data,
                            Mode launch, const Dims& shape,
-                           const Box<Dims>& selection,
-                           const Box<Dims>& memory_selection) = 0;
+                           const Extents& selection,
+                           const Extents& memory_selection) = 0;
 
   virtual void getVariable(const std::string& name, TypePointer data,
-                           Mode launch, const Box<Dims>& selection,
-                           const Box<Dims>& memory_selection) = 0;
+                           Mode launch, const Extents& selection,
+                           const Extents& memory_selection) = 0;
   virtual Dims shapeVariable(const std::string& name) const = 0;
 
   virtual void getAttribute(const std::string& name, TypePointer data) = 0;

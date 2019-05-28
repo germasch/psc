@@ -1,17 +1,26 @@
 
 #pragma once
 
-#include <adios2.h>
+#include <vector>
 
 namespace kg
 {
 namespace io
 {
 
-using Mode = adios2::Mode;
-using Dims = adios2::Dims;
-template <typename T>
-using Box = adios2::Box<T>;
+enum class Mode
+{
+  Write,
+  Read,
+  Sync,
+  Deferred,
+};
+
+using size_t = std::size_t;
+
+using Dims = std::vector<size_t>;
+
+using Extents = std::pair<Dims, Dims>;
 
 } // namespace io
 } // namespace kg

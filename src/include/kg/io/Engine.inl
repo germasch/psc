@@ -87,8 +87,8 @@ inline void Engine::performGets()
 
 template <typename T>
 inline void Engine::putVariable(const T* data, const Mode launch,
-                                const Dims& shape, const Box<Dims>& selection,
-                                const Box<Dims>& memory_selection)
+                                const Dims& shape, const Extents& selection,
+                                const Extents& memory_selection)
 {
   file_.putVariable(prefix(), data, launch, shape, selection, memory_selection);
 }
@@ -107,8 +107,8 @@ inline void Engine::putAttribute(const T* data, size_t size)
 
 template <typename T>
 inline void Engine::getVariable(T* data, const Mode launch,
-                                const Box<Dims>& selection,
-                                const Box<Dims>& memory_selection)
+                                const Extents& selection,
+                                const Extents& memory_selection)
 {
   file_.getVariable(prefix(), data, launch, selection, memory_selection);
 }

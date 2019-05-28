@@ -26,8 +26,8 @@ inline void File::performGets()
 template <typename T>
 inline void File::putVariable(const std::string& name, const T* data,
                               Mode launch, const Dims& shape,
-                              const Box<Dims>& selection,
-                              const Box<Dims>& memory_selection)
+                              const Extents& selection,
+                              const Extents& memory_selection)
 {
   FileBase::TypeConstPointer dataVar = data;
   impl_->putVariable(name, dataVar, launch, shape, selection, memory_selection);
@@ -35,8 +35,8 @@ inline void File::putVariable(const std::string& name, const T* data,
 
 template <typename T>
 inline void File::getVariable(const std::string& name, T* data, Mode launch,
-                              const Box<Dims>& selection,
-                              const Box<Dims>& memory_selection)
+                              const Extents& selection,
+                              const Extents& memory_selection)
 {
   FileBase::TypePointer dataVar = data;
   impl_->getVariable(name, dataVar, launch, selection, memory_selection);

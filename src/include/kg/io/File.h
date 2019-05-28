@@ -22,13 +22,13 @@ public:
 
   template <typename T>
   void putVariable(const std::string& name, const T* data, Mode launch,
-                   const Dims& shape, const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
+                   const Dims& shape, const Extents& selection,
+                   const Extents& memory_selection);
 
   template <typename T>
   void getVariable(const std::string& name, T* data, Mode launch,
-                   const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
+                   const Extents& selection,
+                   const Extents& memory_selection);
 
   Dims shapeVariable(const std::string& name) const;
 

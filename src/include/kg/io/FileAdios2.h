@@ -22,11 +22,11 @@ public:
   void performGets() override;
 
   void putVariable(const std::string& name, TypeConstPointer data, Mode launch,
-                   const Dims& shape, const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection) override;
+                   const Dims& shape, const Extents& selection,
+                   const Extents& memory_selection) override;
   void getVariable(const std::string& name, TypePointer data, Mode launch,
-                   const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection) override;
+                   const Extents& selection,
+                   const Extents& memory_selection) override;
   Dims shapeVariable(const std::string& name) const override;
 
   void getAttribute(const std::string& name, TypePointer data) override;
@@ -42,19 +42,21 @@ private:
 
   template <typename T>
   void putVariable(const std::string& name, const T* data, Mode launch,
-                   const Dims& shape, const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
+                   const Dims& shape, const Extents& selection,
+                   const Extents& memory_selection);
 
   template <typename T>
   void getVariable(const std::string& name, T* data, Mode launch,
-                   const Box<Dims>& selection,
-                   const Box<Dims>& memory_selection);
+                   const Extents& selection,
+                   const Extents& memory_selection);
 
   template <typename T>
   void getAttribute(const std::string& name, T* data);
 
   template <typename T>
   void putAttribute(const std::string& name, const T* data, size_t size);
+
+  adios2::Mode adios2Mode(Mode mode);
 
   adios2::Engine engine_;
   adios2::IO io_;
