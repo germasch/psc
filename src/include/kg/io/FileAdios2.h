@@ -15,7 +15,7 @@ namespace io
 class FileAdios2 : public FileBase
 {
 public:
-  FileAdios2(adios2::Engine engine, adios2::IO io);
+  FileAdios2(adios2::ADIOS& ad, const std::string& name, Mode mode);
 
   void close() override;
   void performPuts() override;

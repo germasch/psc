@@ -7,13 +7,24 @@ namespace io
 // ======================================================================
 // FileAdios2
 
-inline FileAdios2::FileAdios2(adios2::Engine engine, adios2::IO io)
-  : engine_{engine}, io_{io}
-{}
+inline FileAdios2::FileAdios2(adios2::ADIOS& ad, const std::string& name, Mode mode)
+{
+  io_ = ad.DeclareIO("io-" + name);
+  adios2::Mode adios2_mode;
+  if (mode == Mode::Read) {
+    adios2_mode = adios2::Mode::Read;
+  } else if (mode == Mode::Write) {
+    adios2_mode = adios2::Mode::Write;
+  } else {
+    assert(0);
+  }
+  engine_ = io_.Open(name, adios2_mode);
+}
 
 inline void FileAdios2::close()
 {
   engine_.Close();
+  // FIXME, remove IO?
 }
 
 inline void FileAdios2::performPuts()
@@ -47,8 +58,7 @@ inline void FileAdios2::putVariable(const std::string& name, const T* data,
 
 template <typename T>
 inline void FileAdios2::getVariable(const std::string& name, T* data,
-                                    const Mode launch,
-                                    const Extents& selection,
+                                    const Mode launch, const Extents& selection,
                                     const Extents& memory_selection)
 {
   auto& io = const_cast<adios2::IO&>(io_); // FIXME
@@ -91,8 +101,7 @@ struct FileAdios2::PutVariable
 
 inline void FileAdios2::putVariable(const std::string& name,
                                     TypeConstPointer data, Mode launch,
-                                    const Dims& shape,
-                                    const Extents& selection,
+                                    const Dims& shape, const Extents& selection,
                                     const Extents& memory_selection)
 {
   mpark::visit(
