@@ -155,7 +155,7 @@ KG_INLINE Vec<T, N> operator/(const Vec<T, N>& v, const Vec<T, N>& w)
   return res;
 }
 
-}
+} // namespace kg
 
 template <typename T>
 using Vec3 = kg::Vec<T, 3>;
