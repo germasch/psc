@@ -11,6 +11,7 @@ I have a little script that I source after logging in:
 
    [kaig1@login3 ~]$ cat setup-psc-env-trillian.sh
    PATH=/home/space/kai/bin:$PATH
+   module swap PrgEnv-cray PrgEnv-gnu
    module load gcc/7.3.0
 
    [kaig1@login3 ~]$ source setup-psc-env-trillian.sh
@@ -49,7 +50,7 @@ build directory, e.g. called ``build-trillian``:
    [kaig1@login3 psc]$ mkdir build-trillian
    [kaig1@login3 psc]$ cd build-trillian
 
-   I create another little script file ``cmake.sh`` in the ``build-trillian/`` directory, so that I know how I invoked ``cmake`` if I need to do it again in the future:
+I create another little script file ``cmake.sh`` in the ``build-trillian/`` directory, so that I know how I invoked ``cmake`` if I need to do it again in the future:
 
 .. code-block:: sh
 
@@ -58,13 +59,13 @@ build directory, e.g. called ``build-trillian``:
    cmake \
       -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_CXX_FLAGS="-Wno-undefined-var-template" \
-   ..
+      ..
 
 Now, invoke cmake:
 
 .. code-block:: sh
 
-   [kaig1@trillian build-trillian]$ ./cmake.sh
+   [kaig1@trillian build-trillian]$ . cmake.sh
    -- The C compiler identification is GNU 7.3.0
    -- The CXX compiler identification is GNU 7.3.0
    [...]
@@ -85,7 +86,7 @@ Running the tests
 
 Running the tests on trillian is kinda non-trivial, since they are
 using MPI, so they require to be run with `aprun`, but that only works
-if you're inside of a batch job.
+if you're inside of a batch job. So let's skip the tests for the time being.
 
 Running a job
 =============
