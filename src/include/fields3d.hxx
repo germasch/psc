@@ -20,6 +20,12 @@
 #include <list>
 #include <string>
 
+namespace memory_space
+{
+struct Host;
+struct Cuda;
+}
+
 template <typename Derived>
 class MFexpression
 {
