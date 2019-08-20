@@ -112,7 +112,7 @@ Submit as usual:
 
 .. code-block:: sh
 
-   [kaig1@trillian build-trillian]$ qsub harris.sh
+   [kai@trillian build-trillian]$ qsub harris.sh
    [kai@trillian build-trillian]$ qstat -u kai
 
    sdb:
