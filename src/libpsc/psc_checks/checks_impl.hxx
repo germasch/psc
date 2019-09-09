@@ -196,6 +196,8 @@ struct Checks_ : ChecksParams, ChecksBase
       mrc_io_open(io, "w", grid.timestep(), grid.timestep() * grid.dt);
       rho.write_as_mrc_fld(io, "rho", {"rho"});
       dive.write_as_mrc_fld(io, "Div_E", {"Div_E"});
+      rho.axpy(-1., dive);
+      rho.write_as_mrc_fld(io, "gauss", {"gauss"});
       mrc_io_close(io);
     }
 
