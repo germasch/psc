@@ -174,15 +174,15 @@ void initializeParticles(Balance& balance, Grid_t*& grid_ptr, Mparticles& mprts)
       if (r1 < g.LLn) {
         npt.n += (g.nn0 - g.nnb) * sqr(cos(M_PI / 2. * r1 / g.LLn));
         if (r1 > 0.0) {
-          npt.p[0] += V0 * sin(M_PI * r1 / g.LLn) * crd[2] / r1;
-          npt.p[2] += V0 * sin(M_PI * r1 / g.LLn) * (crd[1] + .5 * g.LLy) / r1;
+          npt.p[0] += V0 * sin(M_PI * r1 / g.LLn) * crd[0] / r1;
+          npt.p[2] += V0 * sin(M_PI * r1 / g.LLn) * (crd[2] + .5 * g.LLy) / r1;
         }
       }
       if (r2 < g.LLn) {
         npt.n += (g.nn0 - g.nnb) * sqr(cos(M_PI / 2. * r2 / g.LLn));
         if (r2 > 0.0) {
-          npt.p[0] += V0 * sin(M_PI * r2 / g.LLn) * crd[2] / r2;
-          npt.p[2] += V0 * sin(M_PI * r2 / g.LLn) * (crd[1] - .5 * g.LLy) / r2;
+          npt.p[0] += V0 * sin(M_PI * r2 / g.LLn) * crd[0] / r2;
+          npt.p[2] += V0 * sin(M_PI * r2 / g.LLn) * (crd[2] - .5 * g.LLy) / r2;
         }
       }
 
