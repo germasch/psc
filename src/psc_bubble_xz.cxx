@@ -14,12 +14,12 @@
 //
 // EDIT to change order / floating point type / cuda / 2d/3d
 
-using Dim = dim_xz;
+using Dim = dim_xyz;
 #ifdef USE_CUDA
 using PscConfig = PscConfig1vbecCuda<Dim>;
 #else
-//using PscConfig = PscConfig1vbecSingle<Dim>;
-using PscConfig = PscConfig2ndDouble<Dim>;
+using PscConfig = PscConfig1vbecSingle<Dim>;
+//using PscConfig = PscConfig2ndDouble<Dim>;
 #endif
 
 // ----------------------------------------------------------------------
@@ -117,7 +117,7 @@ void setupParameters()
 
 Grid_t* setupGrid()
 {
-  auto domain = Grid_t::Domain{{512 * 3, 1, 512 * 2},
+  auto domain = Grid_t::Domain{{512 * 3, 2, 512 * 2},
                                {g.LLz, g.LLn, g.LLy},
                                {-.5 * g.LLz, 0., -.5 * g.LLy},
                                {16*3, 1, 16 * 2}};
