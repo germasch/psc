@@ -63,7 +63,7 @@ struct Bnd_ : BndBase
       balance_generation_cnt_ = psc_balance_generation_cnt;
       reset(mflds.grid());
     }
-    mrc_ddc_add_ghosts(ddc_, mb, me, &mflds);
+    //mrc_ddc_add_ghosts(ddc_, mb, me, &mflds);
   }
 
   // ----------------------------------------------------------------------
