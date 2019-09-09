@@ -14,7 +14,7 @@
 //
 // EDIT to change order / floating point type / cuda / 2d/3d
 
-using Dim = dim_yz;
+using Dim = dim_xyz;
 #ifdef USE_CUDA
 using PscConfig = PscConfig1vbecCuda<Dim>;
 #else
@@ -116,7 +116,7 @@ void setupParameters()
 
 Grid_t* setupGrid()
 {
-  auto domain = Grid_t::Domain{{1, 512 * 2, 512 * 3},
+  auto domain = Grid_t::Domain{{2, 512 * 2, 512 * 3},
                                {g.LLn, g.LLy, g.LLz},
                                {0., -.5 * g.LLy, -.5 * g.LLz},
                                {1, 16 * 2, 16 * 3}};
@@ -315,6 +315,12 @@ static void run()
 
   // -- Checks
   ChecksParams checks_params{};
+  checks_params.continuity_every_step = 10;
+  checks_params.continuity_threshold = 1e-5;
+  checks_params.continuity_verbose = true;
+  checks_params.gauss_every_step = 10;
+  checks_params.gauss_threshold = 1e-5;
+  checks_params.gauss_verbose = true;
   Checks checks{grid, MPI_COMM_WORLD, checks_params};
 
   // -- Marder correction
