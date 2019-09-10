@@ -171,6 +171,7 @@ void initializeParticles(Balance& balance, Grid_t*& grid_ptr, Mparticles& mprts)
       double r2 = sqrt(sqr(crd[2]) + sqr(crd[1] - .5 * g.LLy));
 
       npt.n = g.nnb;
+#if 0
       if (r1 < g.LLn) {
         npt.n += (g.nn0 - g.nnb) * sqr(cos(M_PI / 2. * r1 / g.LLn));
         if (r1 > 0.0) {
@@ -185,9 +186,11 @@ void initializeParticles(Balance& balance, Grid_t*& grid_ptr, Mparticles& mprts)
           npt.p[1] += V0 * sin(M_PI * r2 / g.LLn) * (crd[1] - .5 * g.LLy) / r2;
         }
       }
+#endif
 
       switch (kind) {
         case KIND_ELECTRON:
+#if 0
           // electron drift consistent with initial current
           if ((r1 <= g.LLn) && (r1 >= g.LLn - 2. * g.LLB)) {
             npt.p[0] = -g.BB * M_PI / (2. * g.LLB) *
@@ -197,7 +200,7 @@ void initializeParticles(Balance& balance, Grid_t*& grid_ptr, Mparticles& mprts)
             npt.p[0] = -g.BB * M_PI / (2. * g.LLB) *
                        cos(M_PI * (g.LLn - r2) / (2. * g.LLB)) / npt.n;
           }
-
+#endif
           npt.T[0] = g.TTe;
           npt.T[1] = g.TTe;
           npt.T[2] = g.TTe;
@@ -227,6 +230,7 @@ void initializeFields(MfieldsState& mflds)
 
     double rv = 0.;
     switch (m) {
+#if 0
       case HZ:
         if ((r1 < g.LLn) && (r1 > g.LLn - 2 * g.LLB)) {
           rv += -g.BB * sin(M_PI * (g.LLn - r1) / (2. * g.LLB)) * y1 / r1;
@@ -269,7 +273,7 @@ void initializeFields(MfieldsState& mflds)
                 cos(M_PI * (g.LLn - r2) / (2. * g.LLB));
         }
         return rv;
-
+#endif
       default: return 0.;
     }
   });
