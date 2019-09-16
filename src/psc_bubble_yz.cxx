@@ -117,10 +117,10 @@ void setupParameters()
 
 Grid_t* setupGrid()
 {
-  auto domain = Grid_t::Domain{{1, 512 * 2, 512 * 3},
+  auto domain = Grid_t::Domain{{1, 256 * 2, 256 * 3},
                                {g.LLn, g.LLy, g.LLz},
                                {0., -.5 * g.LLy, -.5 * g.LLz},
-                               {1, 16 * 2, 16 * 3}};
+                               {1, 8 * 2, 8 * 3}};
 
   auto bc =
     psc::grid::BC{{BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_PERIODIC},
