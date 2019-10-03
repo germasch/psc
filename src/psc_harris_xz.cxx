@@ -4,6 +4,7 @@
 #include <psc.hxx>
 #include <setup_fields.hxx>
 #include <setup_particles.hxx>
+
 #include "../libpsc/vpic/fields_item_vpic.hxx"
 #include "../libpsc/vpic/setup_fields_vpic.hxx"
 #include "OutputFieldsDefault.h"
@@ -474,8 +475,13 @@ void setup_log(const Grid_t& grid)
 class Diagnostics
 {
 public:
-  Diagnostics(OutputFields& outf, OutputParticles& outp, DiagEnergies& oute)
-    : io_pfd_{"pfd"}, outf_{outf}, outp_{outp}, oute_{oute}
+  Diagnostics(Grid_t& grid, OutputFields& outf, OutputParticles& outp, DiagEnergies& oute)
+    : io_pfd_{"pfd"},
+      io_tfd_{"tfd"},
+      outf_{outf},
+      outp_{outp},
+      oute_{oute},
+      mflds_acc_state_{grid, MfieldsState::N_COMP, {1, 1, 1}}
   {}
 
   void operator()(Mparticles& mprts, MfieldsState& mflds)
@@ -505,6 +511,38 @@ public:
       mrc_io_close(io_pfd_.io_);
     }
 
+    if (outf_.tfield_step > 0) {
+      OutputFieldsVpic<MfieldsState> out_fields;
+      auto result = out_fields(mflds);
+
+      for (int p = 0; p < mflds_acc_state_.n_patches(); p++) {
+        for (int m = 0; m < mflds_acc_state_.n_comps(); m++) {
+          mflds_acc_state_.grid().Foreach_3d(0, 0, [&](int i, int j, int k) {
+            mflds_acc_state_[p](m, i, j, k) += result.mflds[p](m, i, j, k);
+          });
+        }
+      }
+      n_accum_++;
+
+      if (timestep % outf_.tfield_step == 0) {
+        mpi_printf(comm, "***** Writing TFD output\n");
+        io_tfd_.open(grid);
+        mflds_acc_state_.scale(1. / n_accum_);
+        io_tfd_.write_mflds(mflds_acc_state_, grid, result.name,
+                            result.comp_names);
+        mflds_acc_state_.zero();
+        n_accum_ = 0;
+        {
+          // FIXME, would be better to keep "out_hydro" around
+          OutputHydro out_hydro{grid};
+          auto result = out_hydro(mprts, *hydro, *interpolator);
+          io_tfd_.write_mflds(result.mflds, grid, result.name,
+                              result.comp_names);
+        }
+        mrc_io_close(io_tfd_.io_);
+      }
+    }
+
     psc_stats_start(st_time_output);
     outp_(mprts);
     psc_stats_stop(st_time_output);
@@ -516,9 +554,12 @@ public:
 
 private:
   MrcIo io_pfd_;
+  MrcIo io_tfd_;
   OutputFields& outf_;
   OutputParticles& outp_;
   DiagEnergies& oute_;
+  MfieldsSingle mflds_acc_state_;
+  int n_accum_ = 0;
 };
 
 // ----------------------------------------------------------------------
@@ -791,6 +832,7 @@ void run()
   OutputFieldsParams outf_params;
   double output_field_interval = 1.;
   outf_params.pfield_step = int((output_field_interval / (phys.wci * grid.dt)));
+  outf_params.tfield_step = int((output_field_interval / (phys.wci * grid.dt)));
   OutputFields outf{grid, outf_params};
 
   OutputParticlesParams outp_params{};
@@ -805,7 +847,7 @@ void run()
   int oute_interval = 100;
   DiagEnergies oute{grid.comm(), oute_interval};
 
-  Diagnostics diagnostics{outf, outp, oute};
+  Diagnostics diagnostics{grid, outf, outp, oute};
 
   // ---
 
