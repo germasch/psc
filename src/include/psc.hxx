@@ -34,7 +34,7 @@ struct MaterialList;
 using VpicConfig = VpicConfigPsc;
 using Mparticles = typename VpicConfig::Mparticles;
 using MfieldsState = typename VpicConfig::MfieldsState;
-using MfieldsHydro = typename VpicConfig::MfieldsHydro;
+using MfieldsHydro = MfieldsHydroQ<typename VpicConfig::Grid>;
 using MfieldsInterpolator = typename VpicConfig::MfieldsInterpolator;
 using MfieldsAccumulator = typename VpicConfig::MfieldsAccumulator;
 using Grid = typename MfieldsState::Grid;
@@ -42,7 +42,7 @@ using ParticleBcList = typename Mparticles::ParticleBcList;
 using MaterialList = typename MfieldsState::MaterialList;
 using Material = typename MaterialList::Material;
 using OutputHydro =
-  OutputHydroVpic<Mparticles, MfieldsHydro, MfieldsInterpolator>;
+  OutputHydroQ<Mparticles, MfieldsHydro, MfieldsInterpolator>;
 using DiagMixin =
   NoneDiagMixin<Mparticles, MfieldsState, MfieldsInterpolator, MfieldsHydro>;
 
@@ -138,10 +138,12 @@ struct Psc
   {
     time_start_ = MPI_Wtime();
 
+#if 0
     assert(grid.isInvar(0) == Dim::InvarX::value);
     assert(grid.isInvar(1) == Dim::InvarY::value);
     assert(grid.isInvar(2) == Dim::InvarZ::value);
-
+#endif
+    
     initialize_stats();
     initialize();
   }

@@ -1,4 +1,4 @@
-
+#undef NDEBUG
 #define VPIC 1
 
 #include <psc.hxx>
