@@ -20,6 +20,8 @@ struct OutputFieldsVpic
     const char* name;
     std::vector<std::string> comp_names;
   };
+
+  int n_comps() const { return MfieldsState::N_COMP; }
   
   Result operator()(MfieldsState& mflds)
   {
@@ -59,6 +61,8 @@ struct OutputHydroVpic_
     : mflds_res_{grid, MfieldsHydro::N_COMP * int(grid.kinds.size()), {1,1,1}},
       kinds_{grid.kinds}
   {}
+
+  int n_comps() const { return mflds_res_.n_comps(); }
 
   Result operator()(Mparticles& mprts, MfieldsHydro& mflds_hydro, MfieldsInterpolator& interpolator)
   {
