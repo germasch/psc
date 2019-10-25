@@ -354,7 +354,7 @@ struct PscHydroQOps
     {
       for (int X = 0; X < 3; X++) {
 	int Y = (X + 1) % 3, Z = (X + 2) % 3;
-	buf_size_[X] = 14 * (nx_[Y] + 1) * (nx_[Z] + 1);
+	buf_size_[X] = MfieldsHydro::N_COMP * (nx_[Y] + 1) * (nx_[Z] + 1);
       }
     }
 
@@ -363,23 +363,30 @@ struct PscHydroQOps
       int face = side ? nx_[X] + 1 : 1;
       foreach_node(g_, X, face, [&](int x, int y, int z) {
 	  Element* h = &F(x,y,z);
-	  *p++ = h->jx;
+	  *p++ = h->jx; // 0
 	  *p++ = h->jy;
 	  *p++ = h->jz;
 	  *p++ = h->rho;
 	  *p++ = h->px;
-	  *p++ = h->py;
+	  *p++ = h->py; // 5
 	  *p++ = h->pz;
 	  *p++ = h->ke;
 	  *p++ = h->txx;
 	  *p++ = h->tyy;
-	  *p++ = h->tzz;
+	  *p++ = h->tzz; // 10
 	  *p++ = h->tyz;
 	  *p++ = h->tzx;
 	  *p++ = h->txy;
-	  *p++ = h->qxxx;
-	  *p++ = h->qyyy;
+	  *p++ = h->qxxx; 
+	  *p++ = h->qyyy; // 15
 	  *p++ = h->qzzz;
+	  *p++ = h->qxxy;
+	  *p++ = h->qyyz;
+	  *p++ = h->qzzx;
+	  *p++ = h->qxxz; // 20
+	  *p++ = h->qyyx;
+	  *p++ = h->qzzy;
+	  *p++ = h->qxyz;
 	});
     }
     
@@ -405,6 +412,13 @@ struct PscHydroQOps
 	  h->qxxx += *p++;
 	  h->qyyy += *p++;
 	  h->qzzz += *p++;
+	  h->qxxy += *p++;
+	  h->qyyz += *p++;
+	  h->qzzx += *p++;
+	  h->qxxz += *p++;
+	  h->qyyx += *p++;
+	  h->qzzy += *p++;
+	  h->qxyz += *p++;
 	});
     }
   };
@@ -449,6 +463,13 @@ struct PscHydroQOps
 	  h->qxxx *= 2;				\
 	  h->qyyy *= 2;				\
 	  h->qzzz *= 2;				\
+	  h->qxxy *= 2;				\
+	  h->qyyz *= 2;				\
+	  h->qzzx *= 2;				\
+	  h->qxxz *= 2;				\
+	  h->qyyx *= 2;				\
+	  h->qzzy *= 2;				\
+	  h->qxyz *= 2;				\
 	}					\
       }						\
     } while(0)
@@ -607,7 +628,14 @@ struct PscHydroQOps
       ha[i].txy += dx*vy;						\
       ha[i].qxxx += dx*vx*vx;						\
       ha[i].qyyy += dy*vy*vy;						\
-      ha[i].qzzz += dx*vz*vz
+      ha[i].qzzz += dz*vz*vz;						\
+      ha[i].qxxy += dx*vx*vy;						\
+      ha[i].qyyz += dy*vy*vz;						\
+      ha[i].qzzx += dz*vz*vx;						\
+      ha[i].qxxz += dx*vx*vz;						\
+      ha[i].qyyx += dy*vy*vx;						\
+      ha[i].qzzy += dz*vz*vy;						\
+      ha[i].qxyz += dx*vy*vz						\
 
       /**/            ACCUM_HYDRO(w0); // Cell i,j,k
       i += stride_10; ACCUM_HYDRO(w1); // Cell i+1,j,k

@@ -79,12 +79,15 @@ struct MfieldsHydroQ
     float txx, tyy, tzz;   // Stress diagonal            => <p_i v_j f>, i==j
     float tyz, tzx, txy;   // Stress off-diagonal        => <p_i v_j f>, i!=j
     float qxxx, qyyy, qzzz;
+    float qxxy, qyyz, qzzx;
+    float qxxz, qyyx, qzzy;
+    float qxyz;
   };
 
   using Patch = PscFieldBase<Element, Grid>;
   
   enum {
-    N_COMP = 17,
+    N_COMP = 24,
   };
 
   static_assert(N_COMP == sizeof(Element) / sizeof(real_t), "N_COMP doesn't match Element");

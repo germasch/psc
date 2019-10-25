@@ -127,7 +127,10 @@ struct OutputHydroQ_
 	"px_nc", "py_nc", "pz_nc", "ke_nc",
 	"txx_nc", "tyy_nc", "tzz_nc", "tyz_nc",
 	"tzx_nc", "txy_nc",
-	"qxxx_nc", "qyyy_nc", "qzzz_nc" };
+	"qxxx_nc", "qyyy_nc", "qzzz_nc",
+	"qxxy_nc", "qyyz_nc", "qzzx_nc",
+	"qxxz_nc", "qyyx_nc", "qzzy_nc",
+	"qxyz_nc"};
   }
 
   OutputHydroQ_(const Grid_t& grid)
