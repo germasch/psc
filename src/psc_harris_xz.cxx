@@ -550,6 +550,8 @@ public:
         mflds_acc_hydro_.zero();
 
         mrc_io_close(io_tfd_.io_);
+
+	n_accum_ = 0;
       }
     }
 
