@@ -22,7 +22,6 @@ struct BS_to_Dim<BS444>
   using Dim = dim_xyz;
 };
 
-
 template <typename Mparticles>
 struct ChecksCuda
   : ChecksBase
@@ -51,6 +50,23 @@ struct ChecksCuda
     }
 
     item_rho_m_(mprts);
+    if (debug_patch_ >= 0) {
+      auto accessor = mprts.accessor(); // DEBUG
+      int p = debug_patch_;
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "before-proc-" + std::to_string(rank) + "-patch-" +
+                            std::to_string(p) + "-time-" +
+                            std::to_string(grid.timestep()) + ".txt";
+      FILE* debug_file = fopen(outfile.c_str(), "w"); // DEBUG
+      for (auto prt : accessor[p]) {
+        fprintf(debug_file, "p%d %g %g %g %g %g %g %g %d\n", p, prt.x()[0],
+                prt.x()[1], prt.x()[2], prt.u()[0], prt.u()[1], prt.u()[2],
+                prt.w(), prt.kind());
+      }
+      fclose(debug_file); // DEBUG
+      abort();
+    }
   }
 
   void continuity_after_particle_push(Mparticles& mprts,
@@ -80,14 +96,12 @@ struct ChecksCuda
 
     double eps = continuity_threshold;
     double max_err = 0.;
-    
-    
-    auto accessor = mprts.accessor();//DEBUG
+
+    auto accessor = mprts.accessor(); // DEBUG
 
     for (int p = 0; p < divj_.n_patches(); p++) {
       auto D_rho = d_rho[p];
       auto Div_J = divj_[p];
-
 
       grid.Foreach_3d(0, 0, [&](int jx, int jy, int jz) {
         double d_rho = D_rho(0, jx, jy, jz);
@@ -96,28 +110,44 @@ struct ChecksCuda
         if (fabs(d_rho + div_j) > eps) {
           mprintf("p%d (%d,%d,%d): %g -- %g diff %g\n", p, jx, jy, jz, d_rho,
                   -div_j, d_rho + div_j);
-             // 
-             //DEBUG
-             // std::string outfile = "violations_" + std::to_string(p) + ".txt";
-             // FILE *debug_file = fopen(outfile.c_str(), "a");//DEBUG
-             // for (auto prt : accessor[p]) {
-             // fprintf(debug_file, "p%d %g %g %g %g %g %g %g %d\n", p,
-             //       prt.x()[0], prt.x()[1], prt.x()[2],
-             //       prt.u()[0], prt.u()[1], prt.u()[2],
-             //       prt.w(), prt.kind()); 
-             //  
-             // }
-             // fclose(debug_file); //DEBUG
-             // abort();
-             // 
-             // //DEBUG
-
-
-            
+          if (debug_patch_ < 0) {
+            debug_patch_ = p;
+          }
+          //
+          // DEBUG
+          // std::string outfile = "violations_" + std::to_string(p) + ".txt";
+          // FILE *debug_file = fopen(outfile.c_str(), "a");//DEBUG
+          // for (auto prt : accessor[p]) {
+          // fprintf(debug_file, "p%d %g %g %g %g %g %g %g %d\n", p,
+          //       prt.x()[0], prt.x()[1], prt.x()[2],
+          //       prt.u()[0], prt.u()[1], prt.u()[2],
+          //       prt.w(), prt.kind());
+          //
+          // }
+          // fclose(debug_file); //DEBUG
+          // abort();
+          //
+          // //DEBUG
         }
       });
     }
 
+    if (debug_patch_ >= 0) {
+      int p = debug_patch_;
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "after-proc-" + std::to_string(rank) + "-patch-" +
+                            std::to_string(p) + "-time-" +
+                            std::to_string(grid.timestep()) + ".txt";
+      FILE* debug_file = fopen(outfile.c_str(), "w"); // DEBUG
+      for (auto prt : accessor[p]) {
+        fprintf(debug_file, "p%d %g %g %g %g %g %g %g %d\n", p, prt.x()[0],
+                prt.x()[1], prt.x()[2], prt.u()[0], prt.u()[1], prt.u()[2],
+                prt.w(), prt.kind());
+      }
+      fclose(debug_file); // DEBUG
+      abort();
+    }
     // find global max
     double tmp = max_err;
     MPI_Allreduce(&tmp, &max_err, 1, MPI_DOUBLE, MPI_MAX, grid.comm());
@@ -222,7 +252,7 @@ struct ChecksCuda
       mrc_io_open(io, "w", grid.timestep(), grid.timestep() * grid.dt);
       rho.write_as_mrc_fld(io, "rho", {"rho"});
       MrcIo::write_mflds(io, adaptMfields(dive), dive.grid(), dive.name(),
-			 dive.comp_names());
+                         dive.comp_names());
       mrc_io_close(io);
     }
 
@@ -236,4 +266,5 @@ private:
   Moment_t item_rho_m_;
   Moment_t item_rho_;
   Mfields divj_;
+  int debug_patch_ = -1;
 };

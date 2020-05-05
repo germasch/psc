@@ -357,7 +357,7 @@ void run()
   // -- Checks
   ChecksParams checks_params{};
   checks_params.continuity_every_step = 1;
-  checks_params.continuity_threshold = 1e-5;
+  checks_params.continuity_threshold = 1e-6;
   checks_params.continuity_verbose = false;
   Checks checks{grid, MPI_COMM_WORLD, checks_params};
 
