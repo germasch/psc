@@ -173,7 +173,7 @@ struct ChecksCuda
       mrc_io_close(io);
     }
 
-    assert(max_err < eps);
+    //assert(max_err < eps);
     dev_rho_p.put_as(rho_p, 0, 0);
     dev_rho_m.put_as(rho_m, 0, 0);
     mflds.put_as(h_mflds, 0, 0);
