@@ -346,6 +346,10 @@ public:
     assert(n_comps() == rhs.n_comps());
     assert(n_patches() == rhs.n_patches());
     //assert(box() == rhs.box());
+    if (derived().ibn() != rhs.ibn()) {
+      std::cout << "ibn" << derived().ibn() << rhs.ibn() << "\n";
+    }
+    
     assert(derived().ibn() == rhs.ibn());
     // FIXME check size compat, too
     for (int p = 0; p < n_patches(); p++) {

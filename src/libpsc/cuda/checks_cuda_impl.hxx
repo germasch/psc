@@ -65,7 +65,6 @@ struct ChecksCuda
                 prt.w(), prt.kind());
       }
       fclose(debug_file); // DEBUG
-      abort();
     }
   }
 
@@ -146,7 +145,6 @@ struct ChecksCuda
                 prt.w(), prt.kind());
       }
       fclose(debug_file); // DEBUG
-      abort();
     }
     // find global max
     double tmp = max_err;

@@ -53,7 +53,7 @@ public:
 
   OutputFields(const Grid_t& grid, const OutputFieldsParams& prm)
     : OutputFieldsParams{prm},
-      tfd_jeh_{grid, Item_jeh<MfieldsFake>::n_comps(), grid.ibn},
+      tfd_jeh_{grid, Item_jeh<MfieldsFake>::n_comps(), {}},
       tfd_moments_{grid, FieldsItem_Moments_1st_cc<MparticlesFake>::n_comps(grid), grid.ibn},
       pfield_next_{pfield_first},
       pfield_moments_next_{pfield_moments_first},
@@ -124,7 +124,6 @@ public:
                            timestep % tfield_average_every == 0) ||
                           timestep == 0);
 
-    mpi_printf(MPI_COMM_WORLD, "do_pfield %d do_tfield %d doaccum %d\n", do_pfield, do_tfield, doaccum_tfield);
     if (do_pfield || doaccum_tfield) {
       prof_start(pr_field);
       prof_start(pr_field_calc);
@@ -169,7 +168,6 @@ public:
       tfield_moments_interval > 0 && (((timestep >= (tfield_moments_next_ - tfield_moments_average_length + 1)) &&
 					timestep % tfield_moments_average_every == 0) ||
 				       timestep == 0);
-    mpi_printf(MPI_COMM_WORLD, "mom: do_pfield %d do_tfield %d doaccum %d\n", do_pfield_moments, do_tfield_moments, doaccum_tfield_moments);
     
     if (do_pfield_moments || doaccum_tfield_moments) {
       prof_start(pr_moment);
