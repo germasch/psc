@@ -53,20 +53,29 @@ class MfieldsStorageDeviceRaw
 public:
   using value_type = float;
   using reference = float&;
+  using pointer = float*;
+  using const_pointer = const float*;
   using const_reference = const float&;
   using iterator = float*;
   using const_iterator = const float*;
   
-  MfieldsStorageDeviceRaw(uint stride, value_type* data)
-    : stride_{stride}, data_{data}
+ MfieldsStorageDeviceRaw(value_type* data, size_t size)
+   : data_{data}, size_{size}
   {}
   
   KG_INLINE reference operator[](size_t i) { return data_[i]; }
   KG_INLINE const_reference operator[](size_t i) const { return data_[i]; }
+  KG_INLINE const_pointer data() const { return data_; }
+  KG_INLINE pointer data() { return data_; }
+  KG_INLINE size_t size() const { return size_; }
+  KG_INLINE iterator begin() { return data_; }
+  KG_INLINE iterator end() { return data_ + size_; }
+  KG_INLINE const_iterator begin() const { return data_; }
+  KG_INLINE const_iterator end() const { return data_ + size_; }
 
 private:
   value_type *data_;
-  uint stride_;
+  size_t size_;
 };
 
 // ======================================================================
@@ -86,10 +95,12 @@ struct DMFields : MfieldsCRTP<DMFields>
   using Storage = typename Base::Storage;
   using real_t = typename Base::Real;
   
-  DMFields(const kg::Box3& box, int n_comps, int n_patches, real_t* d_flds)
+  DMFields(const kg::Box3& box, int n_comps, int n_patches, real_t* d_flds, size_t size)
     : Base{n_comps, box, n_patches},
-      storage_{uint(n_comps * box.size()), d_flds}
+      storage_{d_flds, size}
   {}
+
+  KG_INLINE size_t size() const { return storage_.size(); }
 
 private:
   Storage storage_;

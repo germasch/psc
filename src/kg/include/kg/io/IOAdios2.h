@@ -15,7 +15,7 @@ namespace io
 class IOAdios2
 {
 public:
-  IOAdios2();
+  IOAdios2(MPI_Comm comm = MPI_COMM_WORLD);
 
   File openFile(const std::string& name, const Mode mode, MPI_Comm comm = MPI_COMM_WORLD);
   Engine open(const std::string& name, const Mode mode, MPI_Comm comm = MPI_COMM_WORLD);

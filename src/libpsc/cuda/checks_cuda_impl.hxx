@@ -41,7 +41,7 @@ struct ChecksCuda
       divj_{grid, 1, grid.ibn}
   {}
 
-  void continuity_before_particle_push(Mparticles& mprts)
+  void continuity_before_particle_push(Mparticles& mprts, MfieldsStateCuda& mflds)
   {
     const auto& grid = mprts.grid();
     if (continuity_every_step <= 0 ||
@@ -51,10 +51,11 @@ struct ChecksCuda
 
     item_rho_m_(mprts);
     if (debug_patch_ >= 0) {
-      auto accessor = mprts.accessor(); // DEBUG
-      int p = debug_patch_;
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#if 0
+      auto accessor = mprts.accessor(); // DEBUG
+      int p = debug_patch_;
       std::string outfile = "before-proc-" + std::to_string(rank) + "-patch-" +
                             std::to_string(p) + "-time-" +
                             std::to_string(grid.timestep()) + ".txt";
@@ -65,6 +66,15 @@ struct ChecksCuda
                 prt.w(), prt.kind());
       }
       fclose(debug_file); // DEBUG
+#else
+      std::string outfile = "before-proc-" + std::to_string(rank) +
+                            "-time-" + std::to_string(grid.timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds.write(writer);
+      mprts.write(writer);
+      writer.close();
+#endif
     }
   }
 
@@ -132,9 +142,10 @@ struct ChecksCuda
     }
 
     if (debug_patch_ >= 0) {
-      int p = debug_patch_;
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+#if 0
+      int p = debug_patch_;
       std::string outfile = "after-proc-" + std::to_string(rank) + "-patch-" +
                             std::to_string(p) + "-time-" +
                             std::to_string(grid.timestep()) + ".txt";
@@ -145,7 +156,17 @@ struct ChecksCuda
                 prt.w(), prt.kind());
       }
       fclose(debug_file); // DEBUG
+#else
+      std::string outfile = "after-proc-" + std::to_string(rank) +
+                            "-time-" + std::to_string(grid.timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds.write(writer);
+      mprts.write(writer);
+      writer.close();
+#endif
     }
+      
     // find global max
     double tmp = max_err;
     MPI_Allreduce(&tmp, &max_err, 1, MPI_DOUBLE, MPI_MAX, grid.comm());

@@ -49,7 +49,7 @@ struct Checks_ : ChecksParams, ChecksBase
   // ----------------------------------------------------------------------
   // continuity_before_particle_push
 
-  void continuity_before_particle_push(Mparticles& mprts)
+  void continuity_before_particle_push(Mparticles& mprts, MfieldsState& mflds)
   {
     const auto& grid = mprts.grid();
     if (continuity_every_step <= 0 || grid.timestep() % continuity_every_step != 0) {

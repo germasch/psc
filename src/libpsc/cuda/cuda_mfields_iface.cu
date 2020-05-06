@@ -130,3 +130,13 @@ void copy(const HMFields& hmflds, MfieldsCuda& mflds)
 {
   copy(hmflds, *mflds.cmflds());
 }
+
+#include "cuda_mfields.inl"
+
+void MfieldsStateCuda::write(kg::io::Engine& writer)
+{
+  DMFields d_mflds = *cmflds();
+  writer.put("d_mflds", d_mflds);
+}
+
+

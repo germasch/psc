@@ -111,6 +111,16 @@ public:
     return s;
   }
 
+  void pushPrefix(const std::string& pfx)
+  {
+    prefixes_.push_back(pfx);
+  }
+  
+  void popPrefix()
+  {
+    prefixes_.pop_back();
+  }
+
 private:
   File file_;
   std::deque<std::string> prefixes_;

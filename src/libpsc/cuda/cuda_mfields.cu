@@ -82,7 +82,7 @@ void cuda_mfields::dump(const char *filename)
 
 cuda_mfields::operator DMFields()
 {
-  return DMFields{box(), n_comps(), n_patches(), storage().data().get()};
+  return DMFields{box(), n_comps(), n_patches(), storage().data().get(), storage().size()};
 }
 
 // ----------------------------------------------------------------------

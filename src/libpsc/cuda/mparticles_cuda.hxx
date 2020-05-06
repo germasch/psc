@@ -79,6 +79,8 @@ struct MparticlesCuda : MparticlesBase
     } 
     return {const_cast<MparticlesCuda&>(*this)}; 
   } // FIXME cast
+
+  void write(kg::io::Engine& writer) { return Iface::write(cmprts_, writer); }
   
 private:
   CudaMparticles* cmprts_;

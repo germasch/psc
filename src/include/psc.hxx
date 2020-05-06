@@ -305,7 +305,7 @@ struct Psc
     // psc_bnd_particles_open_calc_moments(psc_->bnd_particles,
     // psc_->particles);
 
-    checks_.continuity_before_particle_push(mprts_);
+    checks_.continuity_before_particle_push(mprts_, mflds_);
 
     // === particle propagation p^{n} -> p^{n+1}, x^{n+1/2} -> x^{n+3/2}
     prof_start(pr_push_prts);
@@ -429,7 +429,7 @@ struct Psc
         timestep % checks_.continuity_every_step == 0) {
       mpi_printf(comm, "***** Checking continuity...\n");
       prof_start(pr_checks);
-      checks_.continuity_before_particle_push(mprts_);
+      checks_.continuity_before_particle_push(mprts_, mflds_);
       prof_stop(pr_checks);
     }
 

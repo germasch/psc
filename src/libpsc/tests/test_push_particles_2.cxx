@@ -71,7 +71,7 @@ TYPED_TEST(PushParticlesTest, Accel)
   checks_params.continuity_verbose = false;
   Checks checks_{grid, MPI_COMM_WORLD, checks_params};
   for (int n = 0; n < n_steps; n++) {
-    checks_.continuity_before_particle_push(mprts);
+    checks_.continuity_before_particle_push(mprts, mflds);
     pushp_.push_mprts(mprts, mflds);
     bndp_(mprts);
     bnd_.add_ghosts(mflds, JXI, JXI+3);
@@ -146,7 +146,7 @@ TYPED_TEST(PushParticlesTest, Cyclo)
   checks_params.continuity_verbose = false;
   Checks checks_{grid, MPI_COMM_WORLD, checks_params};
   for (int n = 0; n < n_steps; n++) {
-    checks_.continuity_before_particle_push(mprts);
+    checks_.continuity_before_particle_push(mprts, mflds);
     pushp_.push_mprts(mprts, mflds);
     bndp_(mprts);
     bnd_.add_ghosts(mflds, JXI, JXI+3);

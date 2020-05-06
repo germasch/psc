@@ -272,6 +272,8 @@ struct DMparticlesCuda : DParticleIndexer<BS_>
   
   static const int MAX_N_KINDS = 4;
 
+  DMparticlesCuda() = default;
+
   DMparticlesCuda(cuda_mparticles<BS>& cmprts)
     : DParticleIndexer<BS>{cmprts},
       dt_(cmprts.grid_.dt),
@@ -285,7 +287,8 @@ struct DMparticlesCuda : DParticleIndexer<BS_>
       off_(cmprts.by_block_.d_off.data().get()),
       bidx_(cmprts.by_block_.d_idx.data().get()),
       id_(cmprts.by_block_.d_id.data().get()),
-      n_blocks_(cmprts.n_blocks)
+    n_blocks_(cmprts.n_blocks),
+    size_(cmprts.storage.pxi4.size())
   {
     auto& grid = cmprts.grid_;
     
@@ -309,7 +312,8 @@ struct DMparticlesCuda : DParticleIndexer<BS_>
   __device__ real_t q(int k) const { return q_[k]; }
   __device__ real_t m(int k) const { return m_[k]; }
 
-private:
+  //private:
+public:
   real_t dt_;
   real_t fnqs_;
   real_t fnqxs_, fnqys_, fnqzs_;
@@ -325,5 +329,6 @@ public:
   uint *bidx_;
   uint *id_;
   uint n_blocks_;
+  size_t size_;
 };
 

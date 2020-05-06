@@ -3,6 +3,8 @@
 #include "cuda_mparticles.cuh"
 #include "bs.hxx"
 
+#include "cuda_mparticles.inl"
+
 #if 0
 #define dprintf(...) mprintf(__VA_ARGS__)
 #else
@@ -87,6 +89,19 @@ template<typename BS>
 void cuda_mparticles_iface<BS>::dump(const CudaMparticles* cmprts, const std::string& filename)
 {
   cmprts->dump(filename);
+}
+
+template<typename BS>
+void cuda_mparticles_iface<BS>::write(CudaMparticles* cmprts, kg::io::Engine& writer)
+{
+  DMparticlesCuda<BS> d_mprts = *cmprts;
+  writer.put("d_mprts", d_mprts);
+}
+
+template<>
+void cuda_mparticles_iface<BS444>::write(CudaMparticles* cmprts, kg::io::Engine& writer)
+{
+  assert(0);
 }
 
 template struct cuda_mparticles_iface<BS144>;

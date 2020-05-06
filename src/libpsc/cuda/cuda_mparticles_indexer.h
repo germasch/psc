@@ -225,7 +225,7 @@ struct DParticleIndexer
     xs[2] = scalePos(xi[2], 2);
   }
 
-private:
+  //private:
   uint ldims_[3];
   uint b_mx_[3];
   uint n_blocks_;

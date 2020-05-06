@@ -3,6 +3,8 @@
 
 #include "grid.hxx"
 #include "particle_simple.hxx"
+#include <kg/io.h>
+
 
 template<typename BS>
 struct cuda_mparticles;
@@ -35,5 +37,6 @@ struct cuda_mparticles_iface
   static void dump(const CudaMparticles* cmprts, const std::string& filename);
 
   static bool need_reorder(CudaMparticles* cmprts);
+  static void write(CudaMparticles* cmprts, kg::io::Engine& writer);
 };
 

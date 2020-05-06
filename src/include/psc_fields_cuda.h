@@ -10,6 +10,7 @@
 #include "psc_fields_single.h"
 
 #include "mrc_json.h"
+#include "kg/io.h"
 
 struct cuda_mfields;
 
@@ -150,6 +151,8 @@ struct MfieldsStateCuda : MfieldsStateBase
 
   MfieldsCuda& mflds() { return mflds_; }
   const MfieldsCuda& mflds() const { return mflds_; }
+
+  void write(kg::io::Engine& writer);
   
 private:
   MfieldsCuda mflds_;

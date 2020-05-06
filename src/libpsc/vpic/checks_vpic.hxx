@@ -8,7 +8,7 @@ struct ChecksVpic : ChecksParams, ChecksBase
     : ChecksParams(params)
   {}
   
-  void continuity_before_particle_push(Mparticles& mprts) {}
+  void continuity_before_particle_push(Mparticles& mprts, MfieldsState& mflds) {}
   void continuity_after_particle_push(Mparticles& mprts, MfieldsState& mflds) {}
   void gauss(Mparticles& mprts, MfieldsState& mflds) {}
 };
