@@ -75,6 +75,10 @@ public:
 
   __device__ void add(int m, int jy, int jz, float val, const int *ci0)
   {
+    // if (jy < -N_GHOSTS_L || jy >= BS_Y + N_GHOSTS_R ||
+    // 	jz < -N_GHOSTS_L || jz >= BS_Z + N_GHOSTS_R) {
+    //   printf("CUDA_ERROR add %d:%d BS %d:%d m %d/3\n", jy, jz, BS_Y, BS_Z, m);
+    // }
     uint wid = threadIdx.x & (N_COPIES - 1);
     float *addr = &(*this)(wid, jy, jz, m);
     atomicAdd(addr, val);

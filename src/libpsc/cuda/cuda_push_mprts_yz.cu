@@ -85,7 +85,7 @@ struct CudaPushParticles
     // x^(n+0.5), p^n -> x^(n+0.5), p^(n+1.0) 
     real_t dq = dmprts.dq(prt.kind());
     advance.push_p(prt.u(), E, H, dq);
-#if 0
+#if 1
     if (!isfinite(prt.u()[0]) || !isfinite(prt.u()[1]) || !isfinite(prt.u()[2])) {
       printf("CUDA_ERROR push_part_one: n = %d pxi %g %g %g\n", n,
 	     prt.u()[0], prt.u()[1], prt.u()[2]);
@@ -142,7 +142,7 @@ struct CudaPushParticles
   curr_vb_cell(DMparticles& dmprts, int i[3], float x[3], float dx[3], float qni_wni,
 	       Curr &scurr, const Block& current_block, dim_yz tag)
   {
-#if 1
+#if 0
     if (i[1] < -1 || i[1] >= int(BS::y::value) + 1 ||
 	i[2] < -1 || i[2] >= int(BS::z::value) + 1) {
       printf("CUDA_ERROR curr_vb_cell jyz %d:%d\n", i[1], i[2]);
@@ -279,6 +279,8 @@ struct CudaPushParticles
     }
     storage.store_position(prt, n);
 
+    dmprts.blockShift(prt.x(), current_block.p, current_block.bid);
+#if 0
     // has moved into which block? (given as relative shift)
     dmprts.bidx_[n] = dmprts.blockShift(prt.x(), current_block.p, current_block.bid);
 
@@ -297,10 +299,10 @@ struct CudaPushParticles
     }
 #endif
     int i[3] = { 0, j[1] - current_block.ci0[1], j[2] - current_block.ci0[2] };
-#if 1
+#if 0
     if (i[1] < -1 || i[1] >= int(BS::y::value) + 1 ||
 	i[2] < -1 || i[2] >= int(BS::z::value) + 1) {
-      printf("CUDA_ERROR deposit jyz %d:%d\n", i[1], i[2]);
+      printf("CUDA_ERROR deposit jyz i %d:%d j %d:%d\n", i[1], i[2], j[1], j[2]);
     }
 #endif
     float x[3] = { 0.f, xm[1] - j[1] - float(.5), xm[2] - j[2] - float(.5) };
@@ -332,6 +334,7 @@ struct CudaPushParticles
     curr_vb_cell_upd(i, x, dx1, dx, off, dim{});
     
     curr_vb_cell(dmprts, i, x, dx, prt.qni_wni(), scurr, current_block, dim{});
+#endif
   }
 
   // ----------------------------------------------------------------------
@@ -443,6 +446,11 @@ struct CudaPushParticles
     if (!current_block.init(dmprts, block_start)) {
       return;
     }
+
+    if (threadIdx.x == 0) {
+      printf("xxx bid %d 4504 %g %g\n", current_block.bid,
+	     dmprts.storage.xi4[4504].y, dmprts.storage.xi4[4504].z);
+    }
     
     __shared__ FldCache fld_cache;
     fld_cache.load(d_mflds[current_block.p], current_block.ci0);
@@ -453,14 +461,18 @@ struct CudaPushParticles
 
     int block_begin = dmprts.off_[current_block.bid];
     int block_end = dmprts.off_[current_block.bid + 1];
+    if (current_block.bid < 85) {
     for (int n : in_block_loop(block_begin, block_end)) {
       if (n < block_begin) {
 	continue;
       }
       auto prt = (REORDER) ? dmprts.storage.load_proxy(dmprts, dmprts.id_[n]) : 
 	dmprts.storage.load_proxy(dmprts, n);
+      if (n == 4504) {
+	printf("xxx 4504 %g %g %g //  %g %g\n", prt.x()[0], prt.x()[1], prt.x()[2],
+	       dmprts.storage.xi4[n].y, dmprts.storage.xi4[n].z);
+      }
       push_part_one(dmprts, prt, n, fld_cache, current_block);
-      
       if (REORDER) {
 	dmprts.alt_storage.store_momentum(prt, n);
 	calc_j(dmprts, prt, n, dmprts.alt_storage, scurr, current_block, dim{});
@@ -468,9 +480,9 @@ struct CudaPushParticles
 	dmprts.storage.store_momentum(prt, n);
 	calc_j(dmprts, prt, n, dmprts.storage, scurr, current_block, dim{});
       }
+    } 
     }
-    
-    scurr.add_to_fld(current_block.ci0);
+    //    scurr.add_to_fld(current_block.ci0);
   }
 };
 
