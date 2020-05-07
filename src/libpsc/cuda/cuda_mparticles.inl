@@ -71,6 +71,11 @@ public:
 				     thrust::device_pointer_cast(d_mprts.id_ + size));
       writer.putVariable(h_id.data(), launch, {size}, {{0}, {size}});
       writer.popPrefix();
+      writer.pushPrefix("bidx");
+      thrust::host_vector<uint> h_bidx(thrust::device_pointer_cast(d_mprts.bidx_),
+				       thrust::device_pointer_cast(d_mprts.bidx_ + size));
+      writer.putVariable(h_bidx.data(), launch, {size}, {{0}, {size}});
+      writer.popPrefix();
       writer.performPuts();
     }
     {
@@ -79,12 +84,6 @@ public:
       thrust::host_vector<uint> h_off(thrust::device_pointer_cast(d_mprts.off_),
 				      thrust::device_pointer_cast(d_mprts.off_ + n_blocks + 1));
       writer.putVariable(h_off.data(), launch, {n_blocks + 1}, {{0}, {n_blocks + 1}});
-      writer.popPrefix();
-
-      writer.pushPrefix("bidx");
-      thrust::host_vector<uint> h_bidx(thrust::device_pointer_cast(d_mprts.bidx_),
-				      thrust::device_pointer_cast(d_mprts.bidx_ + n_blocks + 1));
-      writer.putVariable(h_bidx.data(), launch, {n_blocks + 1}, {{0}, {n_blocks + 1}});
       writer.popPrefix();
       writer.performPuts();
     }
@@ -148,10 +147,10 @@ public:
       reader.popPrefix();
       reader.popPrefix();
       reader.performGets();
-      auto d_xi4 = new thrust::host_vector<float4>(h_xi4);
-      auto d_pxi4 = new thrust::host_vector<float4>(h_pxi4);
-      d_mprts.storage.xi4 = d_xi4->data();
-      d_mprts.storage.pxi4 = d_pxi4->data();
+      auto d_xi4 = new thrust::device_vector<float4>(h_xi4);
+      auto d_pxi4 = new thrust::device_vector<float4>(h_pxi4);
+      d_mprts.storage.xi4 = d_xi4->data().get();
+      d_mprts.storage.pxi4 = d_pxi4->data().get();
     }
 
     {
@@ -166,19 +165,25 @@ public:
       reader.popPrefix();
       reader.popPrefix();
       reader.performGets();
-      auto d_xi4 = new thrust::host_vector<float4>(h_xi4);
-      auto d_pxi4 = new thrust::host_vector<float4>(h_pxi4);
-      d_mprts.alt_storage.xi4 = d_xi4->data();
-      d_mprts.alt_storage.pxi4 = d_pxi4->data();
+      auto d_xi4 = new thrust::device_vector<float4>(h_xi4);
+      auto d_pxi4 = new thrust::device_vector<float4>(h_pxi4);
+      d_mprts.alt_storage.xi4 = d_xi4->data().get();
+      d_mprts.alt_storage.pxi4 = d_pxi4->data().get();
     }
     {
       reader.pushPrefix("id");
       thrust::host_vector<uint> h_id(size);
       reader.getVariable(h_id.data(), launch, {{0}, {size}});
       reader.popPrefix();
+      reader.pushPrefix("bidx");
+      thrust::host_vector<uint> h_bidx(size);
+      reader.getVariable(h_bidx.data(), launch, {{0}, {size}});
+      reader.popPrefix();
       reader.performGets();
-      auto d_id = new thrust::host_vector<uint>(h_id);
-      d_mprts.id_ = d_id->data();
+      auto d_id = new thrust::device_vector<uint>(h_id);
+      auto d_bidx = new thrust::device_vector<uint>(h_bidx);
+      d_mprts.id_ = d_id->data().get();
+      d_mprts.bidx_ = d_bidx->data().get();
     }
     {
       auto n_blocks = d_mprts.n_blocks_;
@@ -187,15 +192,9 @@ public:
       reader.getVariable(h_off.data(), launch, {{0}, {n_blocks + 1}});
       reader.popPrefix();
 
-      reader.pushPrefix("bidx");
-      thrust::host_vector<uint> h_bidx(n_blocks + 1);
-      reader.getVariable(h_bidx.data(), launch, {{0}, {n_blocks + 1}});
-      reader.popPrefix();
       reader.performGets();
-      auto d_off = new thrust::host_vector<uint>(h_off);
-      auto d_bidx = new thrust::host_vector<uint>(h_bidx);
-      d_mprts.off_ = d_off->data();
-      d_mprts.bidx_ = d_bidx->data();
+      auto d_off = new thrust::device_vector<uint>(h_off);
+      d_mprts.off_ = d_off->data().get();
     }
   }
 };

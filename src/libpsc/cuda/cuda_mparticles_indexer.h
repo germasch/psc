@@ -7,6 +7,7 @@
 #include "particle_indexer.hxx"
 #include "range.hxx"
 #include "dim.hxx"
+#include "bs.hxx"
 
 #define CUDA_BND_S_NEW (9)
 #define CUDA_BND_S_OOB (10)
@@ -370,6 +371,16 @@ struct BlockQ<BS, dim_yz> : BlockBase
   {
     int gx =  (cmprts.b_mx()[1] + 1) / 2;
     int gy = ((cmprts.b_mx()[2] + 1) / 2) * cmprts.n_patches();
+    return dim3(gx, gy);
+  }
+
+  template<typename DMparticles>
+  static dim3 _dimGrid(DMparticles& d_mprts)
+  {
+    int n_patches = d_mprts.n_blocks_ / (d_mprts.b_mx_[1] * d_mprts.b_mx_[2]);
+    printf("n_patches %d\n", n_patches);
+    int gx =  (d_mprts.b_mx_[1] + 1) / 2;
+    int gy = ((d_mprts.b_mx_[2] + 1) / 2) * n_patches;
     return dim3(gx, gy);
   }
 

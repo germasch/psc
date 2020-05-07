@@ -2,19 +2,22 @@
 #include <gtest/gtest.h>
 
 #include "fields3d.hxx"
+#include "psc_fields_c.h"
+#include "psc_fields_single.h"
+#ifdef USE_CUDA
 #include "psc_fields_cuda.h"
 #include "psc_fields_cuda.inl"
+#endif
 #include "setup_fields.hxx"
 
+#ifdef USE_CUDA
 #include "../libpsc/cuda/setup_fields_cuda.hxx"
+#endif
 
 #include "kg/io.h"
 #include "fields3d.inl"
 
 #include "psc.h" // FIXME, just for EX etc
-
-#include "cuda_mfields.h"
-#include "cuda_mfields.inl"
 
 static Grid_t make_grid()
 {
@@ -28,14 +31,18 @@ static Grid_t make_grid()
 }
 
 template <typename T>
-class CudaMfieldsTest : public ::testing::Test
+class MfieldsTest : public ::testing::Test
 {};
 
-using CudaMfieldsTestTypes = ::testing::Types<MfieldsCuda>;
+#ifdef USE_CUDA
+using MfieldsTestTypes = ::testing::Types<MfieldsSingle, MfieldsC, MfieldsCuda>;
+#else
+using MfieldsTestTypes = ::testing::Types<MfieldsSingle, MfieldsC>;
+#endif
 
-TYPED_TEST_SUITE(CudaMfieldsTest, CudaMfieldsTestTypes);
+TYPED_TEST_SUITE(MfieldsTest, MfieldsTestTypes);
 
-TYPED_TEST(CudaMfieldsTest, WriteRead)
+TYPED_TEST(MfieldsTest, WriteRead)
 {
   using Mfields = TypeParam;
 
@@ -46,24 +53,21 @@ TYPED_TEST(CudaMfieldsTest, WriteRead)
     return m + crd[0] + 100 * crd[1] + 10000 * crd[2];
   });
 
-  DMFields d_mflds = *mflds.cmflds();
-  
   auto io = kg::io::IOAdios2{};
 
   {
     auto writer = io.open("test.bp", kg::io::Mode::Write);
-    writer.put("d_mflds", d_mflds);
+    writer.put("mflds", mflds);
     writer.close();
   }
 
-  DMFields d_mflds2;
+  auto mflds2 = Mfields{grid, NR_FIELDS, {}};
   {
     auto reader = io.open("test.bp", kg::io::Mode::Read);
-    reader.get("d_mflds", d_mflds2);
+    reader.get("mflds", mflds2);
     reader.close();
   }
 
-#if 0
   for (int p = 0; p < mflds.n_patches(); ++p) {
     grid.Foreach_3d(0, 0, [&](int i, int j, int k) {
 #if 0
@@ -75,10 +79,9 @@ TYPED_TEST(CudaMfieldsTest, WriteRead)
       }
     });
   }
-#endif
 }
 
-TYPED_TEST(CudaMfieldsTest, WriteWithGhostsRead)
+TYPED_TEST(MfieldsTest, WriteWithGhostsRead)
 {
   using Mfields = TypeParam;
 
@@ -89,20 +92,17 @@ TYPED_TEST(CudaMfieldsTest, WriteWithGhostsRead)
     return m + crd[0] + 100 * crd[1] + 10000 * crd[2];
   });
 
-  DMFields d_mflds = *mflds.cmflds();
-  
   auto io = kg::io::IOAdios2{};
 
   {
-    auto writer = io.open("test1.bp", kg::io::Mode::Write);
-    writer.put("d_mflds", d_mflds);
+    auto writer = io.open("test.bp", kg::io::Mode::Write);
+    writer.put("mflds", mflds);
     writer.close();
   }
 
-#if 0
   auto mflds2 = Mfields{grid, NR_FIELDS, {}};
   {
-    auto reader = io.open("test1.bp", kg::io::Mode::Read);
+    auto reader = io.open("test.bp", kg::io::Mode::Read);
     reader.get("mflds", mflds2);
     reader.close();
   }
@@ -119,11 +119,9 @@ TYPED_TEST(CudaMfieldsTest, WriteWithGhostsRead)
       }
     });
   }
-#endif
 }
 
-#if 0
-TYPED_TEST(CudaMfieldsTest, WriteReadWithGhosts)
+TYPED_TEST(MfieldsTest, WriteReadWithGhosts)
 {
   using Mfields = TypeParam;
 
@@ -164,7 +162,6 @@ TYPED_TEST(CudaMfieldsTest, WriteReadWithGhosts)
     });
   }
 }
-#endif
 
 // ======================================================================
 // main
