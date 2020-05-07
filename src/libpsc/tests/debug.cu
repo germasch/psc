@@ -10,7 +10,7 @@
 #include <kg/io.h>
 #include <iostream>
 
-void debug_ab(DMparticlesCuda<BS144>& d_mprts, DMFields& d_mflds);
+void debug_ab(DMparticlesCuda<BS144> d_mprts, DMFields d_mflds);
 
 std::ostream& operator<<(std::ostream& of, const float4 &xi)
 {
@@ -28,18 +28,31 @@ int main(int argc, char **argv)
   DMparticles d_mprts_1, d_mprts_2;
 
   auto io = kg::io::IOAdios2{};
-  auto reader = io.open("before-proc-68-time-1206.bp", kg::io::Mode::Read);
+  auto reader = io.open("bef-proc-27-time-1207.bp", kg::io::Mode::Read);
   reader.get("d_mflds", d_mflds_1);
   reader.get("d_mprts", d_mprts_1);
   reader.close();
 
-  auto reader2 = io.open("after-proc-68-time-1206.bp", kg::io::Mode::Read);
+  auto reader2 = io.open("aft-proc-27-time-1207.bp", kg::io::Mode::Read);
   reader2.get("d_mflds", d_mflds_2);
   reader2.get("d_mprts", d_mprts_2);
   reader2.close();
   
   auto d_xi4_1 = thrust::device_pointer_cast<float4>(d_mprts_1.storage.xi4);
   auto d_xi4_2 = thrust::device_pointer_cast<float4>(d_mprts_2.storage.xi4);
+
+  for (int n = 0; n < 5; n++) {
+    std::cout << "0: " << d_xi4_1[n] << "\n";
+    std::cout << "2: " << d_xi4_2[n] << "\n";
+  }
+  std::cout << "\n";
+
+  for (int p = 0; p < d_mflds_1.n_patches_; p++) {
+    uint size = d_mflds_1.box().size();
+    cudaError ierr = cudaMemset(d_mflds_1.storage_.data() + (p * 9 + JXI) * size, 0,
+    				3 * size * sizeof(fields_cuda_real_t));
+    cudaCheck(ierr);
+  }
   
   debug_ab(d_mprts_1, d_mflds_1);
 

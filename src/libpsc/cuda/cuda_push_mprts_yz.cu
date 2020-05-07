@@ -503,7 +503,7 @@ zero_currents(struct cuda_mfields *cmflds)
 // ----------------------------------------------------------------------
 // cuda_push_mprts_ab
 
-void debug_ab(DMparticlesCuda<BS144>& d_mprts, DMFields& d_mflds)
+void debug_ab(DMparticlesCuda<BS144> d_mprts, DMFields d_mflds)
 {
   using Config = CudaConfig1vbec3d<dim_yz, BS144>;
   using Currmem = typename Config::Currmem;
@@ -511,9 +511,9 @@ void debug_ab(DMparticlesCuda<BS144>& d_mprts, DMFields& d_mflds)
 
   for (int p = 0; p < d_mflds.n_patches_; p++) {
     uint size = d_mflds.box().size();
-    // cudaError ierr = cudaMemset((*cmflds)[p].data() + JXI * size, 0,
-    // 				3 * size * sizeof(fields_cuda_real_t));
-    //cudaCheck(ierr);
+    cudaError ierr = cudaMemset(d_mflds.storage_.data() + (p * 9 + JXI) * size, 0,
+    				3 * size * sizeof(fields_cuda_real_t));
+    cudaCheck(ierr);
   }
 
   dim3 dimGrid = Block::_dimGrid(d_mprts);
@@ -539,6 +539,8 @@ void CudaPushParticles_<Config>::push_mprts_ab(CudaMparticles* cmprts, struct cu
   dim3 dimGrid = Block::dimGrid(*cmprts);
 
   if (REORDER) {
+    MHERE;
+  if (REORDER) {
     cmprts->alt_storage.resize(cmprts->n_prts);
     cmprts->by_block_.d_idx.resize(cmprts->n_prts);
   }
@@ -552,6 +554,9 @@ void CudaPushParticles_<Config>::push_mprts_ab(CudaMparticles* cmprts, struct cu
   if (REORDER) {
     cmprts->swap_alt();
     cmprts->need_reorder = false;
+  }
+  } else {
+    debug_ab(*cmprts, *cmflds);
   }
 }
 
@@ -575,5 +580,5 @@ void CudaPushParticles_<Config>::push_mprts(CudaMparticles* cmprts, struct cuda_
 
 //template struct CudaPushParticles_<CudaConfig1vb<dim_yz>>;
 template struct CudaPushParticles_<CudaConfig1vbec3d<dim_yz, BS144>>;
-template struct CudaPushParticles_<CudaConfig1vbec3dGmem<dim_xyz, BS144>>;
-template struct CudaPushParticles_<CudaConfig1vbec3dGmem<dim_xyz, BS444>>;
+//template struct CudaPushParticles_<CudaConfig1vbec3dGmem<dim_xyz, BS144>>;
+//template struct CudaPushParticles_<CudaConfig1vbec3dGmem<dim_xyz, BS444>>;
