@@ -127,7 +127,15 @@ public:
     std::copy(m.begin(), m.end(), d_mprts.m_);
 
     // raw storage
-    size_t size = d_mprts.size_;
+    reader.pushPrefix("storage");
+    reader.pushPrefix("xi4");
+    auto shape = reader.variableShape<float>();
+    reader.popPrefix();
+    reader.popPrefix();
+    //std::cout << "shape" << shape << "\n";
+    size_t size = shape[0] / 4;
+    d_mprts.size_ = size;
+    printf("n_blocks %d size %zu\n", d_mprts.n_blocks_, size);
     {
       reader.pushPrefix("storage");
       reader.pushPrefix("xi4");
@@ -140,8 +148,10 @@ public:
       reader.popPrefix();
       reader.popPrefix();
       reader.performGets();
-      thrust::copy(h_xi4.begin(), h_xi4.end(), thrust::device_pointer_cast(d_mprts.storage.xi4));
-      thrust::copy(h_pxi4.begin(), h_pxi4.end(), thrust::device_pointer_cast(d_mprts.storage.pxi4));
+      auto d_xi4 = new thrust::host_vector<float4>(h_xi4);
+      auto d_pxi4 = new thrust::host_vector<float4>(h_pxi4);
+      d_mprts.storage.xi4 = d_xi4->data();
+      d_mprts.storage.pxi4 = d_pxi4->data();
     }
 
     {
@@ -156,16 +166,19 @@ public:
       reader.popPrefix();
       reader.popPrefix();
       reader.performGets();
-      thrust::copy(h_xi4.begin(), h_xi4.end(), thrust::device_pointer_cast(d_mprts.alt_storage.xi4));
-      thrust::copy(h_pxi4.begin(), h_pxi4.end(), thrust::device_pointer_cast(d_mprts.alt_storage.pxi4));
+      auto d_xi4 = new thrust::host_vector<float4>(h_xi4);
+      auto d_pxi4 = new thrust::host_vector<float4>(h_pxi4);
+      d_mprts.alt_storage.xi4 = d_xi4->data();
+      d_mprts.alt_storage.pxi4 = d_pxi4->data();
     }
     {
       reader.pushPrefix("id");
-      thrust::host_vector<uint> h_id;
+      thrust::host_vector<uint> h_id(size);
       reader.getVariable(h_id.data(), launch, {{0}, {size}});
       reader.popPrefix();
       reader.performGets();
-      thrust::copy(h_id.begin(), h_id.end(), thrust::device_pointer_cast(d_mprts.id_));
+      auto d_id = new thrust::host_vector<uint>(h_id);
+      d_mprts.id_ = d_id->data();
     }
     {
       auto n_blocks = d_mprts.n_blocks_;
@@ -179,8 +192,10 @@ public:
       reader.getVariable(h_bidx.data(), launch, {{0}, {n_blocks + 1}});
       reader.popPrefix();
       reader.performGets();
-      thrust::copy(h_off.begin(), h_off.end(), thrust::device_pointer_cast(d_mprts.off_));
-      thrust::copy(h_bidx.begin(), h_bidx.end(), thrust::device_pointer_cast(d_mprts.bidx_));
+      auto d_off = new thrust::host_vector<uint>(h_off);
+      auto d_bidx = new thrust::host_vector<uint>(h_bidx);
+      d_mprts.off_ = d_off->data();
+      d_mprts.bidx_ = d_bidx->data();
     }
   }
 };

@@ -25,6 +25,8 @@ struct LayoutSOA
 class Box3
 {
 public:
+  Box3() = default;
+  
   Box3(const Int3& ib, const Int3& im)
     : ib_{ib}, im_{im}
   {}

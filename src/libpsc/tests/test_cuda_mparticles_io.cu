@@ -107,13 +107,13 @@ TYPED_TEST(MparticlesIOTest, WriteRead)
   }
 
   DMparticlesCuda<BS144> d_mprts2;
-#if 0
   {
     auto reader = io.open("test.bp", kg::io::Mode::Read);
     reader.get("d_mprts", d_mprts2);
     reader.close();
   }
 
+#if 0
   auto accessor = mprts.accessor();
   auto accessor2 = mprts2.accessor();
   for (int p = 0; p < mprts.n_patches(); ++p) {

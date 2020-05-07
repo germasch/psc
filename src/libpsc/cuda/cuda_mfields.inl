@@ -26,16 +26,16 @@ public:
   {
     // FIXME, should just check for consistency? (# ghosts might differ, too)
     Int3 ib, im;
-    int n_comps, n_patches;
     reader.get("ib", ib, kg::io::Mode::Blocking);
     reader.get("im", im, kg::io::Mode::Blocking);
-    reader.get("n_comps", n_comps, kg::io::Mode::Blocking);
-    reader.get("n_patches", n_patches, kg::io::Mode::Blocking);
-    assert(ib == d_mflds.box().ib());
-    assert(im == d_mflds.box().im());
-    assert(n_comps == d_mflds.n_comps());
-    assert(n_patches == d_mflds.n_patches());
+    d_mflds.box_ = Box3(ib, im);
+    reader.get("n_comps", d_mflds.n_fields_, kg::io::Mode::Blocking);
+    reader.get("n_patches", d_mflds.n_patches_, kg::io::Mode::Blocking);
 
+    auto d_data = new thrust::device_vector<float>(d_mflds.box().size() * d_mflds.n_comps() * d_mflds.n_patches());
+    d_mflds.storage_.data_ = d_data->data().get();
+    d_mflds.storage_.size_ = d_data->size();
+    
     // raw storage
     thrust::host_vector<float> h_data(d_mflds.size());
     reader.getVariable(h_data.data(), kg::io::Mode::Blocking,

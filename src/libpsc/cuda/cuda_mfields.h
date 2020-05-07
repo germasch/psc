@@ -58,8 +58,10 @@ public:
   using const_reference = const float&;
   using iterator = float*;
   using const_iterator = const float*;
+
+  MfieldsStorageDeviceRaw() = default;
   
- MfieldsStorageDeviceRaw(value_type* data, size_t size)
+  MfieldsStorageDeviceRaw(value_type* data, size_t size)
    : data_{data}, size_{size}
   {}
   
@@ -73,7 +75,7 @@ public:
   KG_INLINE const_iterator begin() const { return data_; }
   KG_INLINE const_iterator end() const { return data_ + size_; }
 
-private:
+  //private:
   value_type *data_;
   size_t size_;
 };
@@ -95,6 +97,8 @@ struct DMFields : MfieldsCRTP<DMFields>
   using Storage = typename Base::Storage;
   using real_t = typename Base::Real;
   
+  DMFields() = default;
+  
   DMFields(const kg::Box3& box, int n_comps, int n_patches, real_t* d_flds, size_t size)
     : Base{n_comps, box, n_patches},
       storage_{d_flds, size}
@@ -102,7 +106,7 @@ struct DMFields : MfieldsCRTP<DMFields>
 
   KG_INLINE size_t size() const { return storage_.size(); }
 
-private:
+  //private:
   Storage storage_;
   
   KG_INLINE Storage& storageImpl() { return storage_; }

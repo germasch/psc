@@ -60,11 +60,12 @@ TYPED_TEST(CudaMfieldsTest, WriteRead)
   auto n_comps = d_mflds.n_comps();
   auto n_patches = d_mflds.n_patches();
   thrust::device_vector<float> d_data(box.size() * n_comps * n_patches);
+  DMFields d_mflds3;
   auto d_mflds2 = DMFields{box, n_comps, n_patches, d_data.data().get(), d_data.size()};
 
   {
     auto reader = io.open("test.bp", kg::io::Mode::Read);
-    reader.get("d_mflds", d_mflds2);
+    reader.get("d_mflds", d_mflds3);
     reader.close();
   }
 

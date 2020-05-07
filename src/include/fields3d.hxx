@@ -244,6 +244,8 @@ public:
   typename Storage::const_iterator begin() const { return storage().begin(); }
   typename Storage::const_iterator end() const { return storage().end(); }
 
+  MfieldsCRTP() = default;
+
   MfieldsCRTP(int n_fields, const kg::Box3& box, int n_patches)
     : n_fields_(n_fields), box_{box}, n_patches_{n_patches}
   {}
@@ -382,7 +384,8 @@ protected:
   KG_INLINE Derived& derived() { return *static_cast<Derived*>(this); }
   KG_INLINE const Derived& derived() const { return *static_cast<const Derived*>(this); }
 
-private:
+public:
+  //private:
   kg::Box3 box_; // size of one patch, including ghost points
   int n_fields_;
   int n_patches_;
