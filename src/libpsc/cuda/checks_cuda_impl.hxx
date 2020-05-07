@@ -5,6 +5,8 @@
 
 #include "fields_item_moments_1st_cuda.hxx"
 
+int debug_patch_ = -1;
+
 // FIXME!!! need to get Dim from Mparticles directly!
 
 template <typename BS>
@@ -285,5 +287,4 @@ private:
   Moment_t item_rho_m_;
   Moment_t item_rho_;
   Mfields divj_;
-  int debug_patch_ = -1;
 };
