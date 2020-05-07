@@ -55,8 +55,6 @@ DiagMixin diag_mixin;
 
 #endif
 
-extern int debug_patch_;
-
 // ======================================================================
 // PscParams
 
@@ -435,36 +433,12 @@ struct Psc
       prof_stop(pr_checks);
     }
     
-    if (debug_patch_ >= 0) {
-      int rank;
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      std::string outfile = "bef-proc-" + std::to_string(rank) +
-	"-time-" + std::to_string(grid().timestep()) + ".bp";
-      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
-      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
-      mflds_.write(writer);
-      mprts_.write(writer);
-      writer.close();
-    }
-    
     // === particle propagation p^{n} -> p^{n+1}, x^{n+1/2} -> x^{n+3/2}
     prof_start(pr_push_prts);
     pushp_.push_mprts(mprts_, mflds_);
     prof_stop(pr_push_prts);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1/2}, j^{n+1}
 
-    if (debug_patch_ >= 0) {
-      int rank;
-      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-      std::string outfile = "aft-proc-" + std::to_string(rank) +
-	"-time-" + std::to_string(grid().timestep()) + ".bp";
-      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
-      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
-      mflds_.write(writer);
-      mprts_.write(writer);
-      writer.close();
-    }
-    
     // === field propagation B^{n+1/2} -> B^{n+1}
     prof_start(pr_push_flds);
     pushf_.push_H(mflds_, .5, Dim{});

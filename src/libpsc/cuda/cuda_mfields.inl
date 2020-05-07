@@ -19,6 +19,7 @@ public:
 				      thrust::device_pointer_cast(d_mflds.end()));
     writer.putVariable(h_data.data(), launch, {d_mflds.size()}, {{0}, {d_mflds.size()}},
 		       {{0}, {d_mflds.size()}});
+    writer.performPuts();
   }
 
   void get(kg::io::Engine& reader, DMFields& d_mflds,

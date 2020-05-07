@@ -12,6 +12,8 @@
 #include "heating_spot_foil.hxx"
 #include "inject_impl.hxx"
 
+//#define SMALL
+
 // ======================================================================
 // Particle kinds
 //
@@ -224,9 +226,15 @@ void setupParameters()
 Grid_t* setupGrid()
 {
   // --- setup domain
+#ifdef SMALL
+  Grid_t::Real3 LL = {1., 80., 3.*80.}; // domain size (in d_e)
+  Int3 gdims = {1, 160, 3*160};         // global number of grid points
+  Int3 np = {1, 5, 3*5};                // division into patches
+#else
   Grid_t::Real3 LL = {1., 800., 3.*800.}; // domain size (in d_e)
   Int3 gdims = {1, 1600, 3*1600};         // global number of grid points
   Int3 np = {1, 50, 3*50};                // division into patches
+#endif
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
 
@@ -357,7 +365,7 @@ void run()
   // -- Checks
   ChecksParams checks_params{};
   checks_params.continuity_every_step = 1;
-  checks_params.continuity_threshold = 1e-6;
+  checks_params.continuity_threshold = 1e-5;
   checks_params.continuity_verbose = false;
   Checks checks{grid, MPI_COMM_WORLD, checks_params};
 
@@ -375,15 +383,24 @@ void run()
 
   // -- output fields
   OutputFieldsParams outf_params{};
-  outf_params.pfield_interval = 400;
-  outf_params.tfield_interval = 400;
+#ifdef SMALL
+  outf_params.pfield_interval = 0;
+  outf_params.tfield_interval = 0;
+#else
+  outf_params.pfield_interval = -400;
+  outf_params.tfield_interval = -400;
+#endif
   outf_params.tfield_average_every = 40;
   outf_params.tfield_moments_average_every = 80;
   OutputFields outf{grid, outf_params};
 
   // -- output particles
   OutputParticlesParams outp_params{};
+#ifdef SMALL
+  outp_params.every_step = 0;
+#else
   outp_params.every_step = 400;
+#endif
   outp_params.data_dir = ".";
   outp_params.basename = "prt";
   OutputParticles outp{grid, outp_params};

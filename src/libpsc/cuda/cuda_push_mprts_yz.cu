@@ -1,7 +1,9 @@
 
 #include "cuda_iface.h"
 #include "cuda_mparticles.cuh"
+#include "cuda_mparticles.inl"
 #include "cuda_mfields.h"
+#include "cuda_mfields.inl"
 #include "cuda_push_particles.cuh"
 #include "push_particles_cuda_impl.hxx"
 #include "range.hxx"
@@ -24,6 +26,9 @@
 
 // FIXME
 #define CUDA_BND_S_OOB (10)
+
+
+extern int debug_patch_;
 
 // ----------------------------------------------------------------------
 
@@ -58,6 +63,10 @@ struct CudaPushParticles
     // field interpolation
     real_t xm[3];
     dmprts.template scalePos<dim>(xm, prt.x());
+    // if (n < 1) {
+    //   printf("A n%d: %g %g %g // %g %g %g\n", n, prt.x()[0], prt.x()[1], prt.x()[2],
+    // 	     prt.u()[0], prt.u()[1], prt.u()[2]);
+    // }
 #if 1
     const int *ci0 = current_block.ci0;
     if (!dim::InvarX::value && ((xm[0] < ci0[0] || xm[0] > ci0[0] + BS::x::value)) ||
@@ -85,6 +94,10 @@ struct CudaPushParticles
     // x^(n+0.5), p^n -> x^(n+0.5), p^(n+1.0) 
     real_t dq = dmprts.dq(prt.kind());
     advance.push_p(prt.u(), E, H, dq);
+    // if (n < 1) {
+    //   printf("B n%d: %g %g %g // %g %g %g\n", n, prt.x()[0], prt.x()[1], prt.x()[2],
+    // 	     prt.u()[0], prt.u()[1], prt.u()[2]);
+    // }
 #if 0
     if (!isfinite(prt.u()[0]) || !isfinite(prt.u()[1]) || !isfinite(prt.u()[2])) {
       printf("CUDA_ERROR push_part_one: n = %d pxi %g %g %g\n", n,
@@ -467,6 +480,10 @@ struct CudaPushParticles
       } else {
 	dmprts.storage.store_momentum(prt, n);
 	calc_j(dmprts, prt, n, dmprts.storage, scurr, current_block, dim{});
+	// if (n < 1) {
+	//   printf("G n%d: %g %g %g // %g %g %g\n", n, prt.x()[0], prt.x()[1], prt.x()[2],
+	// 	 prt.u()[0], prt.u()[1], prt.u()[2]);
+	// }
       }
     }
     
@@ -556,7 +573,34 @@ void CudaPushParticles_<Config>::push_mprts_ab(CudaMparticles* cmprts, struct cu
     cmprts->need_reorder = false;
   }
   } else {
+    if (debug_patch_ >= 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "bef-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(cmprts->grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      writer.put("d_mflds", static_cast<DMFields>(*cmflds));
+      writer.put("d_mprts", static_cast<DMparticlesCuda<BS144>>(*cmprts));
+      writer.close();
+    }
+    
     debug_ab(*cmprts, *cmflds);
+
+    if (debug_patch_ >= 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(cmprts->grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      writer.put("d_mflds", static_cast<DMFields>(*cmflds));
+      writer.put("d_mprts", static_cast<DMparticlesCuda<BS144>>(*cmprts));
+      writer.close();
+      std::abort();
+    }
+    
+    
   }
 }
 
