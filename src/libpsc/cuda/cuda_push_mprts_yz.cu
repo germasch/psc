@@ -503,6 +503,30 @@ zero_currents(struct cuda_mfields *cmflds)
 // ----------------------------------------------------------------------
 // cuda_push_mprts_ab
 
+void debug_ab(DMparticlesCuda<BS144>& d_mprts, DMFields& d_mflds)
+{
+  using Config = CudaConfig1vbec3d<dim_yz, BS144>;
+  using Currmem = typename Config::Currmem;
+  using Block = typename Currmem::Block<typename Config::Bs, typename Config::dim>;
+
+  for (int p = 0; p < d_mflds.n_patches_; p++) {
+    uint size = d_mflds.box().size();
+    // cudaError ierr = cudaMemset((*cmflds)[p].data() + JXI * size, 0,
+    // 				3 * size * sizeof(fields_cuda_real_t));
+    //cudaCheck(ierr);
+  }
+
+  dim3 dimGrid = Block::_dimGrid(d_mprts);
+  
+  auto off = thrust::device_pointer_cast(d_mprts.off_);
+
+  for (auto block_start : Block::block_starts()) {
+    ::push_mprts_ab<Config, false>
+      <<<dimGrid, THREADS_PER_BLOCK>>>(block_start, d_mprts, d_mflds);
+    cuda_sync_if_enabled();
+  }
+}
+
 template<typename Config>
 template<bool REORDER>
 void CudaPushParticles_<Config>::push_mprts_ab(CudaMparticles* cmprts, struct cuda_mfields *cmflds)

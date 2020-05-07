@@ -49,5 +49,7 @@ if (PSC_HAVE_ADIOS2)
   add_psc_test(test_mfields_io)
   add_psc_cuda_test(test_cuda_mfields_io)
   add_psc_cuda_test(test_cuda_mparticles_io)
+  add_executable(debug debug.cu)
+  target_link_libraries(debug PRIVATE psc)
 endif()
 
