@@ -399,7 +399,7 @@ void run()
 #ifdef SMALL
   outp_params.every_step = 0;
 #else
-  outp_params.every_step = 400;
+  outp_params.every_step = -400;
 #endif
   outp_params.data_dir = ".";
   outp_params.basename = "prt";
