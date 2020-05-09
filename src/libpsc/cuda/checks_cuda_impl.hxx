@@ -168,8 +168,8 @@ struct ChecksCuda
       mprts.write(writer);
       writer.close();
 #endif
-      debug_cnt++;
-      if (debug_cnt == 3) std::abort();
+      debug_cnt_++;
+      if (debug_cnt_ == 3) std::abort();
     }
       
     // find global max
