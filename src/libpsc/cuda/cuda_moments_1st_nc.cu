@@ -152,6 +152,15 @@ void CudaMoments1stNcRho<CudaMparticles, dim>::operator()(CudaMparticles& cmprts
 // ----------------------------------------------------------------------
 // CudaMoments1stNcRho::invoke
 
+void debug_rho(DMparticlesCuda<BS144> d_mprts, DMFields d_mflds)
+{
+  dim3 dimGrid = BlockSimple<BS144, dim_yz>::_dimGrid(d_mprts);
+
+  rho_1st_nc_cuda_run<DMparticlesCuda<BS144>, dim_yz, false>
+    <<<dimGrid, THREADS_PER_BLOCK>>>(d_mprts, d_mflds);
+  cuda_sync_if_enabled();
+}
+
 template<typename CudaMparticles, typename dim>
 template<bool REORDER>
 void CudaMoments1stNcRho<CudaMparticles, dim>::invoke(CudaMparticles& cmprts, struct cuda_mfields *cmres)

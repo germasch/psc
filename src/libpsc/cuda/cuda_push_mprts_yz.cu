@@ -174,7 +174,7 @@ struct CudaPushParticles
 	scurr.add(0, i[1]+1, i[2]+1, fnqx * (dx[0] * (.5f + xa[1]) * (.5f + xa[2]) - h), current_block.ci0);
       }
     }
-    if (dx[1] != 0.f) {
+    if (1||dx[1] != 0.f) {
       float fnqy = qni_wni * dmprts.fnqys();
       scurr.add(1, i[1],i[2]  , fnqy * dx[1] * (.5f - xa[2]), current_block.ci0);
       scurr.add(1, i[1],i[2]+1, fnqy * dx[1] * (.5f + xa[2]), current_block.ci0);

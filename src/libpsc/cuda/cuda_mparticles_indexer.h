@@ -288,6 +288,15 @@ struct BlockSimple<BS, dim_yz> : BlockBase
 {
   static Range<int> block_starts() { return range(1);  }
 
+  template<typename DMparticles>
+  static dim3 _dimGrid(DMparticles& d_mprts)
+  {
+    int n_patches = d_mprts.n_blocks_ / (d_mprts.b_mx_[1] * d_mprts.b_mx_[2]);
+    int gx = d_mprts.b_mx_[1];
+    int gy = d_mprts.b_mx_[2] * n_patches;
+    return dim3(gx, gy);
+  }
+
   template<typename CudaMparticles>
   static dim3 dimGrid(CudaMparticles& cmprts)
   {
@@ -378,7 +387,6 @@ struct BlockQ<BS, dim_yz> : BlockBase
   static dim3 _dimGrid(DMparticles& d_mprts)
   {
     int n_patches = d_mprts.n_blocks_ / (d_mprts.b_mx_[1] * d_mprts.b_mx_[2]);
-    printf("n_patches %d\n", n_patches);
     int gx =  (d_mprts.b_mx_[1] + 1) / 2;
     int gy = ((d_mprts.b_mx_[2] + 1) / 2) * n_patches;
     return dim3(gx, gy);

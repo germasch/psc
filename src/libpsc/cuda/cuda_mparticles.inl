@@ -20,8 +20,8 @@ public:
     writer.put("dt", d_mprts.dt_, launch);
     writer.put("fnqs", d_mprts.fnqs_, launch);
     writer.put("fnqxs", d_mprts.fnqxs_, launch);
-    writer.put("fnqys", d_mprts.fnqzs_, launch);
-    writer.put("fnqzs", d_mprts.fnqxs_, launch);
+    writer.put("fnqys", d_mprts.fnqys_, launch);
+    writer.put("fnqzs", d_mprts.fnqzs_, launch);
     writer.put("dqs", d_mprts.dqs_, launch);
     std::vector<float> dq(d_mprts.dq_, d_mprts.dq_ + 4);
     writer.put("dq", dq, kg::io::Mode::Blocking);
@@ -108,8 +108,8 @@ public:
     reader.get("dt", d_mprts.dt_, launch);
     reader.get("fnqs", d_mprts.fnqs_, launch);
     reader.get("fnqxs", d_mprts.fnqxs_, launch);
-    reader.get("fnqys", d_mprts.fnqzs_, launch);
-    reader.get("fnqzs", d_mprts.fnqxs_, launch);
+    reader.get("fnqys", d_mprts.fnqys_, launch);
+    reader.get("fnqzs", d_mprts.fnqzs_, launch);
     reader.get("dqs", d_mprts.dqs_, launch);
 
     std::vector<float> dq(4);

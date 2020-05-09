@@ -119,8 +119,8 @@ struct ChecksCuda
         double div_j = Div_J(0, jx, jy, jz);
         max_err = fmax(max_err, fabs(d_rho + div_j));
         if (fabs(d_rho + div_j) > eps) {
-          mprintf("p%d (%d,%d,%d): %g -- %g diff %g\n", p, jx, jy, jz, d_rho,
-                  -div_j, d_rho + div_j);
+          mprintf("p%d (%d,%d,%d): %g -- %g diff %g at %d:%d\n", p, jx, jy, jz, d_rho,
+                  -div_j, d_rho + div_j, grid.patches[p].off[1], grid.patches[p].off[2]);
           if (debug_patch_ < 0) {
             debug_patch_ = p;
           }
