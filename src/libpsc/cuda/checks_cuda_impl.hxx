@@ -6,6 +6,7 @@
 #include "fields_item_moments_1st_cuda.hxx"
 
 int debug_patch_ = -1;
+int debug_cnt_ = 0;
 
 // FIXME!!! need to get Dim from Mparticles directly!
 
@@ -167,6 +168,8 @@ struct ChecksCuda
       mprts.write(writer);
       writer.close();
 #endif
+      debug_cnt++;
+      if (debug_cnt == 3) std::abort();
     }
       
     // find global max

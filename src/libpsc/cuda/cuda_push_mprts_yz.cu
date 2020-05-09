@@ -597,7 +597,6 @@ void CudaPushParticles_<Config>::push_mprts_ab(CudaMparticles* cmprts, struct cu
       writer.put("d_mflds", static_cast<DMFields>(*cmflds));
       writer.put("d_mprts", static_cast<DMparticlesCuda<BS144>>(*cmprts));
       writer.close();
-      std::abort();
     }
     
     
