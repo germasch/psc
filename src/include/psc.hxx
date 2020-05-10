@@ -28,6 +28,7 @@ struct MaterialList;
 #endif
 
 extern int debug_patch_;
+int debug_ddc_;
 
 #ifdef VPIC
 
