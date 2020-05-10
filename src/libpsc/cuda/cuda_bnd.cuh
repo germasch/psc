@@ -16,6 +16,7 @@
 #include <thrust/sort.h>
 
 extern int debug_patch_;
+static int cnt_;
 
 #define mrc_ddc_multi(ddc) mrc_to_subobj(ddc, struct mrc_ddc_multi)
 
@@ -268,7 +269,7 @@ struct CudaBnd
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "ddc1-proc-" + std::to_string(rank) +
-	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+	"-time-" + std::to_string(cmflds.grid().timestep()) + "-cnt-" + std::to_string(cnt_++) + ".bp";
       auto io = kg::io::IOAdios2(MPI_COMM_SELF);
       auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
       writer.put("d_mflds", static_cast<DMFields>(cmflds));
@@ -295,7 +296,7 @@ struct CudaBnd
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "ddc2-proc-" + std::to_string(rank) +
-	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+	"-time-" + std::to_string(cmflds.grid().timestep()) + "-cnt-" + std::to_string(cnt_++) + ".bp";
       auto io = kg::io::IOAdios2(MPI_COMM_SELF);
       auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
       writer.put("d_mflds", static_cast<DMFields>(cmflds));
@@ -309,7 +310,7 @@ struct CudaBnd
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "ddc3-proc-" + std::to_string(rank) +
-	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+	"-time-" + std::to_string(cmflds.grid().timestep()) + "-cnt-" + std::to_string(cnt_++) + ".bp";
       auto io = kg::io::IOAdios2(MPI_COMM_SELF);
       auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
       writer.put("d_mflds", static_cast<DMFields>(cmflds));
@@ -325,7 +326,7 @@ struct CudaBnd
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "ddc4-proc-" + std::to_string(rank) +
-	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+	"-time-" + std::to_string(cmflds.grid().timestep()) + "-cnt-" + std::to_string(cnt_++) + ".bp";
       auto io = kg::io::IOAdios2(MPI_COMM_SELF);
       auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
       writer.put("d_mflds", static_cast<DMFields>(cmflds));
@@ -339,7 +340,7 @@ struct CudaBnd
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "ddc5-proc-" + std::to_string(rank) +
-	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+	"-time-" + std::to_string(cmflds.grid().timestep()) + "-cnt-" + std::to_string(cnt_++) + ".bp";
       auto io = kg::io::IOAdios2(MPI_COMM_SELF);
       auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
       writer.put("d_mflds", static_cast<DMFields>(cmflds));
@@ -357,7 +358,7 @@ struct CudaBnd
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "ddc6-proc-" + std::to_string(rank) +
-	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+	"-time-" + std::to_string(cmflds.grid().timestep()) + "-cnt-" + std::to_string(cnt_++) + ".bp";
       auto io = kg::io::IOAdios2(MPI_COMM_SELF);
       auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
       writer.put("d_mflds", static_cast<DMFields>(cmflds));
@@ -371,7 +372,7 @@ struct CudaBnd
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "ddc7-proc-" + std::to_string(rank) +
-	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+	"-time-" + std::to_string(cmflds.grid().timestep()) + "-cnt-" + std::to_string(cnt_++) + ".bp";
       auto io = kg::io::IOAdios2(MPI_COMM_SELF);
       auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
       writer.put("d_mflds", static_cast<DMFields>(cmflds));
