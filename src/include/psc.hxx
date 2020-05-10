@@ -27,6 +27,8 @@
 struct MaterialList;
 #endif
 
+extern int debug_patch_;
+
 #ifdef VPIC
 
 // FIXME, global variables are bad...
@@ -439,16 +441,52 @@ struct Psc
     prof_stop(pr_push_prts);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1/2}, j^{n+1}
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft1-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
     // === field propagation B^{n+1/2} -> B^{n+1}
     prof_start(pr_push_flds);
     pushf_.push_H(mflds_, .5, Dim{});
     prof_stop(pr_push_flds);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1}, j^{n+1}
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft2-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
     prof_start(pr_bndp);
     bndp_(mprts_);
     prof_stop(pr_bndp);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft3-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
     // === field propagation E^{n+1/2} -> E^{n+3/2}
     prof_start(pr_bndf);
 #if 1
@@ -461,10 +499,34 @@ struct Psc
     bnd_.fill_ghosts(mflds_, JXI, JXI + 3);
     prof_stop(pr_bndf);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft4-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
     prof_restart(pr_push_flds);
     pushf_.push_E(mflds_, 1., Dim{});
     prof_stop(pr_push_flds);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft5-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
 #if 1
     prof_restart(pr_bndf);
     bndf_.fill_ghosts_E(mflds_);
@@ -473,11 +535,36 @@ struct Psc
 #endif
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+3/2}, B^{n+1}
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft6-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
+    
     // === field propagation B^{n+1} -> B^{n+3/2}
     prof_restart(pr_push_flds);
     pushf_.push_H(mflds_, .5, Dim{});
     prof_stop(pr_push_flds);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft7-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
 #if 1
     prof_start(pr_bndf);
     bndf_.fill_ghosts_H(mflds_);
