@@ -5,6 +5,7 @@
 #include "cuda_mfields.h"
 #include "fields.hxx"
 #include "cuda_bits.h"
+#include "cuda_mfields.inl"
 
 #include "mrc_ddc_private.h"
 
@@ -13,6 +14,8 @@
 #include <thrust/gather.h>
 #include <thrust/scatter.h>
 #include <thrust/sort.h>
+
+extern int debug_patch_;
 
 #define mrc_ddc_multi(ddc) mrc_to_subobj(ddc, struct mrc_ddc_multi)
 
@@ -261,6 +264,16 @@ struct CudaBnd
     scatter(maps.local_recv, maps.local_buf, h_flds);
     thrust::copy(h_flds.begin(), h_flds.end(), d_flds);
 #else
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "ddc1-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      writer.put("d_mflds", static_cast<DMFields>(cmflds));
+      writer.close();
+    }
     thrust::device_ptr<real_t> d_flds{cmflds.data()};
     prof_start(pr_ddc0);
     MPI_Barrier(MPI_COMM_WORLD);
@@ -278,20 +291,60 @@ struct CudaBnd
     thrust::copy(maps.d_send_buf.begin(), maps.d_send_buf.end(), maps.send_buf.begin());
     prof_stop(pr_ddc3);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "ddc2-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      writer.put("d_mflds", static_cast<DMFields>(cmflds));
+      writer.close();
+    }
     prof_start(pr_ddc4);
     postSends(maps);
     prof_stop(pr_ddc4);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "ddc3-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      writer.put("d_mflds", static_cast<DMFields>(cmflds));
+      writer.close();
+    }
     // local part
     prof_start(pr_ddc5);
     thrust::gather(maps.d_local_send.begin(), maps.d_local_send.end(), d_flds,
 		   maps.d_local_buf.begin());
     prof_stop(pr_ddc5);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "ddc4-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      writer.put("d_mflds", static_cast<DMFields>(cmflds));
+      writer.close();
+    }
     prof_start(pr_ddc6);
     scatter(maps.d_local_recv, maps.d_local_buf, d_flds);
     prof_stop(pr_ddc6);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "ddc5-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      writer.put("d_mflds", static_cast<DMFields>(cmflds));
+      writer.close();
+    }
     prof_start(pr_ddc7);
     MPI_Waitall(maps.patt->recv_cnt, maps.patt->recv_req, MPI_STATUSES_IGNORE);
     prof_stop(pr_ddc7);
@@ -300,10 +353,30 @@ struct CudaBnd
     thrust::copy(maps.recv_buf.begin(), maps.recv_buf.end(), maps.d_recv_buf.begin());
     prof_stop(pr_ddc8);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "ddc6-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      writer.put("d_mflds", static_cast<DMFields>(cmflds));
+      writer.close();
+    }
     prof_start(pr_ddc9);
     scatter(maps.d_recv, maps.d_recv_buf, d_flds);
     prof_stop(pr_ddc9);
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "ddc7-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(cmflds.grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      writer.put("d_mflds", static_cast<DMFields>(cmflds));
+      writer.close();
+    }
     prof_start(pr_ddc10);
     MPI_Waitall(maps.patt->send_cnt, maps.patt->send_req, MPI_STATUSES_IGNORE);
     prof_stop(pr_ddc10);
@@ -433,7 +506,7 @@ struct CudaBnd
       for (int iz = ilo[2]; iz < ihi[2]; iz++) {
 	for (int iy = ilo[1]; iy < ihi[1]; iy++) {
 	  for (int ix = ilo[0]; ix < ihi[0]; ix++) {
-	    *cur++ = cmflds.index(m, ix,iy,iz, p);
+	    *cur++ = cmflds.valid_index(m, ix,iy,iz, p);
 	  }
 	}
       }

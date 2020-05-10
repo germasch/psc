@@ -162,6 +162,20 @@ struct cuda_mfields : CudaMfields<MfieldsStorageDeviceVector>
 	    * im(0) + (i - ib(0)));
   }
 
+  int valid_index(int m, int i, int j, int k, int p) const
+  {
+    assert(m >= 0 && m < n_comps());
+    assert(i >= ib(0) && i < ib(0) + im(0));
+    assert(j >= ib(1) && j < ib(1) + im(1));
+    assert(k >= ib(2) && k < ib(2) + im(2));
+    assert(p >= 0 && p < n_patches());
+    return (((((p)
+	       * n_comps() + m)
+	      * im(2) + (k - ib(2)))
+	     * im(1) + (j - ib(1)))
+	    * im(0) + (i - ib(0)));
+  }
+
   real_t get_value(int idx) const { return storage()[idx]; }
   void set_value(int idx, real_t val) { storage()[idx] = val; }
   
