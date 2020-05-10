@@ -494,8 +494,44 @@ struct Psc
     bnd_.fill_ghosts(mflds_, HX, HX + 3);
 #endif
 
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft3a-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
     bndf_.add_ghosts_J(mflds_);
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft3b-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
     bnd_.add_ghosts(mflds_, JXI, JXI + 3);
+    if (debug_patch_ > 0) {
+      int rank;
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      std::string outfile = "aft3c-proc-" + std::to_string(rank) +
+	"-time-" + std::to_string(grid().timestep()) + ".bp";
+      auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+      auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+      mflds_.write(writer);
+      mprts_.write(writer);
+      writer.close();
+    }
+    
     bnd_.fill_ghosts(mflds_, JXI, JXI + 3);
     prof_stop(pr_bndf);
 
