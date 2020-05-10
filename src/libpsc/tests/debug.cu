@@ -61,14 +61,16 @@ int main(int argc, char **argv)
   DMFields d_mflds_1, d_mflds_2;
   DMparticles d_mprts_1, d_mprts_2;
 
+  std::string dir("flatfoil-summit133");
+  std::string step("1207");
   auto io = kg::io::IOAdios2{};
-  auto reader = io.open("flatfoil-summit131/bef-proc-68-time-1206.bp", kg::io::Mode::Read);
+  auto reader = io.open(dir + "/bef-proc-68-time-" + step + ".bp", kg::io::Mode::Read);
   //auto reader = io.open("bef-proc-0-time-0.bp", kg::io::Mode::Read);
   reader.get("d_mflds", d_mflds_1);
   reader.get("d_mprts", d_mprts_1);
   reader.close();
 
-  auto reader2 = io.open("flatfoil-summit131/aft-proc-68-time-1206.bp", kg::io::Mode::Read);
+  auto reader2 = io.open(dir + "/aft-proc-68-time-" + step + ".bp", kg::io::Mode::Read);
   //auto reader2 = io.open("aft-proc-0-time-0.bp", kg::io::Mode::Read);
   reader2.get("d_mflds", d_mflds_2);
   reader2.get("d_mprts", d_mprts_2);
@@ -115,7 +117,7 @@ int main(int argc, char **argv)
   debug_ab(d_mprts_1, d_mflds_1);
   debug_rho(d_mprts_1, d_rho_p);
   
-  auto writer = io.open("flatfoil-summit131/after.bp", kg::io::Mode::Write, MPI_COMM_SELF);
+  auto writer = io.open(dir + "/after.bp", kg::io::Mode::Write, MPI_COMM_SELF);
   writer.put("d_mflds", d_mflds_1);
   writer.put("d_mprts", d_mprts_1);
   writer.put("d_rho_m", d_rho_m);

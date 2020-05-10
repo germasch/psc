@@ -503,8 +503,10 @@ struct Psc
       mprts_.write(writer);
       writer.close();
     }
-    
+
+    debug_ddc_ = debug_patch_ >= 0;   
     bnd_.fill_ghosts(mflds_, HX, HX + 3);
+    debug_ddc_ = false;
 #endif
 
     if (debug_patch_ > 0) {
