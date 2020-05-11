@@ -1101,6 +1101,8 @@ void ScanScatterDigits3x(
 			  if (bby < NBLOCKS_Y && bbz < NBLOCKS_Z) {
 			    carry[threadIdx.x] =
 			      d_spine[(bb + (blockIdx.x / (NBLOCKS_Y * NBLOCKS_Z)) * (NBLOCKS_Y * NBLOCKS_Z)) * 10 + d];
+			  } else {
+			    printf("bbyz %d %d\n", bby, bbz);
 			  }
 			} else if (d == CUDA_BND_S_OOB) {
 			  carry[threadIdx.x] = d_spine[nr_total_blocks*10 + blockIdx.x];
