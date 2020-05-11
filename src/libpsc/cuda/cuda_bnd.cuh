@@ -355,6 +355,10 @@ struct CudaBnd
     prof_stop(pr_ddc5);
 
     dump("ddc4", cmflds, cmflds.grid().timestep(), maps);
+    if (mb == 6) {
+      uint csum = thrust::reduce(maps.d_local_recv.begin(), maps.d_local_recv.end());
+      mprintf("csum = %d\n", csum);
+    }
     prof_start(pr_ddc6);
     scatter(maps.d_local_recv, maps.d_local_buf, d_flds);
     prof_stop(pr_ddc6);
