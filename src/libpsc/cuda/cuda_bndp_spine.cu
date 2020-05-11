@@ -332,6 +332,10 @@ void cuda_bndp<CudaMparticles, DIM>::sort_pairs_device(CudaMparticles *cmprts, u
 	    cmprts->by_block_.d_id.size(), 
 	    cmprts->by_block_.d_off.size(),
 	    n_blocks);
+    mprintf("spine_sums %p block_dx %p, block_id %p, off %p\n",
+	    d_spine_sums.data().get(), cmprts->by_block_.d_idx.data().get(), 
+	    cmprts->by_block_.d_id.data().get(), 
+	    cmprts->by_block_.d_off.data().get());
   }
 
   // d_ids now contains the indices to reorder by
