@@ -293,7 +293,7 @@ struct CudaPushParticles
     storage.store_position(prt, n);
 
     // has moved into which block? (given as relative shift)
-#if 1
+#if 0
     dmprts.bidx_[n] = dmprts.blockNoShift(prt.x(), current_block.p);
 #else
     dmprts.bidx_[n] = dmprts.blockShift(prt.x(), current_block.p, current_block.bid);

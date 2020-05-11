@@ -93,7 +93,7 @@ auto cuda_bndp<CudaMparticles, DIM>::prep(CudaMparticles* cmprts) -> BndBuffers&
 template<typename CudaMparticles, typename DIM>
 void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
 {
-#if 1
+#if 0
   g_bnd->check(HX, HX + 3, __LINE__);
   auto& cmprts = *_cmprts;
   auto& d_bidx = cmprts.by_block_.d_idx;
