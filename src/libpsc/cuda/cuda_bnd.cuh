@@ -18,6 +18,21 @@
 extern int debug_patch_;
 extern int debug_ddc_;
 
+template <>
+class kg::io::Descr<thrust::device_vector<uint>>
+{
+public:
+  void put(kg::io::Engine& writer, const thrust::device_vector<uint>& d_vec,
+           const kg::io::Mode launch = kg::io::Mode::NonBlocking)
+  {
+    thrust::host_vector<float> h_vec(d_vec);
+    writer.putVariable(h_vec.data(), launch, {h_vec.size()}, {{0}, {h_vec.size()}});
+    writer.performPuts();
+  }
+};
+
+
+
 inline void dump(std::string pfx, DMFields d_mflds, int timestep)
 {
   if (debug_ddc_ > 0) {
@@ -326,7 +341,7 @@ struct CudaBnd
 		   maps.d_local_buf.begin());
     prof_stop(pr_ddc5);
 
-    dump("ddc4", cmflds, cmflds.grid().timestep());
+    dump("ddc4", cmflds, cmflds.grid().timestep(), maps);
     prof_start(pr_ddc6);
     scatter(maps.d_local_recv, maps.d_local_buf, d_flds);
     prof_stop(pr_ddc6);
