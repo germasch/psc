@@ -94,6 +94,7 @@ template<typename CudaMparticles, typename DIM>
 void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
 {
 #if 1
+  g_bnd->check(HX, HX + 3, __LINE__);
   auto& cmprts = *_cmprts;
   auto& d_bidx = cmprts.by_block_.d_idx;
 
@@ -101,8 +102,11 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
   auto n_prts_recv = convert_and_copy_to_dev(&cmprts);
   cmprts.n_prts += n_prts_recv;
   
+  g_bnd->check(HX, HX + 3, __LINE__);
   thrust::sequence(cmprts.by_block_.d_id.begin(), cmprts.by_block_.d_id.end());
+  g_bnd->check(HX, HX + 3, __LINE__);
   thrust::stable_sort_by_key(d_bidx.begin(), d_bidx.end(), cmprts.by_block_.d_id.begin());
+  g_bnd->check(HX, HX + 3, __LINE__);
 
   // drop the previously sent particles, which have been sorted to the end of the array, now
   cmprts.n_prts -= n_prts_send;
@@ -118,7 +122,16 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
 		      cmprts.by_block_.d_off.begin() + 1);
   // d_off[0] was set to zero during d_off initialization
 
+#if 1
+  g_bnd->check(HX, HX + 3, __LINE__);
+  cmprts.need_reorder = true; //JOHN added for debug
+  cmprts.reorder();
+  g_bnd->check(HX, HX + 3, __LINE__);
+  assert(cmprts.check_ordered());
+#else
   cmprts.need_reorder = true;
+#endif
+  g_bnd->check(HX, HX + 3, __LINE__);
 #else  
   static int pr_A, pr_D, pr_E, pr_D1;
   if (!pr_A) {
