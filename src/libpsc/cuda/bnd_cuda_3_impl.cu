@@ -61,6 +61,15 @@ void BndCuda3<MF>::fill_ghosts(Mfields& mflds, int mb, int me)
   cbnd_->fill_ghosts(*mflds.cmflds(), mb, me);
 }
 
+// ----------------------------------------------------------------------
+// check
+
+template<typename MF>
+void BndCuda3<MF>::check(int mb, int me)
+{
+  cbnd_->check(mb, me);
+}
+
 template<typename MF> int BndCuda3<MF>::balance_generation_cnt_;
 template<typename MF> CudaBnd* BndCuda3<MF>::cbnd_;
 

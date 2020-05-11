@@ -189,6 +189,8 @@ struct CudaBnd
       d_send_buf.resize(send_buf.size());
       d_recv_buf.resize(recv_buf.size());
 
+      csum_ = thrust::reduce(d_local_recv.begin(), d_local_recv.end());
+      
       if (1) {
 	int rank;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -220,6 +222,7 @@ struct CudaBnd
 
     mrc_ddc_pattern2* patt;
     int mb, me;
+    uint csum_;
   };
 
   // ----------------------------------------------------------------------
@@ -283,6 +286,22 @@ struct CudaBnd
     run(cmflds, mb, me, &sub->fill_ghosts2, maps_fill_, Scatter{});
   }
 
+  void check(int mb, int me)
+  {
+    //mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
+    int key = mb + 100*me;
+    auto it = maps_fill_.find(key);
+    if (it == maps_fill_.cend()) {
+      mprintf("map not found!\n");
+    } else {
+      auto& maps = it->second;
+      uint csum = thrust::reduce(maps.d_local_recv.begin(), maps.d_local_recv.end());
+      if (csum != maps.csum_) {
+	mprintf("map checksum changed!\n");
+      }
+    }
+  }
+  
   // ----------------------------------------------------------------------
   // ddc_run
 
@@ -355,10 +374,10 @@ struct CudaBnd
     prof_stop(pr_ddc5);
 
     dump("ddc4", cmflds, cmflds.grid().timestep(), maps);
-    if (mb == 6) {
-      uint csum = thrust::reduce(maps.d_local_recv.begin(), maps.d_local_recv.end());
-      mprintf("csum = %d\n", csum);
-    }
+    // if (mb == 6) {
+    //   uint csum = thrust::reduce(maps.d_local_recv.begin(), maps.d_local_recv.end());
+    //   mprintf("csum = %d\n", csum);
+    // }
     prof_start(pr_ddc6);
     scatter(maps.d_local_recv, maps.d_local_buf, d_flds);
     prof_stop(pr_ddc6);
