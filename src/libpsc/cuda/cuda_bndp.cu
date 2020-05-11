@@ -91,8 +91,35 @@ auto cuda_bndp<CudaMparticles, DIM>::prep(CudaMparticles* cmprts) -> BndBuffers&
 // post
 
 template<typename CudaMparticles, typename DIM>
-void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* cmprts)
+void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
 {
+#if 1
+  auto& cmprts = *_cmprts;
+  auto& d_bidx = cmprts.by_block_.d_idx;
+
+  auto n_prts_send = d_bidx.size() - cmprts.n_prts;
+  auto n_prts_recv = convert_and_copy_to_dev(&cmprts);
+  cmprts.n_prts += n_prts_recv;
+  
+  thrust::sequence(cmprts.by_block_.d_id.begin(), cmprts.by_block_.d_id.end());
+  thrust::stable_sort_by_key(d_bidx.begin(), d_bidx.end(), cmprts.by_block_.d_id.begin());
+
+  // drop the previously sent particles, which have been sorted to the end of the array, now
+  cmprts.n_prts -= n_prts_send;
+  // FIXME, this is evil, but done in yz case, too: even though the arrays are still have 6 elements
+  // because they contain previously sent particles (a.k.a., gaps), the actual # particles is only 4,
+  // but they are pointed to correctly by d_id
+  //cmprts.resize(cmprts.n_prts);
+
+  // find offsets
+  thrust::counting_iterator<uint> search_begin(0);
+  thrust::upper_bound(d_bidx.begin(), d_bidx.end(),
+		      search_begin, search_begin + cmprts.n_blocks,
+		      cmprts.by_block_.d_off.begin() + 1);
+  // d_off[0] was set to zero during d_off initialization
+
+  cmprts.need_reorder = true;
+#else  
   static int pr_A, pr_D, pr_E, pr_D1;
   if (!pr_A) {
     pr_A = prof_register("xchg_to_dev", 1., 0, 0);
@@ -131,6 +158,7 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* cmprts)
 #endif
   g_bnd->check(HX, HX + 3, __LINE__);
   prof_stop(pr_E);
+#endif
 }
 
 // ----------------------------------------------------------------------
