@@ -11,6 +11,12 @@
 
 #include <mrc_profile.h>
 
+#include "bnd_cuda_3_impl.hxx"
+#include "psc_fields_cuda.h"
+
+extern BndCuda3<MfieldsStateCuda> *g_bnd;
+
+
 #define THREADS_PER_BLOCK 256
 
 // layout of the spine
@@ -95,28 +101,35 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* cmprts)
     pr_E = prof_register("xchg_reorder", 1., 0, 0);
   }
 
+  g_bnd->check(HX, HX + 3, __LINE__);
+  
   prof_start(pr_A);
   uint n_prts_recv = convert_and_copy_to_dev(cmprts);
   cmprts->n_prts += n_prts_recv;
   prof_stop(pr_A);
 
+  g_bnd->check(HX, HX + 3, __LINE__);
   prof_start(pr_D);
   sort_pairs_device(cmprts, n_prts_recv);
   cmprts->n_prts -= n_prts_send;
   prof_stop(pr_D);
 
+  g_bnd->check(HX, HX + 3, __LINE__);
   prof_start(pr_D1);
   update_offsets(cmprts);
   prof_stop(pr_D1);
   
   prof_start(pr_E);
 #if 1
+  g_bnd->check(HX, HX + 3, __LINE__);
   cmprts->need_reorder = true; //JOHN added for debug
   cmprts->reorder();
+  g_bnd->check(HX, HX + 3, __LINE__);
   assert(cmprts->check_ordered());
 #else
   cmprts->need_reorder = true;
 #endif
+  g_bnd->check(HX, HX + 3, __LINE__);
   prof_stop(pr_E);
 }
 
