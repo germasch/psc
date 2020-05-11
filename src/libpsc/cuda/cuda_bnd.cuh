@@ -297,7 +297,7 @@ struct CudaBnd
       auto& maps = it->second;
       uint csum = thrust::reduce(maps.d_local_recv.begin(), maps.d_local_recv.end());
       if (csum != maps.csum_) {
-	mprintf("map checksum changed! line %d\n", line);
+	mprintf("map checksum changed! line %d at %p\n", line, maps.d_local_recv.data().get());
 	return false;
       }
     }
