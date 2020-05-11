@@ -25,7 +25,7 @@ public:
   void put(kg::io::Engine& writer, const thrust::device_vector<uint>& d_vec,
            const kg::io::Mode launch = kg::io::Mode::NonBlocking)
   {
-    thrust::host_vector<float> h_vec(d_vec);
+    thrust::host_vector<uint> h_vec(d_vec);
     writer.putVariable(h_vec.data(), launch, {h_vec.size()}, {{0}, {h_vec.size()}});
     writer.performPuts();
   }
@@ -188,6 +188,19 @@ struct CudaBnd
       d_local_buf.resize(local_buf.size());
       d_send_buf.resize(send_buf.size());
       d_recv_buf.resize(recv_buf.size());
+
+      if (1) {
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	auto outfile = "maps-proc-" + std::to_string(rank) +
+	  "-time-" + std::to_string(cmflds.grid().timestep()) + "-mb-" + std::to_string(mb) +
+	  "-me-" + std::to_string(me) + ".bp";
+	auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+	auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+	writer.put("d_local_send", d_local_send);
+	writer.put("d_local_recv", d_local_recv);
+	writer.close();
+      }
     }
     
     Maps(const Maps&) = delete;

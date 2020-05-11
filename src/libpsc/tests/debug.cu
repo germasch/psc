@@ -61,9 +61,9 @@ int main(int argc, char **argv)
   DMFields d_mflds_1, d_mflds_2;
   DMparticles d_mprts_1, d_mprts_2;
 
-  std::string dir("flatfoil-summit135");
+  std::string dir("flatfoil-summit139");
   std::string step("1207");
-  std::string proc("27");
+  std::string proc("68");
   auto io = kg::io::IOAdios2{};
   auto reader = io.open(dir + "/bef-proc-" + proc + "-time-" + step + ".bp", kg::io::Mode::Read);
   //auto reader = io.open("bef-proc-0-time-0.bp", kg::io::Mode::Read);
