@@ -445,7 +445,6 @@ struct Psc
     prof_stop(pr_push_prts);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1/2}, j^{n+1}
 
-    bnd_.check(HX, HX + 3, __LINE__);
     if (debug_patch_ > 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -458,12 +457,14 @@ struct Psc
       writer.close();
     }
     
+    bnd_.check(HX, HX + 3, __LINE__);
     // === field propagation B^{n+1/2} -> B^{n+1}
     prof_start(pr_push_flds);
     pushf_.push_H(mflds_, .5, Dim{});
     prof_stop(pr_push_flds);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1}, j^{n+1}
 
+    bnd_.check(HX, HX + 3, __LINE__);
     if (debug_patch_ > 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -476,6 +477,7 @@ struct Psc
       writer.close();
     }
     
+    bnd_.check(HX, HX + 3, __LINE__);
     prof_start(pr_bndp);
     bndp_(mprts_);
     prof_stop(pr_bndp);
