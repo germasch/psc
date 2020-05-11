@@ -65,9 +65,9 @@ void BndCuda3<MF>::fill_ghosts(Mfields& mflds, int mb, int me)
 // check
 
 template<typename MF>
-void BndCuda3<MF>::check(int mb, int me, int line)
+bool BndCuda3<MF>::check(int mb, int me, int line)
 {
-  cbnd_->check(mb, me, line);
+  return cbnd_->check(mb, me, line);
 }
 
 template<typename MF> int BndCuda3<MF>::balance_generation_cnt_;
