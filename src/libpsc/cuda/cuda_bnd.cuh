@@ -32,6 +32,23 @@ inline void dump(std::string pfx, DMFields d_mflds, int timestep)
   }
 }
 
+template <typename Maps>
+inline void dump(std::string pfx, DMFields d_mflds, int timestep, const Maps& maps)
+{
+  if (debug_ddc_ > 0) {
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    auto outfile = pfx + "-proc-" + std::to_string(rank) +
+      "-time-" + std::to_string(timestep) + ".bp";
+    auto io = kg::io::IOAdios2(MPI_COMM_SELF);
+    auto writer = io.open(outfile, kg::io::Mode::Write, MPI_COMM_SELF);
+    writer.put("d_mflds", d_mflds);
+    writer.put("d_local_recv", maps.d_local_recv);
+
+    writer.close();
+  }
+}
+
 #define mrc_ddc_multi(ddc) mrc_to_subobj(ddc, struct mrc_ddc_multi)
 
 template<typename real_t>
