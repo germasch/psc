@@ -286,18 +286,18 @@ struct CudaBnd
     run(cmflds, mb, me, &sub->fill_ghosts2, maps_fill_, Scatter{});
   }
 
-  void check(int mb, int me)
+  void check(int mb, int me, int line)
   {
     //mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     int key = mb + 100*me;
     auto it = maps_fill_.find(key);
     if (it == maps_fill_.cend()) {
-      mprintf("map not found!\n");
+      mprintf("map not found! line %d\n", line);
     } else {
       auto& maps = it->second;
       uint csum = thrust::reduce(maps.d_local_recv.begin(), maps.d_local_recv.end());
       if (csum != maps.csum_) {
-	mprintf("map checksum changed!\n");
+	mprintf("map checksum changed! line %d\n", line);
       }
     }
   }

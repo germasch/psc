@@ -401,6 +401,7 @@ struct Psc
       pr_marder = prof_register("step_marder", 1., 0, 0);
     }
 
+    bnd_.check(HX, HX + 3, __LINE__);
     // state is at: x^{n+1/2}, p^{n}, E^{n+1/2}, B^{n+1/2}
     MPI_Comm comm = grid().comm();
     int timestep = grid().timestep();
@@ -423,6 +424,7 @@ struct Psc
       prof_stop(pr_collision);
     }
 
+    bnd_.check(HX, HX + 3, __LINE__);
     // === particle injection
     prof_start(pr_inject_prts);
     inject_particles();
@@ -436,12 +438,14 @@ struct Psc
       prof_stop(pr_checks);
     }
     
+    bnd_.check(HX, HX + 3, __LINE__);
     // === particle propagation p^{n} -> p^{n+1}, x^{n+1/2} -> x^{n+3/2}
     prof_start(pr_push_prts);
     pushp_.push_mprts(mprts_, mflds_);
     prof_stop(pr_push_prts);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1/2}, j^{n+1}
 
+    bnd_.check(HX, HX + 3, __LINE__);
     if (debug_patch_ > 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -476,6 +480,7 @@ struct Psc
     bndp_(mprts_);
     prof_stop(pr_bndp);
 
+    bnd_.check(HX, HX + 3, __LINE__);
     if (debug_patch_ > 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -490,6 +495,7 @@ struct Psc
     
     // === field propagation E^{n+1/2} -> E^{n+3/2}
     prof_start(pr_bndf);
+    bnd_.check(HX, HX + 3, __LINE__);
 #if 1
     bndf_.fill_ghosts_H(mflds_);
     if (debug_patch_ > 0) {
@@ -505,7 +511,7 @@ struct Psc
     }
 
     debug_ddc_ = debug_patch_ >= 0;
-    bnd_.check(HX, HX + 3);
+    bnd_.check(HX, HX + 3, __LINE__);
     bnd_.fill_ghosts(mflds_, HX, HX + 3);
     debug_ddc_ = false;
 #endif
@@ -522,6 +528,7 @@ struct Psc
       writer.close();
     }
     
+    bnd_.check(HX, HX + 3, __LINE__);
     bndf_.add_ghosts_J(mflds_);
     if (debug_patch_ > 0) {
       int rank;
@@ -535,6 +542,7 @@ struct Psc
       writer.close();
     }
     
+    bnd_.check(HX, HX + 3, __LINE__);
     bnd_.add_ghosts(mflds_, JXI, JXI + 3);
     if (debug_patch_ > 0) {
       int rank;
@@ -548,6 +556,7 @@ struct Psc
       writer.close();
     }
     
+    bnd_.check(HX, HX + 3, __LINE__);
     bnd_.fill_ghosts(mflds_, JXI, JXI + 3);
     prof_stop(pr_bndf);
 
@@ -567,6 +576,7 @@ struct Psc
     pushf_.push_E(mflds_, 1., Dim{});
     prof_stop(pr_push_flds);
 
+    bnd_.check(HX, HX + 3, __LINE__);
     if (debug_patch_ > 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -587,6 +597,7 @@ struct Psc
 #endif
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+3/2}, B^{n+1}
 
+    bnd_.check(HX, HX + 3, __LINE__);
     if (debug_patch_ > 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -632,6 +643,7 @@ struct Psc
       prof_stop(pr_checks);
     }
 
+    bnd_.check(HX, HX + 3, __LINE__);
     // E at t^{n+3/2}, particles at t^{n+3/2}
     // B at t^{n+3/2} (Note: that is not its natural time,
     // but div B should be == 0 at any time...)
@@ -649,6 +661,7 @@ struct Psc
       prof_stop(pr_checks);
     }
 
+    bnd_.check(HX, HX + 3, __LINE__);
     // psc_push_particles_prep(psc->push_particles, psc->particles, psc->flds);
   }
 

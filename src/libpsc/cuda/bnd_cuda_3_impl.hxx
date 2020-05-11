@@ -21,7 +21,7 @@ struct BndCuda3 : BndBase
   void reset(const Grid_t& grid);
   void add_ghosts(Mfields& mflds, int mb, int me);
   void fill_ghosts(Mfields& mflds, int mb, int me);
-  void check(int mb, int me);
+  void check(int mb, int me, int line);
 
 private:
   static CudaBnd* cbnd_;
