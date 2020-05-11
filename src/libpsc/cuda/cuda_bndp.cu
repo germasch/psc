@@ -150,7 +150,8 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* cmprts)
 
   g_bnd->check(HX, HX + 3, __LINE__);
   prof_start(pr_D);
-  sort_pairs_device(cmprts, n_prts_recv);
+  //sort_pairs_device(cmprts, n_prts_recv);
+  sort_pairs_gold(cmprts, n_prts_recv);
   cmprts->n_prts -= n_prts_send;
   prof_stop(pr_D);
 
