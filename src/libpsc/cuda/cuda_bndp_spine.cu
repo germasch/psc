@@ -325,9 +325,8 @@ void cuda_bndp<CudaMparticles, DIM>::sort_pairs_device(CudaMparticles *cmprts, u
   cuda_sync_if_enabled();
   prof_stop(pr_D);
   if (!g_bnd->check(HX, HX + 3, __LINE__)) {
-    MHERE;
-    mprintf("b_mx %d x %d x %d!\n", mx[0], mx[1], mx[2]);
-    mprintf("spine_sums %zu block_dx %zu, block_id %zu, off %zu, n_blocks %d\n",
+    printf("b_mx %d x %d x %d!\n", mx[0], mx[1], mx[2]);
+    printf("spine_sums %zu block_dx %zu, block_id %zu, off %zu, n_blocks %d\n",
 	    d_spine_sums.size(), cmprts->by_block_.d_idx.size(), 
 	    cmprts->by_block_.d_id.size(), 
 	    cmprts->by_block_.d_off.size(),
