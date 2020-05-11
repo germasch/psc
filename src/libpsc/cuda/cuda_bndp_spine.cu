@@ -327,11 +327,11 @@ void cuda_bndp<CudaMparticles, DIM>::sort_pairs_device(CudaMparticles *cmprts, u
   if (!g_bnd->check(HX, HX + 3, __LINE__)) {
     MHERE;
     mprintf("b_mx %d x %d x %d!\n", mx[0], mx[1], mx[2]);
-    mprintf("spine_sums %zu block_dx %zu, block_id %zu, off %zu, n_blocks %d\n",
+    mprintf("spine_sums %zu block_dx %zu, block_id %zu, off %zu, n_blocks %d n_prts %d n_prts_recv %d\n",
 	    d_spine_sums.size(), cmprts->by_block_.d_idx.size(), 
 	    cmprts->by_block_.d_id.size(), 
 	    cmprts->by_block_.d_off.size(),
-	    n_blocks);
+	    n_blocks, cmprts->n_prts, n_prts_recv);
     mprintf("spine_sums %p block_dx %p, block_id %p, off %p\n",
 	    d_spine_sums.data().get(), cmprts->by_block_.d_idx.data().get(), 
 	    cmprts->by_block_.d_id.data().get(), 
