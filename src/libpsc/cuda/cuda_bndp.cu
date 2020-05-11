@@ -133,6 +133,8 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* cmprts)
 #endif
   g_bnd->check(HX, HX + 3, __LINE__);
 #else  
+
+
   static int pr_A, pr_D, pr_E, pr_D1;
   if (!pr_A) {
     pr_A = prof_register("xchg_to_dev", 1., 0, 0);

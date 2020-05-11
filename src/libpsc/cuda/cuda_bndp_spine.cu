@@ -377,7 +377,7 @@ void cuda_bndp<CudaMparticles, DIM>::sort_pairs_gold(CudaMparticles *cmprts, uin
 	int nn = h_spine_sums[(bb + p * n_blocks_per_patch) * 10 + key]++;
 	h_id[nn] = n;
       } else { // OOB
-	assert(0);
+	//assert(0);
       }
     }
   }
