@@ -21,6 +21,12 @@ static const int RADIX_BITS = 4;
 
 #define THREADS_PER_BLOCK 256
 
+#include "bnd_cuda_3_impl.hxx"
+#include "psc_fields_cuda.h"
+
+extern BndCuda3<MfieldsStateCuda> *g_bnd;
+
+
 // ----------------------------------------------------------------------
 // spine_reduce
 
@@ -251,19 +257,23 @@ void cuda_bndp<CudaMparticles, DIM>::sort_pairs_device(CudaMparticles *cmprts, u
     pr_D = prof_register("xchg_bottom_scan", 1., 0, 0);
   }
 
+  g_bnd->check(HX, HX + 3, __LINE__);
   prof_start(pr_A);
   count_received(cmprts);
   prof_stop(pr_A);
 
+  g_bnd->check(HX, HX + 3, __LINE__);
   prof_start(pr_B);
   // FIXME why isn't 10 + 0 enough?
   thrust::exclusive_scan(d_spine_cnts.data(), d_spine_cnts.data() + 1 + n_blocks * (10 + 1), d_spine_sums.data());
   prof_stop(pr_B);
 
+  g_bnd->check(HX, HX + 3, __LINE__);
   prof_start(pr_C);
   scan_scatter_received(cmprts, n_prts_recv);
   prof_stop(pr_C);
 
+  g_bnd->check(HX, HX + 3, __LINE__);
   prof_start(pr_D);
   Int3 mx = b_mx();
   if (mx[0] == 1 && mx[1] == 4 && mx[2] == 4) {
@@ -314,6 +324,7 @@ void cuda_bndp<CudaMparticles, DIM>::sort_pairs_device(CudaMparticles *cmprts, u
   }
   cuda_sync_if_enabled();
   prof_stop(pr_D);
+  g_bnd->check(HX, HX + 3, __LINE__);
 
   // d_ids now contains the indices to reorder by
 }
