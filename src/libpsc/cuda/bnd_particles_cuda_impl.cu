@@ -1,6 +1,10 @@
 
 #include "bnd_particles_cuda_impl.hxx"
 #include "cuda_bndp.h"
+#include "bnd_cuda_3_impl.hxx"
+#include "psc_fields_cuda.h"
+
+extern BndCuda3<MfieldsStateCuda> *g_bnd;
 
 // ----------------------------------------------------------------------
 // ctor
@@ -50,14 +54,18 @@ void BndParticlesCuda<Mparticles, DIM>::operator()(Mparticles& mprts)
   
   prof_restart(pr_time_step_no_comm);
   prof_start(pr_A);
+  g_bnd->check(HX, HX + 3, __LINE__);
   auto&& bufs = cbndp_->prep(mprts.cmprts());
   prof_stop(pr_A);
   
+  g_bnd->check(HX, HX + 3, __LINE__);
   this->process_and_exchange(mprts, bufs);
   
   prof_restart(pr_time_step_no_comm);
   prof_start(pr_B);
+  g_bnd->check(HX, HX + 3, __LINE__);
   cbndp_->post(mprts.cmprts());
+  g_bnd->check(HX, HX + 3, __LINE__);
   prof_stop(pr_B);
   prof_stop(pr_time_step_no_comm);
 }

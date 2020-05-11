@@ -18,6 +18,7 @@
 #include "psc_fields_cuda.h"
 #include "psc_fields_cuda.inl"
 #endif
+#include "../libpsc/cuda/bnd_cuda_3_impl.hxx"
 
 #ifdef VPIC
 #include "../libpsc/vpic/vpic_iface.h"
@@ -29,6 +30,8 @@ struct MaterialList;
 
 extern int debug_patch_;
 int debug_ddc_;
+
+BndCuda3<MfieldsStateCuda> *g_bnd;
 
 #ifdef VPIC
 
@@ -479,6 +482,7 @@ struct Psc
     
     bnd_.check(HX, HX + 3, __LINE__);
     prof_start(pr_bndp);
+    g_bnd = &bnd_;
     bndp_(mprts_);
     prof_stop(pr_bndp);
 
