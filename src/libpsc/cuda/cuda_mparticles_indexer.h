@@ -214,7 +214,7 @@ struct DParticleIndexer
     uint block_pos_z = __float2int_rd(xi[2] * dxi_[2]) / BS::z::value;
     
     if (block_pos_y >= b_mx_[1] || block_pos_z >= b_mx_[2]) {
-      return CUDA_BND_S_OOB;
+      return n_blocks_;
     } else {
       int bidx = (p * b_mx_[2] + block_pos_z) * b_mx_[1] + block_pos_y;
       return bidx;

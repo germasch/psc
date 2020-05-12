@@ -42,14 +42,17 @@ void cuda_bndp<CudaMparticles, DIM>::spine_reduce(CudaMparticles *cmprts)
     RakingReduction3x<K, V, 0, RADIX_BITS, 0,
 		      NopFunctor<K>, 2, 2> <<<n_blocks, threads>>>
       (d_spine_cnts.data().get(), cmprts->by_block_.d_idx.data().get(), cmprts->by_block_.d_off.data().get(), n_blocks);
+#if 0
   } else if (mx[0] == 1 && mx[1] == 4 && mx[2] == 4) {
     RakingReduction3x<K, V, 0, RADIX_BITS, 0,
 		      NopFunctor<K>, 4, 4> <<<n_blocks, threads>>>
       (d_spine_cnts.data().get(), cmprts->by_block_.d_idx.data().get(), cmprts->by_block_.d_off.data().get(), n_blocks);
+#endif
   } else if (mx[0] == 1 && mx[1] == 8 && mx[2] == 8) {
     RakingReduction3x<K, V, 0, RADIX_BITS, 0,
 		      NopFunctor<K>, 8, 8> <<<n_blocks, threads>>>
       (d_spine_cnts.data().get(), cmprts->by_block_.d_idx.data().get(), cmprts->by_block_.d_off.data().get(), n_blocks);
+#if 0
   } else if (mx[0] == 1 && mx[1] == 16 && mx[2] == 16) {
     RakingReduction3x<K, V, 0, RADIX_BITS, 0,
 		      NopFunctor<K>, 16, 16> <<<n_blocks, threads>>>
@@ -66,6 +69,7 @@ void cuda_bndp<CudaMparticles, DIM>::spine_reduce(CudaMparticles *cmprts)
     RakingReduction3x<K, V, 0, RADIX_BITS, 0,
                       NopFunctor<K>, 128, 128> <<<n_blocks, threads>>>
       (d_spine_cnts.data().get(), cmprts->by_block_.d_idx.data().get(), cmprts->by_block_.d_off.data().get(), n_blocks);
+#endif
   } else {
     printf("no support for b_mx %d x %d x %d!\n", mx[0], mx[1], mx[2]);
     assert(0);
@@ -290,6 +294,7 @@ void cuda_bndp<CudaMparticles, DIM>::sort_pairs_device(CudaMparticles *cmprts, u
 			8, 8> 
       <<<n_blocks, B40C_RADIXSORT_THREADS>>>
       (d_spine_sums.data().get(), cmprts->by_block_.d_idx.data().get(), cmprts->by_block_.d_id.data().get(), cmprts->by_block_.d_off.data().get(), n_blocks);
+#if 0
   } else if (mx[0] == 1 && mx[1] == 16 && mx[2] == 16) {
     ScanScatterDigits3x<K, V, 0, RADIX_BITS, 0,
 			NopFunctor<K>,
@@ -318,6 +323,7 @@ void cuda_bndp<CudaMparticles, DIM>::sort_pairs_device(CudaMparticles *cmprts, u
                         128, 128>
       <<<n_blocks, B40C_RADIXSORT_THREADS>>>
       (d_spine_sums.data().get(), cmprts->by_block_.d_idx.data().get(), cmprts->by_block_.d_id.data().get(), cmprts->by_block_.d_off.data().get(), n_blocks);
+#endif
   } else {
     printf("no support for b_mx %d x %d x %d!\n", mx[0], mx[1], mx[2]);
     assert(0);

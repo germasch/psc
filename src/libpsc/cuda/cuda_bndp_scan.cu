@@ -167,6 +167,7 @@ void cuda_bndp<CudaMparticles, DIM>::scan_send_buf_total(CudaMparticles* cmprts,
 		       8, 8> 
       <<<n_blocks, B40C_RADIXSORT_THREADS>>>
       (d_spine_sums.data().get(), cmprts->by_block_.d_idx.data().get(), cmprts->by_block_.d_id.data().get(), cmprts->by_block_.d_off.data().get(), n_blocks);
+#if 0
   } else if (mx[0] == 1 && mx[1] == 16 && mx[2] == 16) {
     ScanScatterDigits4<K, V, 0, RADIX_BITS, 0,
 		       NopFunctor<K>,
@@ -195,6 +196,7 @@ void cuda_bndp<CudaMparticles, DIM>::scan_send_buf_total(CudaMparticles* cmprts,
                        128, 128>
       <<<n_blocks, B40C_RADIXSORT_THREADS>>>
       (d_spine_sums.data().get(), cmprts->by_block_.d_idx.data().get(), cmprts->by_block_.d_id.data().get(), cmprts->by_block_.d_off.data().get(), n_blocks);
+#endif
   } else {
     printf("no support for b_mx %d x %d x %d!\n", mx[0], mx[1], mx[2]);
     assert(0);

@@ -70,7 +70,7 @@ struct cuda_bndp : cuda_mparticles_indexer<typename CudaMparticles::BS>
 };
 
 template<typename CudaMparticles>
-struct cuda_bndp<CudaMparticles, dim_yz> : cuda_mparticles_indexer<typename CudaMparticles::BS>
+struct cuda_bndp<CudaMparticles, dim_xyz> : cuda_mparticles_indexer<typename CudaMparticles::BS>
 {
   using BS = typename CudaMparticles::BS;
   using BndBuffer = std::vector<typename CudaMparticles::Particle>;
@@ -98,6 +98,10 @@ struct cuda_bndp<CudaMparticles, dim_yz> : cuda_mparticles_indexer<typename Cuda
   {
     auto& cmprts = *_cmprts;
     auto& d_bidx = cmprts.by_block_.d_idx;
+
+#if 1
+    cmprts.check_bidx_after_push();
+#endif
     
     auto oob = thrust::count_if(d_bidx.begin(), d_bidx.end(), is_outside(cmprts.n_blocks));
     auto sz = d_bidx.size();
@@ -107,6 +111,8 @@ struct cuda_bndp<CudaMparticles, dim_yz> : cuda_mparticles_indexer<typename Cuda
     d_bidx.resize(sz + oob);
     cmprts.storage.xi4.resize(sz + oob);
     cmprts.storage.pxi4.resize(sz + oob);
+
+    printf("oob %zu sz %zu\n", oob, sz);
 
     auto begin = thrust::make_zip_iterator(thrust::make_tuple(d_bidx.begin(), cmprts.storage.xi4.begin(), cmprts.storage.pxi4.begin()));
     auto end = begin + sz;
