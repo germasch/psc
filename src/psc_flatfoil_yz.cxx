@@ -92,7 +92,7 @@ public:
 //
 // EDIT to change order / floating point type / cuda / 2d/3d
 
-using Dim = dim_yz;
+using Dim = dim_xyz;
 
 #if 1
 #ifdef USE_CUDA
@@ -227,12 +227,12 @@ Grid_t* setupGrid()
 {
   // --- setup domain
 #ifdef SMALL
-  Grid_t::Real3 LL = {1., 80., 3.*80.}; // domain size (in d_e)
-  Int3 gdims = {1, 160, 3*160};         // global number of grid points
+  Grid_t::Real3 LL = {2., 80., 3.*80.}; // domain size (in d_e)
+  Int3 gdims = {4, 160, 3*160};         // global number of grid points
   Int3 np = {1, 5, 3*5};                // division into patches
 #else
-  Grid_t::Real3 LL = {1., 800., 3.*800.}; // domain size (in d_e)
-  Int3 gdims = {1, 1600, 3*1600};         // global number of grid points
+  Grid_t::Real3 LL = {5., 800., 3.*800.}; // domain size (in d_e)
+  Int3 gdims = {10, 1600, 3*1600};        // global number of grid points
   Int3 np = {1, 50, 3*50};                // division into patches
 #endif
 
