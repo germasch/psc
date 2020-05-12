@@ -71,4 +71,4 @@ void BndParticlesCuda<Mparticles, DIM>::operator()(Mparticles& mprts)
 }
 
 template struct BndParticlesCuda<MparticlesCuda<BS144>, dim_yz>;
-template struct BndParticlesCuda<MparticlesCuda<BS444>, dim_xyz>;
+//template struct BndParticlesCuda<MparticlesCuda<BS444>, dim_xyz>;

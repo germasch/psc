@@ -91,9 +91,8 @@ auto cuda_bndp<CudaMparticles, DIM>::prep(CudaMparticles* cmprts) -> BndBuffers&
 // post
 
 template<typename CudaMparticles, typename DIM>
-void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* cmprts)
+void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
 {
-#if 0
   g_bnd->check(HX, HX + 3, __LINE__);
   auto& cmprts = *_cmprts;
   auto& d_bidx = cmprts.by_block_.d_idx;
@@ -132,49 +131,6 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* cmprts)
   cmprts.need_reorder = true;
 #endif
   g_bnd->check(HX, HX + 3, __LINE__);
-#else  
-
-
-  static int pr_A, pr_D, pr_E, pr_D1;
-  if (!pr_A) {
-    pr_A = prof_register("xchg_to_dev", 1., 0, 0);
-    pr_D = prof_register("xchg_sort", 1., 0, 0);
-    pr_D1= prof_register("xchg_upd_off", 1., 0, 0);
-    pr_E = prof_register("xchg_reorder", 1., 0, 0);
-  }
-
-  g_bnd->check(HX, HX + 3, __LINE__);
-  
-  prof_start(pr_A);
-  uint n_prts_recv = convert_and_copy_to_dev(cmprts);
-  cmprts->n_prts += n_prts_recv;
-  prof_stop(pr_A);
-
-  g_bnd->check(HX, HX + 3, __LINE__);
-  prof_start(pr_D);
-  sort_pairs_device(cmprts, n_prts_recv);
-  //sort_pairs_gold(cmprts, n_prts_recv);
-  cmprts->n_prts -= n_prts_send;
-  prof_stop(pr_D);
-
-  g_bnd->check(HX, HX + 3, __LINE__);
-  prof_start(pr_D1);
-  update_offsets(cmprts);
-  prof_stop(pr_D1);
-  
-  prof_start(pr_E);
-#if 1
-  g_bnd->check(HX, HX + 3, __LINE__);
-  cmprts->need_reorder = true; //JOHN added for debug
-  cmprts->reorder();
-  g_bnd->check(HX, HX + 3, __LINE__);
-  assert(cmprts->check_ordered());
-#else
-  cmprts->need_reorder = true;
-#endif
-  g_bnd->check(HX, HX + 3, __LINE__);
-  prof_stop(pr_E);
-#endif
 }
 
 // ----------------------------------------------------------------------
@@ -317,7 +273,7 @@ void cuda_bndp<CudaMparticles, DIM>::update_offsets_gold(CudaMparticles *cmprts)
 // convert_and_copy_to_dev
 
 template<typename CudaMparticles>
-uint cuda_bndp<CudaMparticles, dim_xyz>::convert_and_copy_to_dev(CudaMparticles* cmprts)
+uint cuda_bndp<CudaMparticles, dim_yz>::convert_and_copy_to_dev(CudaMparticles* cmprts)
 {
   uint n_recv = 0;
   for (int p = 0; p < n_patches(); p++) {
@@ -372,7 +328,7 @@ uint cuda_bndp<CudaMparticles, dim_xyz>::convert_and_copy_to_dev(CudaMparticles*
 }
 
 template<typename CudaMparticles>
-void cuda_bndp<CudaMparticles, dim_xyz>::post(CudaMparticles* _cmprts)
+void cuda_bndp<CudaMparticles, dim_yz>::post(CudaMparticles* _cmprts)
 {
   auto& cmprts = *_cmprts;
   auto& d_bidx = cmprts.by_block_.d_idx;
@@ -402,4 +358,4 @@ void cuda_bndp<CudaMparticles, dim_xyz>::post(CudaMparticles* _cmprts)
 }
 
 template struct cuda_bndp<cuda_mparticles<BS144>, dim_yz>;
-template struct cuda_bndp<cuda_mparticles<BS444>, dim_xyz>;
+//template struct cuda_bndp<cuda_mparticles<BS444>, dim_xyz>;

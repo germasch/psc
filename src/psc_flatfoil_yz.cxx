@@ -1,5 +1,4 @@
 
-
 #include <psc.hxx>
 #include <setup_fields.hxx>
 #include <setup_particles.hxx>
@@ -12,7 +11,7 @@
 #include "heating_spot_foil.hxx"
 #include "inject_impl.hxx"
 
-//#define SMALL
+#define SMALL
 
 // ======================================================================
 // Particle kinds

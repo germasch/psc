@@ -70,7 +70,7 @@ struct cuda_bndp : cuda_mparticles_indexer<typename CudaMparticles::BS>
 };
 
 template<typename CudaMparticles>
-struct cuda_bndp<CudaMparticles, dim_xyz> : cuda_mparticles_indexer<typename CudaMparticles::BS>
+struct cuda_bndp<CudaMparticles, dim_yz> : cuda_mparticles_indexer<typename CudaMparticles::BS>
 {
   using BS = typename CudaMparticles::BS;
   using BndBuffer = std::vector<typename CudaMparticles::Particle>;
