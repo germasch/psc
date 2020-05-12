@@ -182,6 +182,17 @@ struct DParticleIndexer
       int b_diff = bid - bidx + b_mx_[1] + 1;
       int d1 = b_diff % b_mx_[1];
       int d2 = b_diff / b_mx_[1];
+#if 0
+      int dy = d % 3; // d1
+      int dz = d / 3; // d2
+      int by = b % NBLOCKS_Y; // block_pos_y
+      int bz = b / NBLOCKS_Y; // block_bos_z
+      b_diff = (bid_z - block_pos_z + 1) * b_mx_[1] + (bid_y - block_pos_y + 1);
+      unsigned int bby = by + 1 - dy;
+      unsigned int bbz = bz + 1 - dz;
+      unsigned int bb = bbz * NBLOCKS_Y + bby;
+#endif
+      
       return d2 * 3 + d1;
     }
   }
