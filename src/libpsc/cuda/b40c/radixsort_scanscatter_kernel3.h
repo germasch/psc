@@ -1095,14 +1095,15 @@ void ScanScatterDigits3x(
 			  int dz = d / 3;
 			  int by = b % NBLOCKS_Y;
 			  int bz = b / NBLOCKS_Y;
-			  unsigned int bby = by + dy - 1;
-			  unsigned int bbz = bz + dz - 1;
+			  unsigned int bby = by + (1 - dy);
+			  unsigned int bbz = bz + (1 - dz);
 			  if (bby < NBLOCKS_Y && bbz < NBLOCKS_Z) {
 			    unsigned int bb = bbz * NBLOCKS_Y + bby;
 			    carry[threadIdx.x] =
 			      d_spine[(bb + (blockIdx.x / (NBLOCKS_Y * NBLOCKS_Z)) * (NBLOCKS_Y * NBLOCKS_Z)) * 10 + d];
 			  } else {
-			    printf("bbyz %d %d\n", bby, bbz);
+			    /* printf("tid/bid %d %d bby/by/dy %d %d %d bbz/bz/dz %d %d %d\n", threadIdx.x, blockIdx.x, bby, by, 1 - dy, bbz, bz, 1 - dz); */
+			    carry[threadIdx.x] = -1;
 			  }
 			} else if (d == CUDA_BND_S_OOB) {
 			  carry[threadIdx.x] = d_spine[nr_total_blocks*10 + blockIdx.x];

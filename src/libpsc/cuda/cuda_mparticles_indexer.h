@@ -183,14 +183,24 @@ struct DParticleIndexer
       int d1 = b_diff % b_mx_[1];
       int d2 = b_diff / b_mx_[1];
 #if 0
+      int d = d2 * 3 + d1;
+      int b = bid % (b_mx_[1] * b_mx_[2]);;
       int dy = d % 3; // d1
       int dz = d / 3; // d2
-      int by = b % NBLOCKS_Y; // block_pos_y
-      int bz = b / NBLOCKS_Y; // block_bos_z
-      b_diff = (bid_z - block_pos_z + 1) * b_mx_[1] + (bid_y - block_pos_y + 1);
+      int by = b % b_mx_[1]; // block_pos_y
+      int bz = b / b_mx_[1]; // block_bos_z
       unsigned int bby = by + 1 - dy;
       unsigned int bbz = bz + 1 - dz;
-      unsigned int bb = bbz * NBLOCKS_Y + bby;
+      unsigned int bb = bbz * b_mx_[1] + bby;
+      if (bby < b_mx_[1] && bbz < b_mx_[2]) {
+      } else {
+	printf("shift bby/by/dy %d %d %d bbz/bz/dz %d %d %d\n", bby, by, 1 - dy, bbz, bz, 1 - dz);
+      }
+      if (bb != block_pos_z * b_mx_[1] + block_pos_y) {
+	printf("d1 %d/%d d2 %d/%d\n", d1, dy, d2, dz);
+	printf("by %d/%d bz %d/%d\n", by, bz, block_pos_y, block_pos_z);
+	printf("bb %d // %d\n", bb, block_pos_z * b_mx_[1] + block_pos_y);
+      }
 #endif
       
       return d2 * 3 + d1;
