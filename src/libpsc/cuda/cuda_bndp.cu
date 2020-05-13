@@ -362,8 +362,8 @@ void cuda_bndp<CudaMparticles, dim_yz>::post(CudaMparticles* _cmprts)
   // d_off[0] was set to zero during d_off initialization
 
   cmprts.need_reorder = true;
-  // cmprts.reorder();
-  // assert(cmprts.check_ordered());
+  cmprts.reorder();
+  assert(cmprts.check_ordered());
 }
 
 template struct cuda_bndp<cuda_mparticles<BS144>, dim_yz>;
