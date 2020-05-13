@@ -5,7 +5,7 @@
 
 #include "fields_item_moments_1st_cuda.hxx"
 
-int debug_patch_ = 0;//-1;
+int debug_patch_ = -1;
 int debug_cnt_ = 0;
 
 // FIXME!!! need to get Dim from Mparticles directly!
