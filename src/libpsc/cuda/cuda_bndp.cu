@@ -274,7 +274,7 @@ void cuda_bndp<CudaMparticles, DIM>::update_offsets_gold(CudaMparticles *cmprts)
 // convert_and_copy_to_dev
 
 template<typename CudaMparticles>
-uint cuda_bndp<CudaMparticles, dim_xyz>::convert_and_copy_to_dev(CudaMparticles* cmprts)
+uint cuda_bndp<CudaMparticles, dim_yz>::convert_and_copy_to_dev(CudaMparticles* cmprts)
 {
   uint n_recv = 0;
   for (int p = 0; p < n_patches(); p++) {
@@ -329,7 +329,7 @@ uint cuda_bndp<CudaMparticles, dim_xyz>::convert_and_copy_to_dev(CudaMparticles*
 }
 
 template<typename CudaMparticles>
-void cuda_bndp<CudaMparticles, dim_xyz>::post(CudaMparticles* _cmprts)
+void cuda_bndp<CudaMparticles, dim_yz>::post(CudaMparticles* _cmprts)
 {
   auto& cmprts = *_cmprts;
   auto& d_bidx = cmprts.by_block_.d_idx;
