@@ -295,6 +295,11 @@ struct CudaPushParticles
     // has moved into which block? (given as relative shift)
 #if 1
     dmprts.bidx_[n] = dmprts.blockNoShift(prt.x(), current_block.p);
+    // if (dmprts.bidx_[n] != current_block.bid) {
+    //   printf("p%d moved %d <- %d yz %g %g\n", current_block.p, dmprts.bidx_[n], current_block.bid,
+    // 	     prt.x()[1], prt.x()[2]);
+    //   dmprts.bidx_[n] = dmprts.n_blocks_ + current_block.p;
+    // }
 #else
     dmprts.bidx_[n] = dmprts.blockShift(prt.x(), current_block.p, current_block.bid);
 #endif

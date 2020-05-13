@@ -5,7 +5,7 @@
 
 #include "fields_item_moments_1st_cuda.hxx"
 
-int debug_patch_ = -1;
+int debug_patch_ = 0;//-1;
 int debug_cnt_ = 0;
 
 // FIXME!!! need to get Dim from Mparticles directly!
@@ -169,7 +169,7 @@ struct ChecksCuda
       writer.close();
 #endif
       debug_cnt_++;
-      if (debug_cnt_ == 3) std::abort();
+      //if (debug_cnt_ == 3) std::abort();
     }
       
     // find global max
@@ -197,7 +197,7 @@ struct ChecksCuda
       mrc_io_close(io);
     }
 
-    //assert(max_err < eps);
+    assert(max_err < eps);
     dev_rho_p.put_as(rho_p, 0, 0);
     dev_rho_m.put_as(rho_m, 0, 0);
     mflds.put_as(h_mflds, 0, 0);

@@ -11,7 +11,7 @@
 #include "heating_spot_foil.hxx"
 #include "inject_impl.hxx"
 
-#define SMALL
+//#define SMALL
 
 // ======================================================================
 // Particle kinds
@@ -40,6 +40,7 @@ enum
 
 struct InjectFoilParams
 {
+  double xl, xh;
   double yl, yh;
   double zl, zh;
   double n;
@@ -55,7 +56,7 @@ public:
 
   bool is_inside(double crd[3])
   {
-    return (crd[1] >= yl && crd[1] <= yh && crd[2] >= zl && crd[2] <= zh);
+    return (crd[0] >= xl && crd[0] <= xh && crd[1] >= yl && crd[1] <= yh && crd[2] >= zl && crd[2] <= zh);
   }
 
   void init_npt(int pop, double crd[3], psc_particle_npt& npt)
@@ -386,8 +387,8 @@ void run()
   outf_params.pfield_interval = 0;
   outf_params.tfield_interval = 0;
 #else
-  outf_params.pfield_interval = -400;
-  outf_params.tfield_interval = -400;
+  outf_params.pfield_interval = 400;
+  outf_params.tfield_interval = 400;
 #endif
   outf_params.tfield_average_every = 40;
   outf_params.tfield_moments_average_every = 80;
@@ -398,7 +399,7 @@ void run()
 #ifdef SMALL
   outp_params.every_step = 0;
 #else
-  outp_params.every_step = -400;
+  outp_params.every_step = 400;
 #endif
   outp_params.data_dir = ".";
   outp_params.basename = "prt";
@@ -417,8 +418,8 @@ void run()
   heating_foil_params.zl = -1. * g.d_i;
   heating_foil_params.zh = 1. * g.d_i;
   heating_foil_params.xc = 0. * g.d_i;
-  heating_foil_params.yc = 0. * g.d_i;
-  heating_foil_params.rH = 12. * g.d_i;
+  heating_foil_params.yc = 20. * g.d_i;
+  heating_foil_params.rH = 20. * g.d_i;
   heating_foil_params.T = g.target_Te_heat;
   heating_foil_params.Mi = grid.kinds[MY_ION].m;
   HeatingSpotFoil heating_spot{heating_foil_params};
@@ -431,6 +432,8 @@ void run()
 
   // -- Particle injection
   InjectFoilParams inject_foil_params;
+  inject_foil_params.xl = -100000. * g.d_i;
+  inject_foil_params.xh = 100000. * g.d_i;
   inject_foil_params.yl = -100000. * g.d_i;
   inject_foil_params.yh = 100000. * g.d_i;
   double target_zwidth = 1.;

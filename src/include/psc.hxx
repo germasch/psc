@@ -448,7 +448,7 @@ struct Psc
     prof_stop(pr_push_prts);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1/2}, j^{n+1}
 
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft1-proc-" + std::to_string(rank) +
@@ -468,7 +468,7 @@ struct Psc
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1}, j^{n+1}
 
     bnd_.check(HX, HX + 3, __LINE__);
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft2-proc-" + std::to_string(rank) +
@@ -487,7 +487,7 @@ struct Psc
     prof_stop(pr_bndp);
 
     bnd_.check(HX, HX + 3, __LINE__);
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft3-proc-" + std::to_string(rank) +
@@ -504,7 +504,7 @@ struct Psc
     bnd_.check(HX, HX + 3, __LINE__);
 #if 1
     bndf_.fill_ghosts_H(mflds_);
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft3aa-proc-" + std::to_string(rank) +
@@ -522,7 +522,7 @@ struct Psc
     debug_ddc_ = false;
 #endif
 
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft3a-proc-" + std::to_string(rank) +
@@ -536,7 +536,7 @@ struct Psc
     
     bnd_.check(HX, HX + 3, __LINE__);
     bndf_.add_ghosts_J(mflds_);
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft3b-proc-" + std::to_string(rank) +
@@ -550,7 +550,7 @@ struct Psc
     
     bnd_.check(HX, HX + 3, __LINE__);
     bnd_.add_ghosts(mflds_, JXI, JXI + 3);
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft3c-proc-" + std::to_string(rank) +
@@ -566,7 +566,7 @@ struct Psc
     bnd_.fill_ghosts(mflds_, JXI, JXI + 3);
     prof_stop(pr_bndf);
 
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft4-proc-" + std::to_string(rank) +
@@ -583,7 +583,7 @@ struct Psc
     prof_stop(pr_push_flds);
 
     bnd_.check(HX, HX + 3, __LINE__);
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft5-proc-" + std::to_string(rank) +
@@ -604,7 +604,7 @@ struct Psc
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+3/2}, B^{n+1}
 
     bnd_.check(HX, HX + 3, __LINE__);
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft6-proc-" + std::to_string(rank) +
@@ -622,7 +622,7 @@ struct Psc
     pushf_.push_H(mflds_, .5, Dim{});
     prof_stop(pr_push_flds);
 
-    if (debug_patch_ > 0) {
+    if (debug_patch_ >= 0) {
       int rank;
       MPI_Comm_rank(MPI_COMM_WORLD, &rank);
       std::string outfile = "aft7-proc-" + std::to_string(rank) +
