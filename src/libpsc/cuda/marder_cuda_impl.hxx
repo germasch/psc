@@ -33,43 +33,35 @@ struct MarderCuda : MarderBase
     psc_bnd_set_psc(bnd_, ppsc);
     psc_bnd_setup(bnd_);
 #endif
-    MHERE;
-    return;
-    assert(0);
 
     // FIXME, output_fields should be taking care of their own psc_bnd?
     if (dump_) {
-      io_ = mrc_io_create(grid.comm());
-      mrc_io_set_type(io_, "xdmf_collective");
-      mrc_io_set_name(io_, "mrc_io_marder");
-      mrc_io_set_param_string(io_, "basename", "marder");
-      mrc_io_set_from_options(io_);
-      mrc_io_setup(io_);
+      writer_.open("gauss");
     }
   }
 
   ~MarderCuda()
   {
     //psc_bnd_destroy(bnd_);
-    if (dump_) {
-      mrc_io_destroy(io_);
-    }
   }
   
   void calc_aid_fields(MfieldsState& mflds, Mparticles& mprts)
   {
-    item_div_e_(mprts.grid(), mflds, mprts); // FIXME, should accept NULL for particles
+    //item_div_e_(mprts.grid(), mflds, mprts); // FIXME, should accept NULL for particles
   
     if (dump_) {
       static int cnt;
-      mrc_io_open(io_, "w", cnt, cnt);//ppsc->timestep, ppsc->timestep * ppsc->dt);
+      writer_.begin_step(cnt, cnt);
+      // writer_.write(divj_, grid, "div_e", {"div_e"});
+      // writer_.write(d_rho, grid, "rho", {"rho"});
+      writer_.end_step();
       cnt++;
+
       // psc_mfields_write_as_mrc_fld(item_rho_.mres().mflds(), io_);
       // psc_mfields_write_as_mrc_fld(item_div_e_.mres().mflds(), io_);
-      mrc_io_close(io_);
     }
 
-    assert(0);
+    //assert(0);
     //item_div_e_.mres().axpy_comp(0, -1., item_rho_.mres(), 0);
     // FIXME, why is this necessary?
     //auto bnd = PscBndBase(bnd_);
@@ -137,7 +129,16 @@ struct MarderCuda : MarderBase
 
   void operator()(MfieldsStateCuda& mflds, MparticlesCuda<BS>& mprts)
   {
-    MHERE;
+    item_rho_(mprts);
+
+    // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
+    //bnd_.fill_ghosts(mflds, EX, EX+3);
+
+    for (int i = 0; i < loop_; i++) {
+      calc_aid_fields(mflds, mprts);
+      //correct(mflds);
+      //bnd_.fill_ghosts(mflds, EX, EX+3);
+    }
   }
   
 private:
@@ -148,6 +149,6 @@ private:
 
   FieldsItemFields<Item_dive_cuda> item_div_e_;
   Moment_rho_1st_nc_cuda<MparticlesCuda<BS144>, dim_yz> item_rho_; // FIXME, hardcoded dim_yz
-  mrc_io *io_; //< for debug dumping
+  WriterMRC writer_;
 };
 

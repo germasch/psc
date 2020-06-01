@@ -236,8 +236,8 @@ Grid_t* setupGrid()
   Int3 np = {5, 5, 3*5};                  // division into patches
 #else
   Grid_t::Real3 LL = {1., 800., 3.*800.}; // domain size (in d_e)
-  Int3 gdims = {1, 1600, 3*1600};         // global number of grid points
-  Int3 np = {1, 50, 3*50};                // division into patches
+  Int3 gdims = {1, 160, 3*160};         // global number of grid points
+  Int3 np = {1, 5, 3*5};                // division into patches
 #endif
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
@@ -366,16 +366,19 @@ void run()
 
   // -- Checks
   ChecksParams checks_params{};
-  checks_params.continuity_every_step = 50;
+  checks_params.continuity_every_step = 5;
   checks_params.continuity_threshold = 1e-4;
-  checks_params.continuity_verbose = false;
+  checks_params.continuity_verbose = true;
+  checks_params.gauss_every_step = 5;
+  checks_params.gauss_threshold = 1e-4;
+  checks_params.gauss_verbose = true;
   Checks checks{grid, MPI_COMM_WORLD, checks_params};
 
   // -- Marder correction
   double marder_diffusion = 0.9;
   int marder_loop = 3;
-  bool marder_dump = false;
-  psc_params.marder_interval = 0 * 5;
+  bool marder_dump = true;
+  psc_params.marder_interval = 5;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
   // ----------------------------------------------------------------------
