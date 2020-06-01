@@ -40,7 +40,7 @@ void write_checkpoint(const Grid_t& grid, Mparticles& mprts,
 
 template <typename Mparticles, typename MfieldsState>
 inline void read_checkpoint(const std::string& filename, Grid_t& grid,
-                            Mparticles& mprts, MfieldsState& mflds)
+                            Mparticles*& mprts, MfieldsState*& mflds)
 {
   mpi_printf(grid.comm(), "**** Reading checkpoint...\n");
   MPI_Barrier(grid.comm()); // not really necessary
@@ -49,8 +49,11 @@ inline void read_checkpoint(const std::string& filename, Grid_t& grid,
   auto io = kg::io::IOAdios2{};
   auto reader = io.open(filename, kg::io::Mode::Read);
   reader.get("grid", grid);
-  reader.get("mprts", mprts);
-  reader.get("mflds", mflds);
+  psc_balance_generation_cnt++;
+  mprts = new Mparticles(grid);
+  mflds = new MfieldsState(grid);
+  reader.get("mprts", *mprts);
+  reader.get("mflds", *mflds);
   reader.close();
 
   // FIXME, when we read back a rebalanced grid, other existing fields will
