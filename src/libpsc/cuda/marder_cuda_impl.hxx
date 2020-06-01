@@ -48,12 +48,16 @@ struct MarderCuda : MarderBase
   void calc_aid_fields(MfieldsState& mflds, Mparticles& mprts)
   {
     //item_div_e_(mprts.grid(), mflds, mprts); // FIXME, should accept NULL for particles
-  
+
+    auto& grid = mflds.grid();
+    auto& dev_rho = item_rho_.result();
+    auto& rho = dev_rho.template get_as<Mfields>(0, 1);
+
     if (dump_) {
       static int cnt;
       writer_.begin_step(cnt, cnt);
       // writer_.write(divj_, grid, "div_e", {"div_e"});
-      // writer_.write(d_rho, grid, "rho", {"rho"});
+      writer_.write(rho, grid, "rho", {"rho"});
       writer_.end_step();
       cnt++;
 
