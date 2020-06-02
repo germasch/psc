@@ -22,56 +22,54 @@ struct MarderCuda : MarderBase
     : grid_{grid},
       diffusion_{diffusion},
       loop_{loop},
-      dump_{dump},
+      dump_{dump}
+#if 1
+#else
+    ,
       item_rho_{grid},
-      item_div_e_{grid}
+      item_div_e_{grid},
+      div_e_{grid, 1, grid.ibn},
+      bnd_{grid, grid.ibn}
+#endif
   {
 #if 0
-    bnd_ = psc_bnd_create(grid.comm());
-    psc_bnd_set_name(bnd_, "marder_bnd");
-    psc_bnd_set_type(bnd_, "cuda");
-    psc_bnd_set_psc(bnd_, ppsc);
-    psc_bnd_setup(bnd_);
-#endif
-
     // FIXME, output_fields should be taking care of their own psc_bnd?
     if (dump_) {
-      writer_.open("gauss");
+      writer_.open("marder");
     }
+#endif
   }
 
-  ~MarderCuda()
-  {
-    //psc_bnd_destroy(bnd_);
-  }
-  
+#if 0
   void calc_aid_fields(MfieldsState& mflds, Mparticles& mprts)
   {
     //item_div_e_(mprts.grid(), mflds, mprts); // FIXME, should accept NULL for particles
 
     auto& grid = mflds.grid();
     auto& dev_rho = item_rho_.result();
-    auto& rho = dev_rho.template get_as<Mfields>(0, 1);
+    auto& rho = dev_rho.template get_as<MfieldsC>(0, 1);
 
+    auto& h_mflds = mflds.get_as<MfieldsState>(0, mflds._n_comps());
+    auto dive = Item_dive<MfieldsState>(h_mflds);
+    div_e_.assign(dive);
+    
     if (dump_) {
       static int cnt;
       writer_.begin_step(cnt, cnt);
-      // writer_.write(divj_, grid, "div_e", {"div_e"});
       writer_.write(rho, grid, "rho", {"rho"});
+      writer_.write(div_e_, grid, "dive", {"dive"});
+      div_e_.axpy_comp(0, -1., rho, 0); // FIXME _yz
+      writer_.write(div_e_, grid, "diff", {"diff"});
       writer_.end_step();
       cnt++;
-
-      // psc_mfields_write_as_mrc_fld(item_rho_.mres().mflds(), io_);
-      // psc_mfields_write_as_mrc_fld(item_div_e_.mres().mflds(), io_);
+    } else {
+      div_e_.axpy_comp(0, -1., rho, 0); // FIXME _yz
     }
 
-    //assert(0);
-    //item_div_e_.mres().axpy_comp(0, -1., item_rho_.mres(), 0);
-    // FIXME, why is this necessary?
-    //auto bnd = PscBndBase(bnd_);
-    //bnd.fill_ghosts(item_div_e_.mres(), 0, 1);
+    bnd_.fill_ghosts(div_e_, 0, 1);
   }
-
+#endif
+  
   // ----------------------------------------------------------------------
   // psc_marder_cuda_correct
   //
@@ -79,6 +77,8 @@ struct MarderCuda : MarderBase
 
   void correct(MfieldsState& mflds, Mfields& mf)
   {
+#if 1
+#else
     assert(mflds._grid().isInvar(0));
 
     const Grid_t& grid = mflds._grid();
@@ -129,20 +129,25 @@ struct MarderCuda : MarderBase
     
       cuda_marder_correct_yz(cmflds, cmf, p, fac, ly, ry, lz, rz);
     }
+#endif
   }
 
   void operator()(MfieldsStateCuda& mflds, MparticlesCuda<BS>& mprts)
   {
+#if 1
+#else
     item_rho_(mprts);
 
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
-    //bnd_.fill_ghosts(mflds, EX, EX+3);
+    auto& h_mflds = mflds.get_as<MfieldsStateDouble>(0, mflds._n_comps());
+    /bnd_.fill_ghosts(h_mflds, EX, EX+3);
 
     for (int i = 0; i < loop_; i++) {
       calc_aid_fields(mflds, mprts);
       //correct(mflds);
       //bnd_.fill_ghosts(mflds, EX, EX+3);
     }
+#endif
   }
   
 private:
@@ -151,8 +156,13 @@ private:
   int loop_; //< execute this many relaxation steps in a loop
   bool dump_; //< dump div_E, rho
 
+#if 1
+#else
   FieldsItemFields<Item_dive_cuda> item_div_e_;
   Moment_rho_1st_nc_cuda<MparticlesCuda<BS144>, dim_yz> item_rho_; // FIXME, hardcoded dim_yz
   WriterMRC writer_;
+  MfieldsC div_e_;
+  Bnd_<MfieldsC> bnd_;
+#endif
 };
 
