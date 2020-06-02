@@ -25,12 +25,13 @@ struct MarderCuda : MarderBase
       loop_{loop},
       dump_{dump},
 #if 1
+      item_rho_{grid},
+      rho_{grid, 1, grid.ibn},
       h_bnd_{grid, grid.ibn},
       h_bnd_mf_{grid, grid.ibn},
       h_rho_{grid, 1, grid.ibn},
       h_res_{grid, 1, grid.ibn}
 #else
-      item_rho_{grid},
       item_div_e_{grid},
       div_e_{grid, 1, grid.ibn},
       bnd_{grid, grid.ibn}
@@ -42,7 +43,7 @@ struct MarderCuda : MarderBase
   }
 
 #if 1
-  void calc_aid_fields(MfieldsStateSingle& mflds)
+  void calc_aid_fields(MfieldsStateSingle& mflds, MfieldsSingle& h_rho)
   {
     auto dive = Item_dive<MfieldsStateSingle>(mflds);
 	       
@@ -50,13 +51,13 @@ struct MarderCuda : MarderBase
       static int cnt;
       io_.begin_step(cnt, cnt);//ppsc->timestep, ppsc->timestep * ppsc->dt);
       cnt++;
-      io_.write(h_rho_, h_rho_.grid(), "rho", {"rho"});
+      io_.write(h_rho, h_rho.grid(), "rho", {"rho"});
       io_.write(adaptMfields(dive), dive.grid(), "dive", {"dive"});
       io_.end_step();
     }
 
     h_res_.assign(dive);
-    h_res_.axpy_comp(0, -1., h_rho_, 0);
+    h_res_.axpy_comp(0, -1., h_rho, 0);
     // // FIXME, why is this necessary?
     h_bnd_mf_.fill_ghosts(h_res_, 0, 1);
   }
@@ -271,11 +272,12 @@ struct MarderCuda : MarderBase
 
 #if 1
     h_rho_.assign(Moment_t{h_mprts});
+    //rho_.assign(item_rho_);
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
     h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
 
     for (int i = 0; i < loop_; i++) {
-      calc_aid_fields(h_mflds);
+      calc_aid_fields(h_mflds, h_rho_);
       correct(h_mflds);
       h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
     }
@@ -284,7 +286,6 @@ struct MarderCuda : MarderBase
     mprts.put_as(h_mprts, MP_DONT_COPY);
 #else
     item_rho_(mprts);
-
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
     auto& h_mflds = mflds.get_as<MfieldsStateDouble>(0, mflds._n_comps());
     /bnd_.fill_ghosts(h_mflds, EX, EX+3);
@@ -309,9 +310,12 @@ private:
   MfieldsSingle h_rho_;
   MfieldsSingle h_res_;
   WriterMRC io_; //< for debug dumping
+
+  Mfields rho_;
+  
+  Moment_rho_1st_nc_cuda<MparticlesCuda<BS144>, dim_yz> item_rho_; // FIXME, hardcoded dim_yz
 #else
   FieldsItemFields<Item_dive_cuda> item_div_e_;
-  Moment_rho_1st_nc_cuda<MparticlesCuda<BS144>, dim_yz> item_rho_; // FIXME, hardcoded dim_yz
   WriterMRC writer_;
   MfieldsC div_e_;
   Bnd_<MfieldsC> bnd_;
