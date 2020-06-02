@@ -252,8 +252,9 @@ struct MarderCuda : MarderBase
   // ----------------------------------------------------------------------
   // correct
 
-  void correct(MfieldsStateSingle& h_mflds)
+  void correct(MfieldsState& mflds)
   {
+    auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
     auto& h_res = res_.get_as<MfieldsSingle>(0, 1);
 
     real_t max_err = 0.;
@@ -261,6 +262,7 @@ struct MarderCuda : MarderBase
       correct_patch(h_mflds.grid(), h_mflds[p], h_res[p], p, max_err);
     }
     res_.put_as(h_res, 0, 0);
+    mflds.put_as(h_mflds, EX, EX + 3);
 
     MPI_Allreduce(MPI_IN_PLACE, &max_err, 1, MPI_FLOAT, MPI_MAX, grid_.comm());
     mpi_printf(grid_.comm(), "marder: err %g\n", max_err);
@@ -277,9 +279,7 @@ struct MarderCuda : MarderBase
 
     for (int i = 0; i < loop_; i++) {
       calc_aid_fields(mflds, rho);
-      auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
-      correct(h_mflds);
-      mflds.put_as(h_mflds, EX, EX + 3);
+      correct(mflds);
       bnd_.fill_ghosts(mflds, EX, EX+3);
     }
 
