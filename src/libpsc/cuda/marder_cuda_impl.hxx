@@ -277,6 +277,7 @@ struct MarderCuda : MarderBase
 
 #if 1
     h_rho_.assign(Moment_t{h_mprts});
+    item_rho_(mprts);
     auto &rho = item_rho_.result();
     auto &h_rho = rho.get_as<MfieldsSingle>(0, 1);
 
