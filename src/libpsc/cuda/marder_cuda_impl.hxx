@@ -26,6 +26,7 @@ struct MarderCuda : MarderBase
       dump_{dump},
 #if 1
       item_rho_{grid},
+      item_dive_{grid},
       bnd_{grid, grid.ibn},
       rho_{grid, 1, grid.ibn},
 
@@ -33,7 +34,6 @@ struct MarderCuda : MarderBase
       h_bnd_mf_{grid, grid.ibn},
       h_res_{grid, 1, grid.ibn}
 #else
-      item_div_e_{grid},
       div_e_{grid, 1, grid.ibn},
       bnd_{grid, grid.ibn}
 #endif
@@ -48,25 +48,29 @@ struct MarderCuda : MarderBase
   {
     auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
     
-    auto h_dive = Item_dive<MfieldsStateSingle>(h_mflds);
+    item_dive_(mflds.grid(), mflds);
+    auto& dive = item_dive_.result();
+    auto& h_dive = dive.get_as<MfieldsSingle>(0, 1); //Item_dive<MfieldsStateSingle>(h_mflds);
 	       
     if (dump_) {
       static int cnt;
       io_.begin_step(cnt, cnt);//ppsc->timestep, ppsc->timestep * ppsc->dt);
       cnt++;
       io_.write(rho, rho.grid(), "rho", {"rho"});
-      io_.write(adaptMfields(h_dive), h_dive.grid(), "dive", {"dive"});
+      io_.write(dive, dive.grid(), "dive", {"dive"});
       io_.end_step();
     }
 
     auto& h_rho = rho.get_as<MfieldsSingle>(0, 1);
-    h_res_.assign(h_dive);
+    h_res_.copy_comp(0, h_dive, 0);
+    //h_res_.assign(h_dive);
     h_res_.axpy_comp(0, -1., h_rho, 0);
     // // FIXME, why is this necessary?
     h_bnd_mf_.fill_ghosts(h_res_, 0, 1);
 
     mflds.put_as(h_mflds, EX, EX + 3);
     rho.put_as(h_rho, 0, 0);
+    dive.put_as(h_dive, 0, 0);
   }
 
 #else
@@ -319,8 +323,8 @@ private:
   Mfields rho_;
   
   Moment_rho_1st_nc_cuda<MparticlesCuda<BS144>, dim_yz> item_rho_; // FIXME, hardcoded dim_yz
+  FieldsItemFields<Item_dive_cuda> item_dive_;
 #else
-  FieldsItemFields<Item_dive_cuda> item_div_e_;
   WriterMRC writer_;
   MfieldsC div_e_;
 #endif
