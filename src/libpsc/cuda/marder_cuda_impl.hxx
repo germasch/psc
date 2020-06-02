@@ -24,24 +24,18 @@ struct MarderCuda : MarderBase
       diffusion_{diffusion},
       loop_{loop},
       dump_{dump},
-#if 1
       item_rho_{grid},
       item_dive_{grid},
       bnd_{grid, grid.ibn},
       bnd_mf_{grid, grid.ibn},
       rho_{grid, 1, grid.ibn},
       res_{grid, 1, grid.ibn}
-#else
-      div_e_{grid, 1, grid.ibn},
-      bnd_{grid, grid.ibn}
-#endif
   {
     if (dump_) {
       io_.open("marder");
     }
   }
 
-#if 1
   void calc_aid_fields(MfieldsState& mflds, Mfields& rho)
   {
     item_dive_(mflds.grid(), mflds);
@@ -62,36 +56,6 @@ struct MarderCuda : MarderBase
     bnd_mf_.fill_ghosts(res_, 0, 1);
   }
 
-#else
-  void calc_aid_fields(MfieldsState& mflds, Mparticles& mprts)
-  {
-    //item_div_e_(mprts.grid(), mflds, mprts); // FIXME, should accept NULL for particles
-
-    auto& grid = mflds.grid();
-    auto& dev_rho = item_rho_.result();
-    auto& rho = dev_rho.template get_as<MfieldsC>(0, 1);
-
-    auto& h_mflds = mflds.get_as<MfieldsState>(0, mflds._n_comps());
-    auto dive = Item_dive<MfieldsState>(h_mflds);
-    div_e_.assign(dive);
-    
-    if (dump_) {
-      static int cnt;
-      writer_.begin_step(cnt, cnt);
-      writer_.write(rho, grid, "rho", {"rho"});
-      writer_.write(div_e_, grid, "dive", {"dive"});
-      div_e_.axpy_comp(0, -1., rho, 0); // FIXME _yz
-      writer_.write(div_e_, grid, "diff", {"diff"});
-      writer_.end_step();
-      cnt++;
-    } else {
-      div_e_.axpy_comp(0, -1., rho, 0); // FIXME _yz
-    }
-
-    bnd_.fill_ghosts(div_e_, 0, 1);
-  }
-#endif
-  
   // ----------------------------------------------------------------------
   // psc_marder_cuda_correct
   //
@@ -273,7 +237,6 @@ struct MarderCuda : MarderBase
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
     bnd_.fill_ghosts(mflds, EX, EX+3);
 
-#if 1
     item_rho_(mprts);
     auto &rho = item_rho_.result();
 
@@ -282,19 +245,6 @@ struct MarderCuda : MarderBase
       correct(mflds);
       bnd_.fill_ghosts(mflds, EX, EX+3);
     }
-
-#else
-    item_rho_(mprts);
-    // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
-    auto& h_mflds = mflds.get_as<MfieldsStateDouble>(0, mflds._n_comps());
-    /bnd_.fill_ghosts(h_mflds, EX, EX+3);
-
-    for (int i = 0; i < loop_; i++) {
-      calc_aid_fields(mflds, mprts);
-      //correct(mflds);
-      //bnd_.fill_ghosts(mflds, EX, EX+3);
-    }
-#endif
   }
   
 private:
@@ -303,7 +253,6 @@ private:
   int loop_; //< execute this many relaxation steps in a loop
   bool dump_; //< dump div_E, rho
 
-#if 1
   WriterMRC io_; //< for debug dumping
 
   Bnd_<MfieldsState> bnd_;
@@ -313,9 +262,5 @@ private:
   
   Moment_rho_1st_nc_cuda<MparticlesCuda<BS144>, dim_yz> item_rho_; // FIXME, hardcoded dim_yz
   FieldsItemFields<Item_dive_cuda> item_dive_;
-#else
-  WriterMRC writer_;
-  MfieldsC div_e_;
-#endif
 };
 
