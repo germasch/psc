@@ -26,7 +26,9 @@ struct MarderCuda : MarderBase
       dump_{dump},
 #if 1
       item_rho_{grid},
+      bnd_{grid, grid.ibn},
       rho_{grid, 1, grid.ibn},
+
       h_bnd_{grid, grid.ibn},
       h_bnd_mf_{grid, grid.ibn},
       h_rho_{grid, 1, grid.ibn},
@@ -267,14 +269,17 @@ struct MarderCuda : MarderBase
 
   void operator()(MfieldsStateCuda& mflds, MparticlesCuda<BS>& mprts)
   {
+    // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
+    bnd_.fill_ghosts(mflds, EX, EX+3);
+
     auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
     auto& h_mprts = mprts.template get_as<MparticlesSingle>();
 
 #if 1
-    h_rho_.assign(Moment_t{h_mprts});
-    //rho_.assign(item_rho_);
-    // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
     h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
+
+    h_rho_.assign(Moment_t{h_mprts});
+    auto &rho = item_rho_.result();
 
     for (int i = 0; i < loop_; i++) {
       calc_aid_fields(h_mflds, h_rho_);
@@ -311,6 +316,7 @@ private:
   MfieldsSingle h_res_;
   WriterMRC io_; //< for debug dumping
 
+  Bnd_<MfieldsState> bnd_;
   Mfields rho_;
   
   Moment_rho_1st_nc_cuda<MparticlesCuda<BS144>, dim_yz> item_rho_; // FIXME, hardcoded dim_yz
@@ -318,7 +324,6 @@ private:
   FieldsItemFields<Item_dive_cuda> item_div_e_;
   WriterMRC writer_;
   MfieldsC div_e_;
-  Bnd_<MfieldsC> bnd_;
 #endif
 };
 
