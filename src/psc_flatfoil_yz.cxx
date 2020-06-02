@@ -99,7 +99,7 @@ using Dim = dim_yz;
 #endif
 
 #if 1
-#ifdef USE_CUDA
+#ifdef xUSE_CUDA
 using PscConfig = PscConfig1vbecCuda<Dim>;
 #else
 using PscConfig = PscConfig1vbecSingle<Dim>;
@@ -372,13 +372,14 @@ void run()
   checks_params.gauss_every_step = 5;
   checks_params.gauss_threshold = 1e-4;
   checks_params.gauss_verbose = true;
+  checks_params.gauss_dump_always = true;
   Checks checks{grid, MPI_COMM_WORLD, checks_params};
 
   // -- Marder correction
   double marder_diffusion = 0.9;
   int marder_loop = 3;
-  bool marder_dump = true;
-  psc_params.marder_interval = 5;
+  bool marder_dump = false;
+  psc_params.marder_interval = -5;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
   // ----------------------------------------------------------------------
