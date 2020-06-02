@@ -276,8 +276,6 @@ struct MarderCuda : MarderBase
     auto& h_mprts = mprts.template get_as<MparticlesSingle>();
 
 #if 1
-    h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
-
     h_rho_.assign(Moment_t{h_mprts});
     auto &rho = item_rho_.result();
 
