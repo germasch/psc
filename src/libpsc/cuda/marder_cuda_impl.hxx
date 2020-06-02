@@ -31,7 +31,6 @@ struct MarderCuda : MarderBase
 
       h_bnd_{grid, grid.ibn},
       h_bnd_mf_{grid, grid.ibn},
-      h_rho_{grid, 1, grid.ibn},
       h_res_{grid, 1, grid.ibn}
 #else
       item_div_e_{grid},
@@ -45,8 +44,10 @@ struct MarderCuda : MarderBase
   }
 
 #if 1
-  void calc_aid_fields(MfieldsStateSingle& mflds, MfieldsSingle& h_rho)
+  void calc_aid_fields(MfieldsStateSingle& mflds, Mfields& rho)
   {
+    auto &h_rho = rho.get_as<MfieldsSingle>(0, 1);
+    
     auto dive = Item_dive<MfieldsStateSingle>(mflds);
 	       
     if (dump_) {
@@ -62,6 +63,8 @@ struct MarderCuda : MarderBase
     h_res_.axpy_comp(0, -1., h_rho, 0);
     // // FIXME, why is this necessary?
     h_bnd_mf_.fill_ghosts(h_res_, 0, 1);
+
+    rho.put_as(h_rho, 0, 0);
   }
 
 #else
@@ -276,19 +279,15 @@ struct MarderCuda : MarderBase
     auto& h_mprts = mprts.template get_as<MparticlesSingle>();
 
 #if 1
-    h_rho_.assign(Moment_t{h_mprts});
     item_rho_(mprts);
     auto &rho = item_rho_.result();
-    auto &h_rho = rho.get_as<MfieldsSingle>(0, 1);
 
     for (int i = 0; i < loop_; i++) {
-      calc_aid_fields(h_mflds, h_rho);
+      calc_aid_fields(h_mflds, rho);
       correct(h_mflds);
       h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
     }
 
-    rho.put_as(h_rho, 0, 0);
-    
     mflds.put_as(h_mflds, EX, EX + 3);
     mprts.put_as(h_mprts, MP_DONT_COPY);
 #else
@@ -314,7 +313,6 @@ private:
 #if 1
   Bnd_<MfieldsStateSingle> h_bnd_;
   Bnd_<MfieldsSingle> h_bnd_mf_;
-  MfieldsSingle h_rho_;
   MfieldsSingle h_res_;
   WriterMRC io_; //< for debug dumping
 
