@@ -44,11 +44,12 @@ struct MarderCuda : MarderBase
   }
 
 #if 1
-  void calc_aid_fields(MfieldsStateSingle& mflds, Mfields& rho)
+  void calc_aid_fields(MfieldsState& mflds, Mfields& rho)
   {
-    auto &h_rho = rho.get_as<MfieldsSingle>(0, 1);
+    auto& h_rho = rho.get_as<MfieldsSingle>(0, 1);
+    auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
     
-    auto dive = Item_dive<MfieldsStateSingle>(mflds);
+    auto dive = Item_dive<MfieldsStateSingle>(h_mflds);
 	       
     if (dump_) {
       static int cnt;
@@ -64,6 +65,7 @@ struct MarderCuda : MarderBase
     // // FIXME, why is this necessary?
     h_bnd_mf_.fill_ghosts(h_res_, 0, 1);
 
+    mflds.put_as(h_mflds, EX, EX + 3);
     rho.put_as(h_rho, 0, 0);
   }
 
@@ -275,19 +277,18 @@ struct MarderCuda : MarderBase
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
     bnd_.fill_ghosts(mflds, EX, EX+3);
 
-    auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
-
 #if 1
     item_rho_(mprts);
     auto &rho = item_rho_.result();
 
     for (int i = 0; i < loop_; i++) {
-      calc_aid_fields(h_mflds, rho);
+      calc_aid_fields(mflds, rho);
+      auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
       correct(h_mflds);
       h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
+      mflds.put_as(h_mflds, EX, EX + 3);
     }
 
-    mflds.put_as(h_mflds, EX, EX + 3);
 #else
     item_rho_(mprts);
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
