@@ -34,7 +34,6 @@ struct MarderCuda : MarderBase
 
       h_bnd_{grid, grid.ibn},
       h_bnd_mf_{grid, grid.ibn},
-      h_res_{grid, 1, grid.ibn}
 #else
       div_e_{grid, 1, grid.ibn},
       bnd_{grid, grid.ibn}
@@ -64,10 +63,6 @@ struct MarderCuda : MarderBase
     res_.axpy_comp_yz(0, -1., rho, 0);
     // FIXME, why is this necessary?
     bnd_mf_.fill_ghosts(res_, 0, 1);
-
-    auto& h_res = res_.get_as<MfieldsSingle>(0, 1);
-    h_res_.copy_comp(0, h_res, 0);
-    res_.put_as(h_res, 0, 0);
   }
 
 #else
@@ -263,7 +258,6 @@ struct MarderCuda : MarderBase
   void correct(MfieldsStateSingle& mf)
   {
     auto& h_res = res_.get_as<MfieldsSingle>(0, 1);
-    //auto& mf_div_e = h_res_;
 
     real_t max_err = 0.;
     for (int p = 0; p < h_res.n_patches(); p++) {
@@ -315,7 +309,6 @@ private:
 #if 1
   Bnd_<MfieldsStateSingle> h_bnd_;
   Bnd_<MfieldsSingle> h_bnd_mf_;
-  MfieldsSingle h_res_;
   WriterMRC io_; //< for debug dumping
 
   Bnd_<MfieldsState> bnd_;
