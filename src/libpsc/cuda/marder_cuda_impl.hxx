@@ -25,10 +25,10 @@ struct MarderCuda : MarderBase
       loop_{loop},
       dump_{dump},
 #if 1
-      bnd_{grid, grid.ibn},
-      bnd_mf_{grid, grid.ibn},
-      rho_{grid, 1, grid.ibn},
-      res_{grid, 1, grid.ibn}
+      h_bnd_{grid, grid.ibn},
+      h_bnd_mf_{grid, grid.ibn},
+      h_rho_{grid, 1, grid.ibn},
+      h_res_{grid, 1, grid.ibn}
 #else
       item_rho_{grid},
       item_div_e_{grid},
@@ -50,15 +50,15 @@ struct MarderCuda : MarderBase
       static int cnt;
       io_.begin_step(cnt, cnt);//ppsc->timestep, ppsc->timestep * ppsc->dt);
       cnt++;
-      io_.write(rho_, rho_.grid(), "rho", {"rho"});
+      io_.write(h_rho_, h_rho_.grid(), "rho", {"rho"});
       io_.write(adaptMfields(dive), dive.grid(), "dive", {"dive"});
       io_.end_step();
     }
 
-    res_.assign(dive);
-    res_.axpy_comp(0, -1., rho_, 0);
+    h_res_.assign(dive);
+    h_res_.axpy_comp(0, -1., h_rho_, 0);
     // // FIXME, why is this necessary?
-    bnd_mf_.fill_ghosts(res_, 0, 1);
+    h_bnd_mf_.fill_ghosts(h_res_, 0, 1);
   }
 
 #else
@@ -253,7 +253,7 @@ struct MarderCuda : MarderBase
 
   void correct(MfieldsStateSingle& mf)
   {
-    auto& mf_div_e = res_;
+    auto& mf_div_e = h_res_;
 
     real_t max_err = 0.;
     for (int p = 0; p < mf_div_e.n_patches(); p++) {
@@ -270,14 +270,14 @@ struct MarderCuda : MarderBase
     auto& h_mprts = mprts.template get_as<MparticlesSingle>();
 
 #if 1
-    rho_.assign(Moment_t{h_mprts});
+    h_rho_.assign(Moment_t{h_mprts});
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
-    bnd_.fill_ghosts(h_mflds, EX, EX+3);
+    h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
 
     for (int i = 0; i < loop_; i++) {
       calc_aid_fields(h_mflds);
       correct(h_mflds);
-      bnd_.fill_ghosts(h_mflds, EX, EX+3);
+      h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
     }
     
     mflds.put_as(h_mflds, EX, EX + 3);
@@ -304,10 +304,10 @@ private:
   bool dump_; //< dump div_E, rho
 
 #if 1
-  Bnd_<MfieldsStateSingle> bnd_;
-  Bnd_<MfieldsSingle> bnd_mf_;
-  MfieldsSingle rho_;
-  MfieldsSingle res_;
+  Bnd_<MfieldsStateSingle> h_bnd_;
+  Bnd_<MfieldsSingle> h_bnd_mf_;
+  MfieldsSingle h_rho_;
+  MfieldsSingle h_res_;
   WriterMRC io_; //< for debug dumping
 #else
   FieldsItemFields<Item_dive_cuda> item_div_e_;
