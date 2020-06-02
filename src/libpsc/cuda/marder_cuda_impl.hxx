@@ -276,7 +276,6 @@ struct MarderCuda : MarderBase
     bnd_.fill_ghosts(mflds, EX, EX+3);
 
     auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
-    auto& h_mprts = mprts.template get_as<MparticlesSingle>();
 
 #if 1
     item_rho_(mprts);
@@ -289,7 +288,6 @@ struct MarderCuda : MarderBase
     }
 
     mflds.put_as(h_mflds, EX, EX + 3);
-    mprts.put_as(h_mprts, MP_DONT_COPY);
 #else
     item_rho_(mprts);
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
