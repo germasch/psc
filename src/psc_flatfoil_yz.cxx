@@ -369,7 +369,7 @@ void run()
   checks_params.continuity_every_step = 30;
   checks_params.continuity_threshold = 1e-4;
   checks_params.continuity_verbose = true;
-  checks_params.gauss_every_step = 5;
+  checks_params.gauss_every_step = 30;
   checks_params.gauss_threshold = 1e-4;
   checks_params.gauss_verbose = true;
   checks_params.gauss_dump_always = false;
