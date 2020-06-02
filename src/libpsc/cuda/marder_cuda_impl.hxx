@@ -278,12 +278,15 @@ struct MarderCuda : MarderBase
 #if 1
     h_rho_.assign(Moment_t{h_mprts});
     auto &rho = item_rho_.result();
+    auto &h_rho = rho.get_as<MfieldsSingle>(0, 1);
 
     for (int i = 0; i < loop_; i++) {
-      calc_aid_fields(h_mflds, h_rho_);
+      calc_aid_fields(h_mflds, h_rho);
       correct(h_mflds);
       h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
     }
+
+    rho.put_as(h_rho, 0, 0);
     
     mflds.put_as(h_mflds, EX, EX + 3);
     mprts.put_as(h_mprts, MP_DONT_COPY);
