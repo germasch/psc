@@ -46,11 +46,8 @@ struct MarderCuda : MarderBase
 #if 1
   void calc_aid_fields(MfieldsState& mflds, Mfields& rho)
   {
-    auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
-    
     item_dive_(mflds.grid(), mflds);
     auto& dive = item_dive_.result();
-    auto& h_dive = dive.get_as<MfieldsSingle>(0, 1); //Item_dive<MfieldsStateSingle>(h_mflds);
 	       
     if (dump_) {
       static int cnt;
@@ -61,6 +58,7 @@ struct MarderCuda : MarderBase
       io_.end_step();
     }
 
+    auto& h_dive = dive.get_as<MfieldsSingle>(0, 1);
     auto& h_rho = rho.get_as<MfieldsSingle>(0, 1);
     h_res_.copy_comp(0, h_dive, 0);
     //h_res_.assign(h_dive);
@@ -68,7 +66,6 @@ struct MarderCuda : MarderBase
     // // FIXME, why is this necessary?
     h_bnd_mf_.fill_ghosts(h_res_, 0, 1);
 
-    mflds.put_as(h_mflds, EX, EX + 3);
     rho.put_as(h_rho, 0, 0);
     dive.put_as(h_dive, 0, 0);
   }
