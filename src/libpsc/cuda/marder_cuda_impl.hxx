@@ -33,7 +33,7 @@ struct MarderCuda : MarderBase
       res_{grid, 1, grid.ibn},
 
       h_bnd_{grid, grid.ibn},
-      h_bnd_mf_{grid, grid.ibn},
+      h_bnd_mf_{grid, grid.ibn}
 #else
       div_e_{grid, 1, grid.ibn},
       bnd_{grid, grid.ibn}
@@ -255,13 +255,13 @@ struct MarderCuda : MarderBase
   // ----------------------------------------------------------------------
   // correct
 
-  void correct(MfieldsStateSingle& mf)
+  void correct(MfieldsStateSingle& h_mflds)
   {
     auto& h_res = res_.get_as<MfieldsSingle>(0, 1);
 
     real_t max_err = 0.;
     for (int p = 0; p < h_res.n_patches(); p++) {
-      correct_patch(mf.grid(), mf[p], h_res[p], p, max_err);
+      correct_patch(h_mflds.grid(), h_mflds[p], h_res[p], p, max_err);
     }
     res_.put_as(h_res, 0, 0);
 
@@ -282,8 +282,8 @@ struct MarderCuda : MarderBase
       calc_aid_fields(mflds, rho);
       auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
       correct(h_mflds);
-      h_bnd_.fill_ghosts(h_mflds, EX, EX+3);
       mflds.put_as(h_mflds, EX, EX + 3);
+      bnd_.fill_ghosts(mflds, EX, EX+3);
     }
 
 #else
