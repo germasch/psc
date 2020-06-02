@@ -46,21 +46,21 @@ struct MarderCuda : MarderBase
 #if 1
   void calc_aid_fields(MfieldsState& mflds, Mfields& rho)
   {
-    auto& h_rho = rho.get_as<MfieldsSingle>(0, 1);
     auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
     
-    auto dive = Item_dive<MfieldsStateSingle>(h_mflds);
+    auto h_dive = Item_dive<MfieldsStateSingle>(h_mflds);
 	       
     if (dump_) {
       static int cnt;
       io_.begin_step(cnt, cnt);//ppsc->timestep, ppsc->timestep * ppsc->dt);
       cnt++;
-      io_.write(h_rho, h_rho.grid(), "rho", {"rho"});
-      io_.write(adaptMfields(dive), dive.grid(), "dive", {"dive"});
+      io_.write(rho, rho.grid(), "rho", {"rho"});
+      io_.write(adaptMfields(h_dive), h_dive.grid(), "dive", {"dive"});
       io_.end_step();
     }
 
-    h_res_.assign(dive);
+    auto& h_rho = rho.get_as<MfieldsSingle>(0, 1);
+    h_res_.assign(h_dive);
     h_res_.axpy_comp(0, -1., h_rho, 0);
     // // FIXME, why is this necessary?
     h_bnd_mf_.fill_ghosts(h_res_, 0, 1);
