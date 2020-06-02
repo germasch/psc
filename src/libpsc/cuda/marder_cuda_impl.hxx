@@ -262,14 +262,16 @@ struct MarderCuda : MarderBase
 
   void correct(MfieldsStateSingle& mf)
   {
-    auto& mf_div_e = h_res_;
+    auto& h_res = res_.get_as<MfieldsSingle>(0, 1);
+    //auto& mf_div_e = h_res_;
 
     real_t max_err = 0.;
-    for (int p = 0; p < mf_div_e.n_patches(); p++) {
-      correct_patch(mf.grid(), mf[p], mf_div_e[p], p, max_err);
+    for (int p = 0; p < h_res.n_patches(); p++) {
+      correct_patch(mf.grid(), mf[p], h_res[p], p, max_err);
     }
+    res_.put_as(h_res, 0, 0);
 
-    MPI_Allreduce(MPI_IN_PLACE, &max_err, 1, Mfields_traits<MfieldsSingle>::mpi_dtype(), MPI_MAX, grid_.comm());
+    MPI_Allreduce(MPI_IN_PLACE, &max_err, 1, MPI_FLOAT, MPI_MAX, grid_.comm());
     mpi_printf(grid_.comm(), "marder: err %g\n", max_err);
   }
 
