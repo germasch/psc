@@ -30,10 +30,7 @@ struct MarderCuda : MarderBase
       bnd_{grid, grid.ibn},
       bnd_mf_{grid, grid.ibn},
       rho_{grid, 1, grid.ibn},
-      res_{grid, 1, grid.ibn},
-
-      h_bnd_{grid, grid.ibn},
-      h_bnd_mf_{grid, grid.ibn}
+      res_{grid, 1, grid.ibn}
 #else
       div_e_{grid, 1, grid.ibn},
       bnd_{grid, grid.ibn}
@@ -307,8 +304,6 @@ private:
   bool dump_; //< dump div_E, rho
 
 #if 1
-  Bnd_<MfieldsStateSingle> h_bnd_;
-  Bnd_<MfieldsSingle> h_bnd_mf_;
   WriterMRC io_; //< for debug dumping
 
   Bnd_<MfieldsState> bnd_;
