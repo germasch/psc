@@ -60,17 +60,12 @@ struct MarderCuda : MarderBase
     }
 
     res_.copy_comp_yz(0, dive, 0);
+    res_.axpy_comp_yz(0, -1., rho, 0);
+
     auto& h_res = res_.get_as<MfieldsSingle>(0, 1);
-    auto& h_dive = dive.get_as<MfieldsSingle>(0, 1);
-    auto& h_rho = rho.get_as<MfieldsSingle>(0, 1);
-    //h_res_.copy_comp(0, h_dive, 0);
     h_res_.copy_comp(0, h_res, 0);
-    h_res_.axpy_comp(0, -1., h_rho, 0);
     // // FIXME, why is this necessary?
     h_bnd_mf_.fill_ghosts(h_res_, 0, 1);
-
-    rho.put_as(h_rho, 0, 0);
-    dive.put_as(h_dive, 0, 0);
     res_.put_as(h_res, 0, 0);
   }
 
