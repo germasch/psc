@@ -16,7 +16,9 @@
 
 #include <cstdio>
 
-#define THREADS_PER_BLOCK 256
+#define THREADS_PER_BLOCK 32
+
+using DIM = dim_xyz;
 
 // ----------------------------------------------------------------------
 // cuda_heating_params
@@ -71,11 +73,12 @@ bm_normal2(void)
 // k_curand_setup
 
 __global__ static void
-k_curand_setup(curandState *d_curand_states)
+k_curand_setup(curandState *d_curand_states, int max_id)
 {
   int bid = (blockIdx.z * gridDim.y + blockIdx.y) * gridDim.x + blockIdx.x;
   int id = threadIdx.x + bid * THREADS_PER_BLOCK;
 
+  assert(id < max_id);
   curand_init(1234, id, 0, &d_curand_states[id]);
 }
 
@@ -101,6 +104,7 @@ struct cuda_heating_foil : HeatingSpotFoilParams
   {
     float width = zh - zl;
     fac = (8.f * pow(T, 1.5)) / (sqrt(Mi) * width);
+    mprintf("fac = %g\n", fac);
   }
 
   ~cuda_heating_foil()
@@ -129,15 +133,15 @@ struct cuda_heating_foil : HeatingSpotFoilParams
       return 0;
     }
     
-    return fac * (exp(-(sqr(x - (xc)) + sqr(y - (yc))) / sqr(rH)) +
-		  exp(-(sqr(x - (xc)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
-		  exp(-(sqr(x - (xc)) + sqr(y - (yc - Ly_))) / sqr(rH)) +
-		  exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc))) / sqr(rH)) +
-		  exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
-		  exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc - Ly_))) / sqr(rH)) +
-		  exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc))) / sqr(rH)) +
-		  exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
-		  exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc - Ly_))) / sqr(rH)));
+    return .00032;// fac;// * (exp(-(sqr(x - (xc)) + sqr(y - (yc))) / sqr(rH)) +
+		  // exp(-(sqr(x - (xc)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
+		  // exp(-(sqr(x - (xc)) + sqr(y - (yc - Ly_))) / sqr(rH)) +
+		  // exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc))) / sqr(rH)) +
+		  // exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
+		  // exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc - Ly_))) / sqr(rH)) +
+		  // exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc))) / sqr(rH)) +
+		  // exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
+		  // exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc - Ly_))) / sqr(rH)));
   }
   
   // ----------------------------------------------------------------------
@@ -179,10 +183,11 @@ struct cuda_heating_foil : HeatingSpotFoilParams
     if (cmprts->n_prts == 0) {
       return;
     }
-    dim3 dimGrid = BlockSimple<BS, dim_xyz>::dimGrid(*cmprts);
+    dim3 dimGrid = BlockSimple<BS, DIM>::dimGrid(*cmprts);
+    int n_threads = dimGrid.x * dimGrid.y * dimGrid.z * THREADS_PER_BLOCK;
     
     k_heating_run_foil<BS>
-      <<<dimGrid, THREADS_PER_BLOCK>>>(*this, *cmprts, h_prm_, d_curand_states);
+      <<<dimGrid, THREADS_PER_BLOCK>>>(*this, *cmprts, h_prm_, d_curand_states, n_threads);
     cuda_sync_if_enabled();
   }
   
@@ -201,13 +206,14 @@ struct cuda_heating_foil : HeatingSpotFoilParams
       cuda_heating_params_free(h_prm_);
       cuda_heating_params_set(h_prm_, cmprts);
       
-      dim3 dimGrid = BlockSimple<BS, dim_xyz>::dimGrid(*cmprts);
+      dim3 dimGrid = BlockSimple<BS, DIM>::dimGrid(*cmprts);
       int n_threads = dimGrid.x * dimGrid.y * dimGrid.z * THREADS_PER_BLOCK;
+      mprintf("heating n_threads %d dimGrid %d %d %d\n", n_threads, dimGrid.x, dimGrid.y, dimGrid.z);
       
       myCudaFree(d_curand_states_);
       d_curand_states_ = (curandState*) myCudaMalloc(n_threads * sizeof(*d_curand_states_));
       
-      k_curand_setup<<<dimGrid, THREADS_PER_BLOCK>>>(d_curand_states_);
+      k_curand_setup<<<dimGrid, THREADS_PER_BLOCK>>>(d_curand_states_, n_threads);
       cuda_sync_if_enabled();
       
       first_time_ = false;
@@ -261,14 +267,15 @@ void cuda_heating_run_foil_gold(cuda_heating_foil& foil, cuda_mparticles<BS>* cm
       // printf("%s xx = %g %g %g H = %g px = %g %g %g\n", (H > 0) ? "H" : " ",
       // 	     xx[0], xx[1], xx[2], H,
       // 	     pxi4.x, pxi4.y, pxi4.z);
+      // float4 pxi4 = cmprts->d_pxi4[n];
       // pxi4.w = H;
-      // d_pxi4[n] = pxi4;
+      // cmprts->d_pxi4[n] = pxi4;
       if (H > 0) {
-	float4 pxi4 = cmprts->d_pxi4[n];
-	foil.particle_kick(&pxi4, H);
-	cmprts->d_pxi4[n] = pxi4;
-	// printf("H xx = %g %g %g H = %g px = %g %g %g\n", xx[0], xx[1], xx[2], H,
-	//        pxi4.x, pxi4.y, pxi4.z);
+      	float4 pxi4 = cmprts->d_pxi4[n];
+      	foil.particle_kick(&pxi4, H);
+      	cmprts->d_pxi4[n] = pxi4;
+      	// printf("H xx = %g %g %g H = %g px = %g %g %g\n", xx[0], xx[1], xx[2], H,
+      	//        pxi4.x, pxi4.y, pxi4.z);
       }
     }
   }
@@ -281,9 +288,9 @@ template<typename BS>
 __global__ static void
 __launch_bounds__(THREADS_PER_BLOCK, 3)
 k_heating_run_foil(cuda_heating_foil d_foil, DMparticlesCuda<BS> dmprts, struct cuda_heating_params prm,
-		   curandState *d_curand_states)
+		   curandState *d_curand_states, int max_id)
 {
-  BlockSimple<BS, dim_xyz> current_block;
+  BlockSimple<BS, DIM> current_block;
   if (!current_block.init(dmprts)) {
     return;
   }
@@ -296,6 +303,7 @@ k_heating_run_foil(cuda_heating_foil d_foil, DMparticlesCuda<BS> dmprts, struct 
 
   int bid = (blockIdx.z * gridDim.y + blockIdx.y) * gridDim.x + blockIdx.x;
   int id = threadIdx.x + bid * THREADS_PER_BLOCK;
+  assert(id < max_id);
   /* Copy state to local memory for efficiency */
   curandState local_state = d_curand_states[id];
 
