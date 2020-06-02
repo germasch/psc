@@ -28,6 +28,7 @@ struct MarderCuda : MarderBase
       item_rho_{grid},
       item_dive_{grid},
       bnd_{grid, grid.ibn},
+      bnd_mf_{grid, grid.ibn},
       rho_{grid, 1, grid.ibn},
       res_{grid, 1, grid.ibn},
 
@@ -61,11 +62,11 @@ struct MarderCuda : MarderBase
 
     res_.copy_comp_yz(0, dive, 0);
     res_.axpy_comp_yz(0, -1., rho, 0);
+    // FIXME, why is this necessary?
+    bnd_mf_.fill_ghosts(res_, 0, 1);
 
     auto& h_res = res_.get_as<MfieldsSingle>(0, 1);
     h_res_.copy_comp(0, h_res, 0);
-    // // FIXME, why is this necessary?
-    h_bnd_mf_.fill_ghosts(h_res_, 0, 1);
     res_.put_as(h_res, 0, 0);
   }
 
@@ -316,6 +317,7 @@ private:
   WriterMRC io_; //< for debug dumping
 
   Bnd_<MfieldsState> bnd_;
+  Bnd_<Mfields> bnd_mf_;
   Mfields rho_;
   Mfields res_;
   
