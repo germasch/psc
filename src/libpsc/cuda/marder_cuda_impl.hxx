@@ -61,62 +61,6 @@ struct MarderCuda : MarderBase
   //
   // Do the modified marder correction (See eq.(5, 7, 9, 10) in Mardahl and Verboncoeur, CPC, 1997)
 
-#if 0
-  void correct(MfieldsState& mflds, Mfields& mf)
-  {
-    assert(mflds._grid().isInvar(0));
-
-    const Grid_t& grid = mflds._grid();
-    // FIXME: how to choose diffusion parameter properly?
-    float dx[3];
-    for (int d = 0; d < 3; d++) {
-      dx[d] = grid.domain.dx[d];
-    }
-    float inv_sum = 0.;
-    for (int d = 0; d < 3; d++) {
-      if (!grid.isInvar(d)) {
-	inv_sum += 1. / sqr(grid.domain.dx[d]);
-      }
-    }
-    float diffusion_max = 1. / 2. / (.5 * grid.dt) / inv_sum;
-    float diffusion     = diffusion_max * diffusion_;
-    
-    float fac[3];
-    fac[0] = 0.f;
-    fac[1] = .5 * grid.dt * diffusion / dx[1];
-    fac[2] = .5 * grid.dt * diffusion / dx[2];
-
-    cuda_mfields *cmflds = mflds.cmflds();
-    cuda_mfields *cmf = mf.cmflds();
-
-    // OPT, do all patches in one kernel
-    for (int p = 0; p < mf.n_patches(); p++) {
-      int l_cc[3] = {0, 0, 0}, r_cc[3] = {0, 0, 0};
-      int l_nc[3] = {0, 0, 0}, r_nc[3] = {0, 0, 0};
-      for (int d = 0; d < 3; d++) {
-	if (grid.bc.fld_lo[d] == BND_FLD_CONDUCTING_WALL && grid.atBoundaryLo(p, d)) {
-	  l_cc[d] = -1;
-	  l_nc[d] = -1;
-	}
-	if (grid.bc.fld_hi[d] == BND_FLD_CONDUCTING_WALL && grid.atBoundaryHi(p, d)) {
-	  r_cc[d] = -1;
-	  r_nc[d] = 0;
-	}
-      }
-    
-      const int *ldims = grid.ldims;
-    
-      int ly[3] = { l_nc[0], l_cc[1], l_nc[2] };
-      int ry[3] = { r_nc[0] + ldims[0], r_cc[1] + ldims[1], r_nc[2] + ldims[2] };
-    
-      int lz[3] = { l_nc[0], l_nc[1], l_cc[2] };
-      int rz[3] = { r_nc[0] + ldims[0], r_nc[1] + ldims[1], r_cc[2] + ldims[2] };
-    
-      cuda_marder_correct_yz(cmflds, cmf, p, fac, ly, ry, lz, rz);
-    }
-  }
-#endif
-
   // ----------------------------------------------------------------------
   // correct_patch
   //
@@ -140,7 +84,8 @@ struct MarderCuda : MarderBase
   } } }
 
   using fields_view_t = typename MfieldsSingle::fields_view_t;
-  void correct_patch(const Grid_t& grid, fields_view_t flds, fields_view_t f, int p, real_t& max_err)
+  void correct_patch(const Grid_t& grid, fields_view_t flds, fields_view_t f, int p,
+		     real_t diffusion, real_t& max_err)
   {
     define_dxdydz(dx, dy, dz);
 
@@ -148,15 +93,6 @@ struct MarderCuda : MarderBase
     //double deltax = ppsc->patch[p].dx[0];
     double deltay = grid.domain.dx[1]; // FIXME double/float
     double deltaz = grid.domain.dx[2];
-    double inv_sum = 0.;
-    int nr_levels;
-    for (int d = 0; d < 3; d++) {
-      if (!grid.isInvar(d)) {
-	inv_sum += 1. / sqr(grid.domain.dx[d]);
-      }
-    }
-    double diffusion_max = 1. / 2. / (.5 * grid.dt) / inv_sum;
-    double diffusion     = diffusion_max * diffusion_;
 
     int l_cc[3] = {0, 0, 0}, r_cc[3] = {0, 0, 0};
     int l_nc[3] = {0, 0, 0}, r_nc[3] = {0, 0, 0};
@@ -216,14 +152,24 @@ struct MarderCuda : MarderBase
   // ----------------------------------------------------------------------
   // correct
 
+#if 0
   void correct(MfieldsState& mflds)
   {
     auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
     auto& h_res = res_.get_as<MfieldsSingle>(0, 1);
 
+    auto& grid = mflds.grid();
+    double inv_sum = 0.;
+    for (int d = 0; d < 3; d++) {
+      if (!grid.isInvar(d)) {
+	inv_sum += 1. / sqr(grid.domain.dx[d]);
+      }
+    }
+    double diffusion_max = 1. / 2. / (.5 * grid.dt) / inv_sum;
+    double diffusion     = diffusion_max * diffusion_;
     real_t max_err = 0.;
     for (int p = 0; p < h_res.n_patches(); p++) {
-      correct_patch(h_mflds.grid(), h_mflds[p], h_res[p], p, max_err);
+      correct_patch(h_mflds.grid(), h_mflds[p], h_res[p], p, diffusion, max_err);
     }
     res_.put_as(h_res, 0, 0);
     mflds.put_as(h_mflds, EX, EX + 3);
@@ -232,6 +178,62 @@ struct MarderCuda : MarderBase
     mpi_printf(grid_.comm(), "marder: err %g\n", max_err);
   }
 
+#else
+  void correct(MfieldsState& mflds)
+  {
+    assert(mflds._grid().isInvar(0));
+
+    const Grid_t& grid = mflds._grid();
+    // FIXME: how to choose diffusion parameter properly?
+    float dx[3];
+    for (int d = 0; d < 3; d++) {
+      dx[d] = grid.domain.dx[d];
+    }
+    float inv_sum = 0.;
+    for (int d = 0; d < 3; d++) {
+      if (!grid.isInvar(d)) {
+	inv_sum += 1. / sqr(grid.domain.dx[d]);
+      }
+    }
+    float diffusion_max = 1. / 2. / (.5 * grid.dt) / inv_sum;
+    float diffusion     = diffusion_max * diffusion_;
+    
+    float fac[3];
+    fac[0] = 0.f;
+    fac[1] = .5 * grid.dt * diffusion / dx[1];
+    fac[2] = .5 * grid.dt * diffusion / dx[2];
+
+    cuda_mfields *cmflds = mflds.cmflds();
+    cuda_mfields *cmf = res_.cmflds();
+
+    // OPT, do all patches in one kernel
+    for (int p = 0; p < mflds.n_patches(); p++) {
+      int l_cc[3] = {0, 0, 0}, r_cc[3] = {0, 0, 0};
+      int l_nc[3] = {0, 0, 0}, r_nc[3] = {0, 0, 0};
+      for (int d = 0; d < 3; d++) {
+	if (grid.bc.fld_lo[d] == BND_FLD_CONDUCTING_WALL && grid.atBoundaryLo(p, d)) {
+	  l_cc[d] = -1;
+	  l_nc[d] = -1;
+	}
+	if (grid.bc.fld_hi[d] == BND_FLD_CONDUCTING_WALL && grid.atBoundaryHi(p, d)) {
+	  r_cc[d] = -1;
+	  r_nc[d] = 0;
+	}
+      }
+    
+      const int *ldims = grid.ldims;
+    
+      int ly[3] = { l_nc[0], l_cc[1], l_nc[2] };
+      int ry[3] = { r_nc[0] + ldims[0], r_cc[1] + ldims[1], r_nc[2] + ldims[2] };
+    
+      int lz[3] = { l_nc[0], l_nc[1], l_cc[2] };
+      int rz[3] = { r_nc[0] + ldims[0], r_nc[1] + ldims[1], r_cc[2] + ldims[2] };
+    
+      cuda_marder_correct_yz(cmflds, cmf, p, fac, ly, ry, lz, rz);
+    }
+  }
+#endif
+  
   void operator()(MfieldsStateCuda& mflds, MparticlesCuda<BS>& mprts)
   {
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
