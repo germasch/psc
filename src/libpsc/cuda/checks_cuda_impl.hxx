@@ -44,24 +44,37 @@ struct ChecksCuda
 
   void continuity_before_particle_push(Mparticles& mprts)
   {
+    static int pr;
+    if (!pr) {
+      pr = prof_register("continuity bef", 1., 0, 0);
+    }
+
     const auto& grid = mprts.grid();
     if (continuity_every_step <= 0 ||
         grid.timestep() % continuity_every_step != 0) {
       return;
     }
 
+    prof_start(pr);
     item_rho_m_(mprts);
+    prof_stop(pr);
   }
 
   void continuity_after_particle_push(Mparticles& mprts,
                                       MfieldsStateCuda& mflds)
   {
+    static int pr;
+    if (!pr) {
+      pr = prof_register("continuity aft", 1., 0, 0);
+    }
+
     const auto& grid = mprts.grid();
     if (continuity_every_step <= 0 ||
         grid.timestep() % continuity_every_step != 0) {
       return;
     }
 
+    prof_start(pr);
     item_rho_p_(mprts);
 
     auto& h_mflds = mflds.get_as<MfieldsState>(0, mflds._n_comps());
@@ -118,6 +131,7 @@ struct ChecksCuda
     dev_rho_p.put_as(rho_p, 0, 0);
     dev_rho_m.put_as(rho_m, 0, 0);
     mflds.put_as(h_mflds, 0, 0);
+    prof_stop(pr);
   }
 
   // ======================================================================

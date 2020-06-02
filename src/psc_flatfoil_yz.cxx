@@ -372,7 +372,7 @@ void run()
   checks_params.gauss_every_step = 5;
   checks_params.gauss_threshold = 1e-4;
   checks_params.gauss_verbose = true;
-  checks_params.gauss_dump_always = true;
+  checks_params.gauss_dump_always = false;
   Checks checks{grid, MPI_COMM_WORLD, checks_params};
 
   // -- Marder correction

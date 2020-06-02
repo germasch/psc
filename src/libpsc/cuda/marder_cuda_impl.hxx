@@ -236,34 +236,35 @@ struct MarderCuda : MarderBase
   
   void operator()(MfieldsStateCuda& mflds, MparticlesCuda<BS>& mprts)
   {
-    static int pr, pr_A, pr_B, pr_C, pr_D;
+    static int pr;
+    // static int pr_A, pr_B, pr_C, pr_D;
     if (!pr) {
       pr = prof_register("marder", 1., 0, 0);
-      pr_A = prof_register("marder prep", 1., 0, 0);
-      pr_B = prof_register("marder aid", 1., 0, 0);
-      pr_C = prof_register("marder correct", 1., 0, 0);
-      pr_D = prof_register("marder fillg", 1., 0, 0);
+      // pr_A = prof_register("marder prep", 1., 0, 0);
+      // pr_B = prof_register("marder aid", 1., 0, 0);
+      // pr_C = prof_register("marder correct", 1., 0, 0);
+      // pr_D = prof_register("marder fillg", 1., 0, 0);
     }
 
     prof_start(pr);
-    prof_start(pr_A);
+    // prof_start(pr_A);
     // need to fill ghost cells first (should be unnecessary with only variant 1) FIXME
     bnd_.fill_ghosts(mflds, EX, EX+3);
 
     item_rho_(mprts);
     auto &rho = item_rho_.result();
-    prof_stop(pr_A);
+    // prof_stop(pr_A);
 
     for (int i = 0; i < loop_; i++) {
-      prof_start(pr_B);
+      // prof_start(pr_B);
       calc_aid_fields(mflds, rho);
-      prof_stop(pr_B);
-      prof_start(pr_C);
+      // prof_stop(pr_B);
+      // prof_start(pr_C);
       correct(mflds);
-      prof_stop(pr_C);
-      prof_start(pr_D);
+      // prof_stop(pr_C);
+      // prof_start(pr_D);
       bnd_.fill_ghosts(mflds, EX, EX+3);
-      prof_stop(pr_D);
+      // prof_stop(pr_D);
     }
     prof_stop(pr);
   }
