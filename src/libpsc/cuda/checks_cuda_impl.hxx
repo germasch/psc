@@ -142,11 +142,16 @@ struct ChecksCuda
 
   void gauss(Mparticles& mprts, MfieldsStateCuda& mflds)
   {
+    static int pr;
+    if (!pr) {
+      pr = prof_register("gauss", 1., 0, 0);
+    }
     const auto& grid = mprts.grid();
     if (gauss_every_step <= 0 || grid.timestep() % gauss_every_step != 0) {
       return;
     }
 
+    prof_start(pr);
     item_rho_(mprts);
 
     auto& h_mflds = mflds.get_as<MfieldsState>(0, mflds._n_comps());
@@ -209,6 +214,7 @@ struct ChecksCuda
     assert(max_err < eps);
     dev_rho.put_as(rho, 0, 0);
     mflds.put_as(h_mflds, 0, 0);
+    prof_stop(pr);
   }
 
 private:
