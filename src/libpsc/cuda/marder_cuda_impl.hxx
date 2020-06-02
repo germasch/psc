@@ -25,6 +25,10 @@ struct MarderCuda : MarderBase
       dump_{dump},
       m_(grid, diffusion, loop, dump)
 #if 1
+    , bnd_{grid, grid.ibn},
+      bnd_mf_{grid, grid.ibn},
+      rho_{grid, 1, grid.ibn},
+      res_{grid, 1, grid.ibn}
 #else
     ,
       item_rho_{grid},
@@ -33,12 +37,9 @@ struct MarderCuda : MarderBase
       bnd_{grid, grid.ibn}
 #endif
   {
-#if 0
-    // FIXME, output_fields should be taking care of their own psc_bnd?
     if (dump_) {
-      writer_.open("marder");
+      io_.open("marder");
     }
-#endif
   }
 
 #if 0
@@ -166,6 +167,12 @@ private:
 
 #if 1
   Marder_<MparticlesSingle, MfieldsStateSingle, MfieldsSingle> m_;
+
+  Bnd_<MfieldsStateSingle> bnd_;
+  Bnd_<MfieldsSingle> bnd_mf_;
+  MfieldsSingle rho_;
+  MfieldsSingle res_;
+  WriterMRC io_; //< for debug dumping
 #else
   FieldsItemFields<Item_dive_cuda> item_div_e_;
   Moment_rho_1st_nc_cuda<MparticlesCuda<BS144>, dim_yz> item_rho_; // FIXME, hardcoded dim_yz
