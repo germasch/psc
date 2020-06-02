@@ -24,14 +24,12 @@ struct MarderCuda : MarderBase
       diffusion_{diffusion},
       loop_{loop},
       dump_{dump},
-      m_(grid, diffusion, loop, dump)
 #if 1
-    , bnd_{grid, grid.ibn},
+      bnd_{grid, grid.ibn},
       bnd_mf_{grid, grid.ibn},
       rho_{grid, 1, grid.ibn},
       res_{grid, 1, grid.ibn}
 #else
-    ,
       item_rho_{grid},
       item_div_e_{grid},
       div_e_{grid, 1, grid.ibn},
@@ -98,8 +96,7 @@ struct MarderCuda : MarderBase
   //
   // Do the modified marder correction (See eq.(5, 7, 9, 10) in Mardahl and Verboncoeur, CPC, 1997)
 
-#if 1
-#else
+#if 0
   void correct(MfieldsState& mflds, Mfields& mf)
   {
     assert(mflds._grid().isInvar(0));
@@ -283,8 +280,6 @@ struct MarderCuda : MarderBase
       bnd_.fill_ghosts(h_mflds, EX, EX+3);
     }
     
-    m_(h_mflds, h_mprts);
-    
     mflds.put_as(h_mflds, EX, EX + 3);
     mprts.put_as(h_mprts, MP_DONT_COPY);
 #else
@@ -309,8 +304,6 @@ private:
   bool dump_; //< dump div_E, rho
 
 #if 1
-  Marder_<MparticlesSingle, MfieldsStateSingle, MfieldsSingle> m_;
-
   Bnd_<MfieldsStateSingle> bnd_;
   Bnd_<MfieldsSingle> bnd_mf_;
   MfieldsSingle rho_;
