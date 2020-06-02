@@ -366,7 +366,7 @@ void run()
 
   // -- Checks
   ChecksParams checks_params{};
-  checks_params.continuity_every_step = 5;
+  checks_params.continuity_every_step = 30;
   checks_params.continuity_threshold = 1e-4;
   checks_params.continuity_verbose = true;
   checks_params.gauss_every_step = 5;
@@ -379,7 +379,7 @@ void run()
   double marder_diffusion = 0.9;
   int marder_loop = 3;
   bool marder_dump = false;
-  psc_params.marder_interval = 5;
+  psc_params.marder_interval = 30;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
   // ----------------------------------------------------------------------
