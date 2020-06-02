@@ -236,8 +236,8 @@ Grid_t* setupGrid()
   Int3 np = {5, 5, 3*5};                  // division into patches
 #else
   Grid_t::Real3 LL = {1., 800., 3.*800.}; // domain size (in d_e)
-  Int3 gdims = {1, 160, 3*160};         // global number of grid points
-  Int3 np = {1, 5, 3*5};                // division into patches
+  Int3 gdims = {1, 1600, 3*1600};         // global number of grid points
+  Int3 np = {1, 50, 3*50};                // division into patches
 #endif
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
