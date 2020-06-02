@@ -37,12 +37,26 @@ struct Inject_ : InjectBase
 
   void operator()(Mparticles& mprts)
   {
+    static int pr, pr_A, pr_B, pr_C;
+    if (!pr) {
+      pr = prof_register("Inject", 1., 0, 0);
+      pr_A = prof_register("Inject moment", 1., 0, 0);
+      pr_B = prof_register("Inject get_as", 1., 0, 0);
+      pr_C = prof_register("Inject prts", 1., 0, 0);
+    }
+
+    prof_start(pr);
     const auto& grid = mprts.grid();
 
+    prof_start(pr_A);
     ItemMoment_t moment_n(mprts);
     auto mres = evalMfields(moment_n);
+    prof_stop(pr_A);
+    prof_start(pr_B);
     auto& mf_n = mres.template get_as<Mfields>(kind_n, kind_n + 1);
+    prof_start(pr_B);
 
+    prof_start(pr_C);
     real_t fac = (interval * grid.dt / tau) / (1. + interval * grid.dt / tau);
 
     auto lf_init_npt = [&](int kind, Double3 pos, int p, Int3 idx,
@@ -58,8 +72,10 @@ struct Inject_ : InjectBase
     };
 
     setup_particles_.setupParticles(mprts, lf_init_npt);
+    prof_stop(pr_C);
 
     mres.put_as(mf_n, 0, 0);
+    prof_stop(pr);
   }
 
 private:
