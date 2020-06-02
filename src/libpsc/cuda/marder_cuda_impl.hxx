@@ -276,8 +276,8 @@ private:
 
   WriterMRC io_; //< for debug dumping
 
-  Bnd_<MfieldsState> bnd_;
-  Bnd_<Mfields> bnd_mf_;
+  BndCuda3<MfieldsState> bnd_;
+  BndCuda3<Mfields> bnd_mf_;
   Mfields rho_;
   Mfields res_;
   
