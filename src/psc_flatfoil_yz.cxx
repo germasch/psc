@@ -99,7 +99,7 @@ using Dim = dim_yz;
 #endif
 
 #if 1
-#ifdef xUSE_CUDA
+#ifdef USE_CUDA
 using PscConfig = PscConfig1vbecCuda<Dim>;
 #else
 using PscConfig = PscConfig1vbecSingle<Dim>;
@@ -379,7 +379,7 @@ void run()
   double marder_diffusion = 0.9;
   int marder_loop = 3;
   bool marder_dump = false;
-  psc_params.marder_interval = -5;
+  psc_params.marder_interval = 5;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
   // ----------------------------------------------------------------------

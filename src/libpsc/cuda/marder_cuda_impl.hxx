@@ -22,7 +22,8 @@ struct MarderCuda : MarderBase
     : grid_{grid},
       diffusion_{diffusion},
       loop_{loop},
-      dump_{dump}
+      dump_{dump},
+      m_(grid, diffusion, loop, dump)
 #if 1
 #else
     ,
@@ -135,6 +136,13 @@ struct MarderCuda : MarderBase
   void operator()(MfieldsStateCuda& mflds, MparticlesCuda<BS>& mprts)
   {
 #if 1
+    auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
+    auto& h_mprts = mprts.template get_as<MparticlesSingle>();
+
+    m_(h_mflds, h_mprts);
+    
+    mflds.put_as(h_mflds, EX, EX + 3);
+    mprts.put_as(h_mprts, MP_DONT_COPY);
 #else
     item_rho_(mprts);
 
@@ -157,6 +165,7 @@ private:
   bool dump_; //< dump div_E, rho
 
 #if 1
+  Marder_<MparticlesSingle, MfieldsStateSingle, MfieldsSingle> m_;
 #else
   FieldsItemFields<Item_dive_cuda> item_div_e_;
   Moment_rho_1st_nc_cuda<MparticlesCuda<BS144>, dim_yz> item_rho_; // FIXME, hardcoded dim_yz
