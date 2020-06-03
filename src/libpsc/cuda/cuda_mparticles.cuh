@@ -106,7 +106,7 @@ struct MparticlesCudaStorage_
     xi4.resize(n);
     pxi4.resize(n);
   }
-  
+
   // FIXME, could be operator[]
 
   __device__
@@ -185,6 +185,7 @@ protected:
 
 public:
   std::vector<uint> sizeByPatch() const;
+  void clear() { storage.resize(0); by_block_.clear(); n_prts = 0; }
 
   // per particle
   MparticlesCudaStorage storage;

@@ -6,7 +6,8 @@
 #include "cuda_base.cuh"
 #include "psc_bits.h"
 #include "heating_spot_foil.hxx"
-#include "heating_cuda_impl.hxx"
+#include "../libpsc/psc_heating/psc_heating_impl.hxx"
+//#include "heating_cuda_impl.hxx"
 #include "balance.hxx"
 
 #include <thrust/host_vector.h>
@@ -104,7 +105,6 @@ struct cuda_heating_foil : HeatingSpotFoilParams
   {
     float width = zh - zl;
     fac = (8.f * pow(T, 1.5)) / (sqrt(Mi) * width);
-    mprintf("fac = %g\n", fac);
   }
 
   ~cuda_heating_foil()
@@ -197,7 +197,7 @@ struct cuda_heating_foil : HeatingSpotFoilParams
   template<typename BS>
   void operator()(cuda_mparticles<BS>* cmprts)
   {
-    //return cuda_heating_run_foil_gold(cmprts);
+    //return cuda_heating_run_foil_gold(*this, cmprts);
     if (cmprts->n_prts == 0) {
       return;
     }
@@ -245,17 +245,27 @@ struct cuda_heating_foil : HeatingSpotFoilParams
 template<typename BS>
 void cuda_heating_run_foil_gold(cuda_heating_foil& foil, cuda_mparticles<BS>* cmprts)
 {
+  thrust::host_vector<float4> h_xi4(cmprts->storage.xi4);
+  thrust::host_vector<float4> h_pxi4(cmprts->storage.pxi4);
+  thrust::host_vector<uint> h_off(cmprts->by_block_.d_off);
+  thrust::host_vector<uint> h_id(cmprts->by_block_.d_id);
+
+  for (int p = 0; p < cmprts->n_patches(); p++) {
+    float *xb = &cmprts->xb_by_patch[p][0];
+    printf("p%d xb %g %g %g\n", p, xb[0], xb[1], xb[2]);
+  }
+  
   for (int b = 0; b < cmprts->n_blocks; b++) {
     int p = b / cmprts->n_blocks_per_patch;
-    for (int n = cmprts->d_off[b]; n < cmprts->d_off[b+1]; n++) {
-      float4 xi4 = cmprts->d_xi4[n];
+    float *xb = &cmprts->xb_by_patch[p][0];
+    for (int n = h_off[b]; n < h_off[b+1]; n++) {
+      float4 xi4 = h_xi4[n];
 
       int prt_kind = cuda_float_as_int(xi4.w);
       if (prt_kind != foil.kind) {
 	continue;
       }
 
-      float *xb = &cmprts->xb_by_patch[p][0];
       float xx[3] = {
 	xi4.x + xb[0],
 	xi4.y + xb[1],
@@ -271,14 +281,16 @@ void cuda_heating_run_foil_gold(cuda_heating_foil& foil, cuda_mparticles<BS>* cm
       // pxi4.w = H;
       // cmprts->d_pxi4[n] = pxi4;
       if (H > 0) {
-      	float4 pxi4 = cmprts->d_pxi4[n];
+      	float4 pxi4 = h_pxi4[n];
       	foil.particle_kick(&pxi4, H);
-      	cmprts->d_pxi4[n] = pxi4;
+      	h_pxi4[n] = pxi4;
       	// printf("H xx = %g %g %g H = %g px = %g %g %g\n", xx[0], xx[1], xx[2], H,
       	//        pxi4.x, pxi4.y, pxi4.z);
       }
     }
   }
+
+  thrust::copy(h_pxi4.begin(), h_pxi4.end(), cmprts->storage.pxi4.begin());
 }
 
 // ----------------------------------------------------------------------
@@ -344,7 +356,8 @@ template<typename FUNC>
 HeatingCuda<BS>::HeatingCuda(const Grid_t& grid, int interval, int kind, FUNC get_H)
   : foil_{new cuda_heating_foil{get_H, kind, interval * grid.dt,
       grid.domain.length[0], grid.domain.length[1]}},
-    balance_generation_cnt_{-1}
+    balance_generation_cnt_{-1},
+    h_{grid, interval, kind, get_H}
 {}
 
 template<typename BS>
@@ -362,12 +375,22 @@ void HeatingCuda<BS>::reset(MparticlesCuda<BS>& mprts)
 template<typename BS>
 void HeatingCuda<BS>::operator()(MparticlesCuda<BS>& mprts)
 {
+#if 1
+  if (mprts.cmprts()->need_reorder) { 
+    mprts.cmprts()->reorder();
+  }
+    
+  auto& h_mprts = mprts.template get_as<MparticlesSingle>();
+  //h_(h_mprts);
+  mprts.put_as(h_mprts);
+#else
   if (psc_balance_generation_cnt > this->balance_generation_cnt_) {
     balance_generation_cnt_ = psc_balance_generation_cnt;
     reset(mprts);
   }
   
   (*foil_)(mprts.cmprts());
+#endif
 }
   
 // ======================================================================
