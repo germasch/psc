@@ -360,7 +360,7 @@ void run()
   psc_params.sort_interval = 10;
 
   // -- Collision
-  int collision_interval = -10;
+  int collision_interval = 10;
   double collision_nu = 3.76 * std::pow(g.target_Te_heat, 2.) / g.Zi / g.lambda0;
   Collision collision{grid, collision_interval, collision_nu};
 

@@ -56,7 +56,7 @@ struct BinaryCollision
   // operator()
 
   template<typename Rng>
-  DEVICE
+  __host__ __device__
   real_t operator()(Particle& prt1, Particle& prt2, real_t nudt1, Rng& rng)
   {
     real_t nudt;

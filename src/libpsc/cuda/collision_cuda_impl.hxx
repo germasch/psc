@@ -2,6 +2,10 @@
 #pragma once
 
 #include "collision.hxx"
+#include "psc_particles_single.h"
+#include "psc_fields_single.h"
+#include "../libpsc/psc_collision/psc_collision_impl.hxx"
+
 
 template <typename cuda_mparticles, typename RngState>
 struct CudaCollision;
@@ -23,4 +27,5 @@ struct CollisionCuda : CollisionBase
 
 private:
   CudaCollision<typename Mparticles::CudaMparticles, RngState>* fwd_;
+  Collision_<MparticlesSingle, MfieldsStateSingle, MfieldsSingle> c_;
 };
