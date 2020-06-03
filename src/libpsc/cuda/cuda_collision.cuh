@@ -51,12 +51,14 @@ struct CudaCollision
     sort_.sort();
     sort_.find_offsets();
     sort_.reorder(cmprts);
+    cmprts.reset_off();
 #else
     cuda_mparticles_sort sort(cmprts.n_cells());
     sort.find_indices_ids(cmprts);
     sort.stable_sort_cidx();
     sort.find_offsets();
     sort.reorder(cmprts);
+    cmprts.reset_off();
 #endif
   }
   

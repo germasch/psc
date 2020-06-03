@@ -382,6 +382,14 @@ void cuda_mparticles<BS>::inject(const std::vector<Particle>& buf,
   // assert(check_ordered());
 }
 
+template<typename BS>
+void cuda_mparticles<BS>::reset_off()
+{
+  this->by_block_.find_indices_ids(*this);
+  this->by_block_.stable_sort();
+  this->by_block_.reorder_and_offsets(*this);
+}
+
 // ----------------------------------------------------------------------
 // get_particles
 

@@ -223,6 +223,7 @@ struct cuda_mparticles : cuda_mparticles_base<_BS>
   
   uint size();
   void inject(const std::vector<Particle>& buf, const std::vector<uint>& buf_n_by_patch);
+  void reset_off();
 
   std::vector<uint> get_offsets() const;
   std::vector<Particle> get_particles();

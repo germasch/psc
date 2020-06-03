@@ -389,7 +389,7 @@ void run()
 
   // -- output fields
   OutputFieldsParams outf_params{};
-  outf_params.pfield_interval = 400;
+  outf_params.pfield_interval = 100;
   outf_params.tfield_interval = -400;
   outf_params.tfield_average_every = 40;
   outf_params.tfield_moments_average_every = 80;
