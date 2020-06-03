@@ -22,6 +22,7 @@ template <typename Mparticles, typename RngState>
 void CollisionCuda<Mparticles, RngState>::operator()(Mparticles& mprts)
 {
 #if 1
+  fwd_->sort_by_cell(*mprts.cmprts());
   auto& h_mprts = mprts.template get_as<MparticlesSingle>();
   SortCountsort2<MparticlesSingle> sort;
   sort(h_mprts);

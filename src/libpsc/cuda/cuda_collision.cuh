@@ -41,6 +41,17 @@ struct CudaCollision
 
   int interval() const { return interval_; }
 
+  void sort_by_cell(cuda_mparticles& cmprts)
+  {
+    if (cmprts.need_reorder) {
+      cmprts.reorder();
+    }
+    sort_.find_indices_ids(cmprts);
+    sort_.sort();
+    sort_.find_offsets();
+    sort_.reorder(cmprts);
+  }
+  
   void operator()(cuda_mparticles& cmprts)
   {
     if (cmprts.n_prts == 0) {

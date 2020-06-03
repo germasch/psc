@@ -267,6 +267,12 @@ struct cuda_mparticles_randomize_sort
     d_off[n_cells] = d_random_idx.size();
   }
 
+  template <typename BS>
+  void reorder(cuda_mparticles<BS>& cmprts)
+  {
+    cmprts.reorder(d_id);
+  }
+
 public:
   thrust::device_vector<float> d_random_idx; // randomized cell index
   thrust::device_vector<uint> d_id;          // particle id used for reordering
