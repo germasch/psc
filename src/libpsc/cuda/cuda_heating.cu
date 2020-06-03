@@ -133,15 +133,15 @@ struct cuda_heating_foil : HeatingSpotFoilParams
       return 0;
     }
     
-    return .00032;// fac;// * (exp(-(sqr(x - (xc)) + sqr(y - (yc))) / sqr(rH)) +
-		  // exp(-(sqr(x - (xc)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
-		  // exp(-(sqr(x - (xc)) + sqr(y - (yc - Ly_))) / sqr(rH)) +
-		  // exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc))) / sqr(rH)) +
-		  // exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
-		  // exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc - Ly_))) / sqr(rH)) +
-		  // exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc))) / sqr(rH)) +
-		  // exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
-		  // exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc - Ly_))) / sqr(rH)));
+    return fac * (exp(-(sqr(x - (xc)) + sqr(y - (yc))) / sqr(rH)) +
+		  exp(-(sqr(x - (xc)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
+		  exp(-(sqr(x - (xc)) + sqr(y - (yc - Ly_))) / sqr(rH)) +
+		  exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc))) / sqr(rH)) +
+		  exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
+		  exp(-(sqr(x - (xc + Lx_)) + sqr(y - (yc - Ly_))) / sqr(rH)) +
+		  exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc))) / sqr(rH)) +
+		  exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
+		  exp(-(sqr(x - (xc - Lx_)) + sqr(y - (yc - Ly_))) / sqr(rH)));
   }
   
   // ----------------------------------------------------------------------
@@ -375,7 +375,7 @@ void HeatingCuda<BS>::reset(MparticlesCuda<BS>& mprts)
 template<typename BS>
 void HeatingCuda<BS>::operator()(MparticlesCuda<BS>& mprts)
 {
-#if 1
+#if 0
   if (mprts.cmprts()->need_reorder) { 
     mprts.cmprts()->reorder();
   }

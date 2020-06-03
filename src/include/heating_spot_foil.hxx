@@ -39,7 +39,7 @@ struct HeatingSpotFoil : HeatingSpotFoilParams
     if (z <= zl || z >= zh) {
       return 0;
     }
-    
+
     return fac * (exp(-(sqr(x - (xc)) + sqr(y - (yc))) / sqr(rH)) +
 		  exp(-(sqr(x - (xc)) + sqr(y - (yc + Ly_))) / sqr(rH)) +
 		  exp(-(sqr(x - (xc)) + sqr(y - (yc - Ly_))) / sqr(rH)) +
