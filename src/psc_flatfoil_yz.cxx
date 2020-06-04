@@ -191,7 +191,7 @@ void setupParameters()
   // -- set some generic PSC parameters
   psc_params.nmax = 10000001; // 5001;
   psc_params.cfl = 0.75;
-  psc_params.write_checkpoint_every_step = 0;
+  //psc_params.write_checkpoint_every_step = 30;
 
   // -- start from checkpoint:
   //
@@ -201,7 +201,7 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  // read_checkpoint_filename = "checkpoint_500.bp";
+  read_checkpoint_filename = "checkpoint_60.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
@@ -236,9 +236,9 @@ Grid_t* setupGrid()
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
 #else
-  Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
-  Int3 np = {1, 50, 3 * 50};                // division into patches
+  Grid_t::Real3 LL = {1., 800., 3.*800.}; // domain size (in d_e)
+  Int3 gdims = {1, 160, 3*160};         // global number of grid points
+  Int3 np = {1, 5, 3*5};                // division into patches
 #endif
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
