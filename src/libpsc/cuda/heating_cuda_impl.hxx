@@ -5,6 +5,8 @@
 #include "mparticles_cuda.hxx"
 #include "psc_fields_cuda.h"
 
+#include "psc_particles_single.h"
+
 // ======================================================================
 // psc_heating subclass "cuda"
 
@@ -25,5 +27,6 @@ struct HeatingCuda : HeatingBase
 private:
   cuda_heating_foil* foil_;
   int balance_generation_cnt_;
+  Heating__<MparticlesSingle> h_;
 };
 
