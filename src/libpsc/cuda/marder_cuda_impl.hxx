@@ -57,10 +57,128 @@ struct MarderCuda : MarderBase
   }
 
   // ----------------------------------------------------------------------
-  // correct
+  // psc_marder_cuda_correct
   //
   // Do the modified marder correction (See eq.(5, 7, 9, 10) in Mardahl and Verboncoeur, CPC, 1997)
 
+  // ----------------------------------------------------------------------
+  // correct_patch
+  //
+  // Do the modified marder correction (See eq.(5, 7, 9, 10) in Mardahl and Verboncoeur, CPC, 1997)
+
+#define define_dxdydz(dx, dy, dz)				\
+  int dx _mrc_unused = (grid.isInvar(0)) ? 0 : 1;		\
+  int dy _mrc_unused = (grid.isInvar(1)) ? 0 : 1;		\
+  int dz _mrc_unused = (grid.isInvar(2)) ? 0 : 1
+
+#define psc_foreach_3d_more(psc, p, ix, iy, iz, l, r) {	\
+  int __ilo[3] = { -l[0], -l[1], -l[2] };		\
+  int __ihi[3] = { grid.ldims[0] + r[0],		\
+		   grid.ldims[1] + r[1],		\
+		   grid.ldims[2] + r[2] };		\
+  for (int iz = __ilo[2]; iz < __ihi[2]; iz++) {	\
+  for (int iy = __ilo[1]; iy < __ihi[1]; iy++) {	\
+  for (int ix = __ilo[0]; ix < __ihi[0]; ix++)
+
+#define psc_foreach_3d_more_end			\
+  } } }
+
+  using fields_view_t = typename MfieldsSingle::fields_view_t;
+  void correct_patch(const Grid_t& grid, fields_view_t flds, fields_view_t f, int p,
+		     real_t diffusion, real_t& max_err)
+  {
+    define_dxdydz(dx, dy, dz);
+
+    // FIXME: how to choose diffusion parameter properly?
+    //double deltax = ppsc->patch[p].dx[0];
+    double deltay = grid.domain.dx[1]; // FIXME double/float
+    double deltaz = grid.domain.dx[2];
+
+    int l_cc[3] = {0, 0, 0}, r_cc[3] = {0, 0, 0};
+    int l_nc[3] = {0, 0, 0}, r_nc[3] = {0, 0, 0};
+    for (int d = 0; d < 3; d++) {
+      if (grid.bc.fld_lo[d] == BND_FLD_CONDUCTING_WALL && grid.atBoundaryLo(p, d)) {
+	l_cc[d] = -1;
+	l_nc[d] = -1;
+      }
+      if (grid.bc.fld_hi[d] == BND_FLD_CONDUCTING_WALL && grid.atBoundaryHi(p, d)) {
+	r_cc[d] = -1;
+	r_nc[d] = 0;
+      }
+    }
+
+#if 0
+    psc_foreach_3d_more(ppsc, p, ix, iy, iz, l, r) {
+      // FIXME: F3 correct?
+      flds(EX, ix,iy,iz) += 
+	(f(DIVE_MARDER, ix+dx,iy,iz) - f(DIVE_MARDER, ix,iy,iz))
+	* .5 * ppsc->dt * diffusion / deltax;
+      flds(EY, ix,iy,iz) += 
+	(f(DIVE_MARDER, ix,iy+dy,iz) - f(DIVE_MARDER, ix,iy,iz))
+	* .5 * ppsc->dt * diffusion / deltay;
+      flds(EZ, ix,iy,iz) += 
+	(f(DIVE_MARDER, ix,iy,iz+dz) - f(DIVE_MARDER, ix,iy,iz))
+	* .5 * ppsc->dt * diffusion / deltaz;
+    } psc_foreach_3d_more_end;
+#endif
+
+    assert(grid.isInvar(0));
+
+    {
+      int l[3] = { l_nc[0], l_cc[1], l_nc[2] };
+      int r[3] = { r_nc[0], r_cc[1], r_nc[2] };
+      psc_foreach_3d_more(ppsc, p, ix, iy, iz, l, r) {
+	max_err = std::max(max_err, std::abs(f(0, ix,iy,iz)));
+	flds(EY, ix,iy,iz) += 
+	  (f(0, ix,iy+dy,iz) - f(0, ix,iy,iz))
+	  * .5 *grid.dt * diffusion / deltay;
+      } psc_foreach_3d_more_end;
+    }
+
+    {
+      int l[3] = { l_nc[0], l_nc[1], l_cc[2] };
+      int r[3] = { r_nc[0], r_nc[1], r_cc[2] };
+      psc_foreach_3d_more(ppsc, p, ix, iy, iz, l, r) {
+	flds(EZ, ix,iy,iz) += 
+	  (f(0, ix,iy,iz+dz) - f(0, ix,iy,iz))
+	  * .5 * grid.dt * diffusion / deltaz;
+      } psc_foreach_3d_more_end;
+    }
+  }
+
+#undef psc_foreach_3d_more
+#undef psc_foreach_3d_more_end
+
+  // ----------------------------------------------------------------------
+  // correct
+
+#if 0
+  void correct(MfieldsState& mflds)
+  {
+    auto& h_mflds = mflds.get_as<MfieldsStateSingle>(EX, EX + 3);
+    auto& h_res = res_.get_as<MfieldsSingle>(0, 1);
+
+    auto& grid = mflds.grid();
+    double inv_sum = 0.;
+    for (int d = 0; d < 3; d++) {
+      if (!grid.isInvar(d)) {
+	inv_sum += 1. / sqr(grid.domain.dx[d]);
+      }
+    }
+    double diffusion_max = 1. / 2. / (.5 * grid.dt) / inv_sum;
+    double diffusion     = diffusion_max * diffusion_;
+    real_t max_err = 0.;
+    for (int p = 0; p < h_res.n_patches(); p++) {
+      correct_patch(h_mflds.grid(), h_mflds[p], h_res[p], p, diffusion, max_err);
+    }
+    res_.put_as(h_res, 0, 0);
+    mflds.put_as(h_mflds, EX, EX + 3);
+
+    MPI_Allreduce(MPI_IN_PLACE, &max_err, 1, MPI_FLOAT, MPI_MAX, grid_.comm());
+    mpi_printf(grid_.comm(), "marder: err %g\n", max_err);
+  }
+
+#else
   void correct(MfieldsState& mflds)
   {
     assert(mflds._grid().isInvar(0));
@@ -114,6 +232,7 @@ struct MarderCuda : MarderBase
       cuda_marder_correct_yz(cmflds, cmf, p, fac, ly, ry, lz, rz);
     }
   }
+#endif
   
   void operator()(MfieldsStateCuda& mflds, MparticlesCuda<BS>& mprts)
   {
