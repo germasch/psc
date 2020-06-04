@@ -368,10 +368,10 @@ void run()
 
   // -- Checks
   ChecksParams checks_params{};
-  checks_params.continuity_every_step = 30;
+  checks_params.continuity_every_step = 90;
   checks_params.continuity_threshold = 1e-4;
   checks_params.continuity_verbose = true;
-  checks_params.gauss_every_step = 30;
+  checks_params.gauss_every_step = 90;
   checks_params.gauss_threshold = 1e-4;
   checks_params.gauss_verbose = true;
   checks_params.gauss_dump_always = false;
@@ -381,7 +381,7 @@ void run()
   double marder_diffusion = 0.9;
   int marder_loop = 3;
   bool marder_dump = false;
-  psc_params.marder_interval = -30;
+  psc_params.marder_interval = 40;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
   // ----------------------------------------------------------------------
@@ -391,7 +391,7 @@ void run()
 
   // -- output fields
   OutputFieldsParams outf_params{};
-  outf_params.pfield_interval = 100;
+  outf_params.pfield_interval = 400;
   outf_params.tfield_interval = -400;
   outf_params.tfield_average_every = 40;
   outf_params.tfield_moments_average_every = 80;

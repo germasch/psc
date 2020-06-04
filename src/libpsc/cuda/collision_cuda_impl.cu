@@ -29,8 +29,8 @@ void CollisionCuda<Mparticles, RngState>::operator()(Mparticles& mprts)
   c_(h_mprts);
   mprts.put_as(h_mprts);
 #else
-  fwd_->sort_by_cell(*mprts.cmprts());
   //mprts.cmprts()->check_ordered();
+  fwd_->sort_by_cell(*mprts.cmprts());
   (*fwd_)(*mprts.cmprts());
 #endif
 }

@@ -81,7 +81,7 @@ inline void find_cell_indices_ids(cuda_mparticles<BS>& cmprts,
 template <typename BS>
 __global__ static void k_find_random_cell_indices_ids(
   DMparticlesCuda<BS> dmprts, float* d_random_idx, uint* d_id, int n_patches,
-  int n_blocks_per_patch, RngStateCuda::Device rng_state)
+  int n_blocks_per_patch, RngStateCuda::Device rng_state, float fac)
 {
   int n = threadIdx.x + THREADS_PER_BLOCK * blockIdx.x;
   if (n > rng_state.size()) {
@@ -95,7 +95,12 @@ __global__ static void k_find_random_cell_indices_ids(
     uint n_prts = dmprts.off_[(p + 1) * n_blocks_per_patch] - off;
     if (n < n_prts) {
       float4 xi4 = dmprts.storage.xi4[n + off];
-      d_random_idx[n + off] = dmprts.validCellIndex(xi4, p) + .5 * rng.uniform();
+      float rnd = rng.uniform();
+      int idx = dmprts.validCellIndex(xi4, p);
+      d_random_idx[n + off] = idx + fac * rnd;
+      if (d_random_idx[n + off] < idx || d_random_idx[n + off] >= idx + 1) {
+	printf("XXXXXX n %d idx %g / %d, rnd %g\n", n, d_random_idx[n + off], n, .5*rnd);      
+      }
       d_id[n + off] = n + off;
     }
   }
@@ -249,7 +254,7 @@ struct cuda_mparticles_randomize_sort
 
     k_find_random_cell_indices_ids<BS><<<dimGrid, dimBlock>>>(
       cmprts, d_random_idx.data().get(), d_id.data().get(), cmprts.n_patches(),
-      cmprts.n_blocks_per_patch, rng_state_);
+      cmprts.n_blocks_per_patch, rng_state_, fac);
     cuda_sync_if_enabled();
   }
 
@@ -280,6 +285,7 @@ public:
     d_off; // particles per cell
            // are at indices [offsets[cell] .. offsets[cell+1][
   RngStateCuda rng_state_;
+  float fac = .5f;
 };
 
 // ======================================================================
