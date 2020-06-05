@@ -493,6 +493,13 @@ struct Psc
       prof_stop(pr_checks);
     }
 
+    if (checks_.gauss_every_step > 0 &&
+        timestep % checks_.gauss_every_step == 0) {
+      prof_restart(pr_checks);
+      checks_.gauss(mprts_, mflds_);
+      prof_stop(pr_checks);
+    }
+
     // E at t^{n+3/2}, particles at t^{n+3/2}
     // B at t^{n+3/2} (Note: that is not its natural time,
     // but div B should be == 0 at any time...)
