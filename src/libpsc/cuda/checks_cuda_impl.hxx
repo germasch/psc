@@ -39,7 +39,8 @@ struct ChecksCuda
       item_rho_{grid},
       item_rho_m_{grid},
       item_rho_p_{grid},
-      divj_{grid, 1, grid.ibn}
+      divj_{grid, 1, grid.ibn},
+      c_{grid, comm, params}
   {}
 
   void continuity_before_particle_push(Mparticles& mprts)
@@ -50,6 +51,10 @@ struct ChecksCuda
       return;
     }
 
+    auto& h_mprts = mprts.template get_as<MparticlesSingle>();
+    c_.continuity_before_particle_push(h_mprts);
+    mprts.put_as(h_mprts, MP_DONT_COPY);
+    
     item_rho_m_(mprts);
   }
 
@@ -62,6 +67,13 @@ struct ChecksCuda
       return;
     }
 
+    {
+      auto& h_mprts = mprts.template get_as<MparticlesSingle>();
+      auto& h_mflds = mflds.get_as<MfieldsStateSingle>(0, mflds._n_comps());
+      c_.continuity_after_particle_push(h_mprts, h_mflds);
+      mprts.put_as(h_mprts, MP_DONT_COPY);
+      mflds.put_as(h_mflds, 0, 0);
+    }
     item_rho_p_(mprts);
 
     auto& h_mflds = mflds.get_as<MfieldsState>(0, mflds._n_comps());
@@ -202,4 +214,5 @@ private:
   Moment_t item_rho_m_;
   Moment_t item_rho_;
   Mfields divj_;
+  Checks_<MparticlesSingle, MfieldsStateSingle, MfieldsSingle, checks_order_1st> c_;
 };
