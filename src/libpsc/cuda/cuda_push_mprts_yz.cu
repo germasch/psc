@@ -406,6 +406,9 @@ struct CudaPushParticles
       // 	     x[0], x[1], x[2]);
       curr_vb_cell(dmprts, i, x, dx1, prt.qni_wni(), scurr, current_block, dim{});
       if (dir < 0) {
+	// for (int d = 0; d < 3; d++) {
+	//   x[d] += dx1[d];
+	// }
 	break;
       }
       
@@ -418,6 +421,15 @@ struct CudaPushParticles
       // printf("2 i %d:%d:%d dx %g %g %g x %g %g %g\n", i[0], i[1], i[2],
       // 	     dx[0], dx[1], dx[2], x[0], x[1], x[2]); 
     }
+    // for (int d = 0; d < 3; d++) {
+    //   x[d] += (j[d] + .5f);
+    // }
+    // if (fabsf(x[0] - xp[0]) > 1e-6 ||
+    // 	fabsf(x[0] - xp[0]) > 1e-6 ||
+    // 	fabsf(x[0] - xp[0]) > 1e-6) {
+    //   printf("final xp %g %g %g x %g %g %g\n", 
+    //   	     xp[0], xp[1], xp[2], x[0], x[1], x[2]); 
+    // }
 
     // has moved into which block?
 #if 0
