@@ -8,6 +8,8 @@
 #include "cuda_push_particles.cuh"
 #include "interpolate.hxx"
 
+#include "../libpsc/psc_push_particles/1vb/psc_push_particles_1vb.h"
+
 struct DepositVb3d : std::integral_constant<int, DEPOSIT_VB_3D> {};
 struct DepositVb2d : std::integral_constant<int, DEPOSIT_VB_2D> {};
 
@@ -46,7 +48,17 @@ public:
   
   void push_mprts(Mparticles& mprts, MfieldsState& mflds)
   {
+#if 1
     CudaPushParticles_<Config>::push_mprts(mprts.cmprts(), mflds.cmflds());
+#else
+    auto& h_mprts = mprts.template get_as<MparticlesSingle>();
+    auto& h_mflds = mflds.get_as<MfieldsStateSingle>(0, mflds._n_comps());
+    ppush_.push_mprts(h_mprts, h_mflds);
+    mprts.put_as(h_mprts);
+    mflds.put_as(h_mflds, JXI, JXI+3);
+#endif
   }
+
+  PushParticlesVb<Config1vbecSplit<MparticlesSingle, MfieldsStateSingle, dim_xyz>> ppush_;
 };
 
