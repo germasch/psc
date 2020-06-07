@@ -80,8 +80,6 @@ __global__ static void k_collide2(
 	 n += 2 * THREADS_PER_BLOCK) {
       // printf("%d/%d: n = %d off %d\n", blockIdx.x, threadIdx.x, n,
       // d_off[blockIdx.x]);
-      auto _prt1 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n])};
-      auto _prt2 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n + 1])};
       float4 xi4_1 = dmprts.storage.xi4[d_id[n]];
       float4 pxi4_1 = dmprts.storage.pxi4[d_id[n]];
       float4 xi4_2 = dmprts.storage.xi4[d_id[n+1]];
