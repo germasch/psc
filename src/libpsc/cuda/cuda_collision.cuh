@@ -87,12 +87,10 @@ __global__ static void k_collide2(DMparticlesCuda<typename cuda_mparticles::BS> 
 	 n += 2 * THREADS_PER_BLOCK) {
       // printf("%d/%d: n = %d off %d\n", blockIdx.x, threadIdx.x, n,
       // d_off[blockIdx.x]);
-      float4 xi4_1 = d_xi4[d_id[n]];
-      float4 pxi4_1 = d_pxi4[d_id[n]];
-      float4 xi4_2 = d_xi4[d_id[n+1]];
-      float4 pxi4_2 = d_pxi4[d_id[n+1]];
-      MyParticle prt1(xi4_1, pxi4_1, dmprts.q_, dmprts.m_);
-      MyParticle prt2(xi4_2, pxi4_2, dmprts.q_, dmprts.m_);
+      uint n1 = d_id[n];
+      uint n2 = d_id[n+1];
+      MyParticle prt1(d_xi4[n1], d_pxi4[n1], dmprts.q_, dmprts.m_);
+      MyParticle prt2(d_xi4[n2], d_pxi4[n2], dmprts.q_, dmprts.m_);
 #ifndef NDEBUG
       int p = bidx / n_cells_per_patch;
       int cidx1 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n]], p);
@@ -101,8 +99,8 @@ __global__ static void k_collide2(DMparticlesCuda<typename cuda_mparticles::BS> 
 #endif
       bc(prt1, prt2, nudt1, rng);
       // xi4 is not modified, don't need to store
-      d_pxi4[d_id[n]] = prt1.pxi4();
-      d_pxi4[d_id[n+1]] = prt2.pxi4();
+      d_pxi4[n1] = prt1.pxi4();
+      d_pxi4[n2] = prt2.pxi4();
     }
   }
   
