@@ -60,7 +60,15 @@ bool cuda_mparticles<BS>::check_ordered()
   thrust::host_vector<uint> h_off(this->by_block_.d_off);
   thrust::host_vector<uint> h_id(this->by_block_.d_id);
 
-  //printf("check_ordered: need_reorder %s\n", need_reorder ? "true" : "false");
+  printf("check_ordered: need_reorder %s\n", need_reorder ? "true" : "false");
+
+  cuda_mparticles_sort_by_block sort(this->n_blocks);
+  if (!need_reorder) {
+    MHERE;
+    // doesn't have any side effects, just triggers validBlockIndex on the GPU
+    sort.find_indices_ids(*this);
+    MHERE;
+  }
 
   uint off = 0;
   for (int b = 0; b < this->n_blocks; b++) {
@@ -71,16 +79,19 @@ bool cuda_mparticles<BS>::check_ordered()
     if (!(off_b == off)) return false;
     for (int n = h_off[b]; n < h_off[b+1]; n++) {
       float4 xi4;
+      int nn;
       if (need_reorder) {
-	xi4 = h_xi4[h_id[n]];
+	nn = h_id[n];
       } else {
-	xi4 = h_xi4[n];
+	nn = n;
       }
+      xi4 = h_xi4[nn];
       uint bidx = this->blockIndex(xi4, p);
       //printf("check_ordered: bidx %d\n", bidx);
       if (b != bidx) {
-	printf("check_ordered: b %d bidx %d n %d p %d xi4 %g %g %g\n",
-	       b, bidx, n, p, xi4.x, xi4.y, xi4.z);
+	int bidx_gpu = sort.d_idx[nn];
+	printf("check_ordered: b %d bidx %d n %d nn %d p %d xi4 %g %g %g -- gpu %d\n",
+	       b, bidx, n, nn, p, xi4.x, xi4.y, xi4.z, bidx_gpu);
 	Int3 bpos = this->blockPosition(&xi4.x);
 	printf("block_pos %d %d\n", bpos[1], bpos[2]);
       }
@@ -112,10 +123,13 @@ bool cuda_mparticles<BS>::check_bidx_after_push()
       float4 xi4 = h_xi4[n];
       int bidx = h_bidx[n];
       int bidx2 = this->blockIndex(xi4, p);
-      if (bidx2 < 0) bidx2 = this->n_blocks;
+      if (bidx2 < 0) bidx2 = this->n_blocks + p;
       if (bidx != bidx2) {
-	mprintf("check_bidx: n %d: xi4 %g %g %g bidx %d/%d\n", n, xi4.x, xi4.y, xi4.z,
-		bidx, bidx2);
+	Int3 cpos = { int(xi4.x / this->pi_.dxi_[0]),
+		      int(xi4.y / this->pi_.dxi_[1]),
+		      int(xi4.z / this->pi_.dxi_[2])};
+	mprintf("check_bidx: p%d n %d: xi4 %g %g %g bidx %d/%d cpos %d %d %d\n", p, n, xi4.x, xi4.y, xi4.z,
+		bidx, bidx2, cpos[0], cpos[1], cpos[2]);
 	ok = false;
       }
     }

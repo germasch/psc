@@ -552,6 +552,10 @@ void CudaPushParticles_<Config>::push_mprts(CudaMparticles* cmprts, struct cuda_
   } else {
     push_mprts_ab<true>(cmprts, cmflds);
   }
+
+  bool ok = cmprts->check_bidx_after_push();
+  printf("ok %d\n", ok);
+  assert(ok);
 }
 
 //template struct CudaPushParticles_<CudaConfig1vb<dim_yz>>;
