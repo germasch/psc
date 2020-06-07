@@ -33,9 +33,19 @@ public:
   
   template<typename DMparticlesCuda>
   __device__
-  MyParticle(const DParticleCuda& prt, const DMparticlesCuda& dmprts)
-    : prt_{prt}, q_(dmprts.q(prt.kind)), m_(dmprts.m(prt.kind))
-  {}
+  MyParticle(float4 xi4, float4 pxi4, const DMparticlesCuda& dmprts)
+  {
+    prt_.x[0] = xi4.x;
+    prt_.x[1] = xi4.y;
+    prt_.x[2] = xi4.z;
+    prt_.kind = cuda_float_as_int(xi4.w);
+    prt_.u[0] = pxi4.x;
+    prt_.u[1] = pxi4.y;
+    prt_.u[2] = pxi4.z;
+    prt_.qni_wni = pxi4.w;
+    q_ = dmprts.m(prt_.kind);
+    m_ = dmprts.q(prt_.kind);
+  }
 
   __device__ Real3  x() const { return prt_.x; }
   __device__ Real3& x()       { return prt_.x; }
@@ -84,8 +94,8 @@ __global__ static void k_collide2(
       float4 pxi4_1 = dmprts.storage.pxi4[d_id[n]];
       float4 xi4_2 = dmprts.storage.xi4[d_id[n+1]];
       float4 pxi4_2 = dmprts.storage.pxi4[d_id[n+1]];
-      MyParticle prt1(ParticleCudaStorage(xi4_1, pxi4_1), dmprts);
-      MyParticle prt2(ParticleCudaStorage(xi4_2, pxi4_2), dmprts);
+      MyParticle prt1(xi4_1, pxi4_1, dmprts);
+      MyParticle prt2(xi4_2, pxi4_2, dmprts);
 #ifndef NDEBUG
       int p = bidx / n_cells_per_patch;
       int cidx1 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n]], p);
