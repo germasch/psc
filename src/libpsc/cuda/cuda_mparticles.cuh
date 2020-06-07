@@ -38,7 +38,7 @@ struct DParticleProxy
   __device__ real_t q() const { return dmprts_.q(prt_.kind); }
   __device__ real_t m() const { return dmprts_.m(prt_.kind); }
   
-private:
+  //private:
   DParticleCuda prt_;
   const DMparticlesCuda& dmprts_;
 };

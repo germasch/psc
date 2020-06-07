@@ -25,6 +25,34 @@ __global__ static void k_collide(
     dmprts, d_off, d_id, nudt0, rng_state, n_cells, n_cells_per_patch);
 }
 
+class MyParticle
+{
+public:
+  using real_t = DParticleCuda::real_t;
+  using Real3 = DParticleCuda::Real3;
+  
+  template<typename DMparticlesCuda>
+  __device__
+  MyParticle(const DParticleCuda& prt, const DMparticlesCuda& dmprts)
+    : prt_{prt}, q_(dmprts.q(prt.kind)), m_(dmprts.m(prt.kind))
+  {}
+
+  __device__ Real3  x() const { return prt_.x; }
+  __device__ Real3& x()       { return prt_.x; }
+  __device__ Real3  u() const { return prt_.u; }
+  __device__ Real3& u()       { return prt_.u; }
+  __device__ int kind() const { return prt_.kind; }
+  __device__ real_t qni_wni() const { return prt_.qni_wni; }
+
+  __device__ real_t q() const { return q_; }
+  __device__ real_t m() const { return m_; }
+  
+private:
+  DParticleCuda prt_;
+  float q_;
+  float m_;
+};
+
 template <typename cuda_mparticles, typename RngState>
 __global__ static void k_collide2(
   DMparticlesCuda<typename cuda_mparticles::BS> dmprts, uint* d_off, uint* d_id,
@@ -49,18 +77,20 @@ __global__ static void k_collide2(
 	 n += 2 * THREADS_PER_BLOCK) {
       // printf("%d/%d: n = %d off %d\n", blockIdx.x, threadIdx.x, n,
       // d_off[blockIdx.x]);
-      auto prt1 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n])};
-      auto prt2 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n + 1])};
+      auto _prt1 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n])};
+      auto _prt2 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n + 1])};
+      MyParticle prt1(_prt1.prt_, _prt1.dmprts_);
+      MyParticle prt2(_prt2.prt_, _prt2.dmprts_);
 #ifndef NDEBUG
       int p = bidx / n_cells_per_patch;
       int cidx1 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n]], p);
       int cidx2 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n + 1]], p);
       assert(cidx1 == cidx2);
 #endif
-      bc(prt1, prt2, nudt1, rng);
+      bc(_prt1, _prt2, nudt1, rng);
       // xi4 is not modified, don't need to store
-      dmprts.storage.store_momentum(prt1, d_id[n]);
-      dmprts.storage.store_momentum(prt2, d_id[n + 1]);
+      dmprts.storage.store_momentum(_prt1, d_id[n]);
+      dmprts.storage.store_momentum(_prt2, d_id[n + 1]);
     }
   }
   
