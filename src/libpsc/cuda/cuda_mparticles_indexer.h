@@ -99,7 +99,7 @@ public:
   uint n_patches_;         // number of patches
   uint n_blocks_per_patch; // number of blocks per patch
   uint n_blocks;           // number of blocks in all patches in mprts
-private:
+  //private:
   ParticleIndexer<real_t> pi_;
   Int3 b_mx_;
 
@@ -132,9 +132,22 @@ struct DParticleIndexer
     uint pos_y = __float2int_rd(xi4.y * dxi_[1]);
     uint pos_z = __float2int_rd(xi4.z * dxi_[2]);
 
-    // work (on macbook)
+    if (!(pos_x < ldims_[0] && pos_y < ldims_[1] && pos_z < ldims_[2])) {
+      printf("BUG4 pos %d %d %d  %g %g %g\n", pos_x, pos_y, pos_z, xi4.x, xi4.y, xi4.z);
+      int bidx = blockIndex(xi4, p);
+      printf("BUG5 pos %d %d %d  %g %g %g\n", pos_x, pos_y, pos_z, xi4.x, xi4.y, xi4.z);
+    }
     assert(pos_x < ldims_[0] && pos_y < ldims_[1] && pos_z < ldims_[2]);
     return ((p * ldims_[2] + pos_z) * ldims_[1] + pos_y) * ldims_[0] + pos_x;
+  }
+
+  __device__ int blockIndex(Vec3<float> pos, int p) const
+  {
+    int block_pos[3] = {int(__float2int_rd(pos[0] * dxi_[0]) / BS::x::value),
+                        int(__float2int_rd(pos[1] * dxi_[1]) / BS::y::value),
+                        int(__float2int_rd(pos[2] * dxi_[2]) / BS::z::value)};
+
+    return validBlockIndex(block_pos, p);
   }
 
   __device__ int blockIndex(float4 xi4, int p) const
@@ -242,7 +255,7 @@ struct DParticleIndexer
     xs[2] = scalePos(xi[2], 2);
   }
 
-private:
+  //private:
   uint ldims_[3];
   uint b_mx_[3];
   uint n_blocks_;
