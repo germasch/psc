@@ -79,8 +79,12 @@ __global__ static void k_collide2(
       // d_off[blockIdx.x]);
       auto _prt1 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n])};
       auto _prt2 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n + 1])};
-      MyParticle prt1(_prt1.prt_, _prt1.dmprts_);
-      MyParticle prt2(_prt2.prt_, _prt2.dmprts_);
+      float4 xi4_1 = dmprts.storage.xi4[d_id[n]];
+      float4 pxi4_1 = dmprts.storage.pxi4[d_id[n]];
+      float4 xi4_2 = dmprts.storage.xi4[d_id[n+1]];
+      float4 pxi4_2 = dmprts.storage.pxi4[d_id[n+1]];
+      MyParticle prt1(ParticleCudaStorage(xi4_1, pxi4_1), dmprts);
+      MyParticle prt2(ParticleCudaStorage(xi4_2, pxi4_2), dmprts);
 #ifndef NDEBUG
       int p = bidx / n_cells_per_patch;
       int cidx1 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n]], p);
