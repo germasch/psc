@@ -46,6 +46,9 @@ public:
 
   __device__ real_t q() const { return q_; }
   __device__ real_t m() const { return m_; }
+
+  __device__ float4 xi4() const { return float4{x()[0], x()[1], x()[2], cuda_int_as_float(kind())}; }
+  __device__ float4 pxi4() const { return float4{u()[0], u()[1], u()[2], qni_wni()}; }
   
 private:
   DParticleCuda prt_;
@@ -93,10 +96,8 @@ __global__ static void k_collide2(
 #endif
       bc(prt1, prt2, nudt1, rng);
       // xi4 is not modified, don't need to store
-      ParticleCudaStorage st1(prt1);
-      dmprts.storage.pxi4[d_id[n]] = st1.pxi4;
-      ParticleCudaStorage st2(prt2);
-      dmprts.storage.pxi4[d_id[n+1]] = st2.pxi4;
+      dmprts.storage.pxi4[d_id[n]] = prt1.pxi4();
+      dmprts.storage.pxi4[d_id[n+1]] = prt2.pxi4();
     }
   }
   
