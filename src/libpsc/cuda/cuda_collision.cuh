@@ -93,8 +93,10 @@ __global__ static void k_collide2(
 #endif
       bc(_prt1, _prt2, nudt1, rng);
       // xi4 is not modified, don't need to store
-      dmprts.storage.store_momentum(_prt1, d_id[n]);
-      dmprts.storage.store_momentum(_prt2, d_id[n + 1]);
+      ParticleCudaStorage st1(_prt1);
+      dmprts.storage.pxi4[d_id[n]] = st1.pxi4;
+      ParticleCudaStorage st2(_prt2);
+      dmprts.storage.pxi4[d_id[n+1]] = st2.pxi4;
     }
   }
   
