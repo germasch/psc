@@ -99,7 +99,7 @@ public:
   uint n_patches_;         // number of patches
   uint n_blocks_per_patch; // number of blocks per patch
   uint n_blocks;           // number of blocks in all patches in mprts
-private:
+  //private:
   ParticleIndexer<real_t> pi_;
   Int3 b_mx_;
 
@@ -132,9 +132,22 @@ struct DParticleIndexer
     uint pos_y = __float2int_rd(xi4.y * dxi_[1]);
     uint pos_z = __float2int_rd(xi4.z * dxi_[2]);
 
-    // assert(pos_y < ldims_[1] && pos_z < ldims_[2]); FIXME, assert doesn't
-    // work (on macbook)
+    if (!(pos_x < ldims_[0] && pos_y < ldims_[1] && pos_z < ldims_[2])) {
+      printf("BUG4 pos %d %d %d  %g %g %g\n", pos_x, pos_y, pos_z, xi4.x, xi4.y, xi4.z);
+      int bidx = blockIndex(xi4, p);
+      printf("BUG5 pos %d %d %d  %g %g %g\n", pos_x, pos_y, pos_z, xi4.x, xi4.y, xi4.z);
+    }
+    assert(pos_x < ldims_[0] && pos_y < ldims_[1] && pos_z < ldims_[2]);
     return ((p * ldims_[2] + pos_z) * ldims_[1] + pos_y) * ldims_[0] + pos_x;
+  }
+
+  __device__ int blockIndex(Vec3<float> pos, int p) const
+  {
+    int block_pos[3] = {int(__float2int_rd(pos[0] * dxi_[0]) / BS::x::value),
+                        int(__float2int_rd(pos[1] * dxi_[1]) / BS::y::value),
+                        int(__float2int_rd(pos[2] * dxi_[2]) / BS::z::value)};
+
+    return validBlockIndex(block_pos, p);
   }
 
   __device__ int blockIndex(float4 xi4, int p) const
@@ -148,9 +161,9 @@ struct DParticleIndexer
 
   __device__ int validBlockIndex(const int* block_pos, int p) const
   {
-    /* assert(block_pos[0] >= 0 && block_pos[0] < b_mx_[0]); */
-    /* assert(block_pos[1] >= 0 && block_pos[1] < b_mx_[1]); */
-    /* assert(block_pos[2] >= 0 && block_pos[2] < b_mx_[2]); */
+    assert(block_pos[0] >= 0 && block_pos[0] < b_mx_[0]);
+    assert(block_pos[1] >= 0 && block_pos[1] < b_mx_[1]);
+    assert(block_pos[2] >= 0 && block_pos[2] < b_mx_[2]);
 
     return ((p * b_mx_[2] + block_pos[2]) * b_mx_[1] + block_pos[1]) *
              b_mx_[0] +
@@ -171,14 +184,14 @@ struct DParticleIndexer
 
   __device__ int blockNoShift(float xi[3], int p) const
   {
-    static_assert(BS::x::value == 1, "blockNoShift needs work for dim_xyz");
+    uint block_pos_x = __float2int_rd(xi[0] * dxi_[0]) / BS::x::value;
     uint block_pos_y = __float2int_rd(xi[1] * dxi_[1]) / BS::y::value;
     uint block_pos_z = __float2int_rd(xi[2] * dxi_[2]) / BS::z::value;
-
-    if (block_pos_y >= b_mx_[1] || block_pos_z >= b_mx_[2]) {
+    
+    if (block_pos_x >= b_mx_[0] || block_pos_y >= b_mx_[1] || block_pos_z >= b_mx_[2]) {
       return n_blocks_ + p;
     } else {
-      int bidx = (p * b_mx_[2] + block_pos_z) * b_mx_[1] + block_pos_y;
+      int bidx = ((p * b_mx_[2] + block_pos_z) * b_mx_[1] + block_pos_y) * b_mx_[0] + block_pos_x;
       return bidx;
     }
   }
@@ -242,7 +255,7 @@ struct DParticleIndexer
     xs[2] = scalePos(xi[2], 2);
   }
 
-private:
+  //private:
   uint ldims_[3];
   uint b_mx_[3];
   uint n_blocks_;

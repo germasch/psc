@@ -19,10 +19,9 @@ struct CudaCollision;
 template <typename cuda_mparticles, typename RngState>
 __global__ static void k_collide(
   DMparticlesCuda<typename cuda_mparticles::BS> dmprts, uint* d_off, uint* d_id,
-  float nudt0, typename RngState::Device rng_state, uint n_cells)
+  float nudt0, typename RngState::Device rng_state, uint n_cells, int n_cells_per_patch)
 {
-  CudaCollision<cuda_mparticles, RngState>::d_collide(
-    dmprts, d_off, d_id, nudt0, rng_state, n_cells);
+  CudaCollision<cuda_mparticles, RngState>::d_collide(dmprts, d_off, d_id, nudt0, rng_state, n_cells, n_cells_per_patch);
 }
 
 // ======================================================================
@@ -46,9 +45,17 @@ struct CudaCollision
     if (cmprts.n_prts == 0) {
       return;
     }
+    MHERE;
+    cmprts.check_ordered();
+    MHERE;
+    cmprts.reorder();
+    MHERE;
     sort_.find_indices_ids(cmprts);
+    MHERE;
     sort_.sort();
+    MHERE;
     sort_.find_offsets();
+    MHERE;
     // for (int c = 0; c <= cmprts.n_cells(); c++) {
     //   printf("off[%d] = %d\n", c, int(sort_by_cell.d_off[c]));
     // }
@@ -62,6 +69,8 @@ struct CudaCollision
       rng_state_.resize(blocks * THREADS_PER_BLOCK);
     }
 
+    int n_cells_per_patch = cmprts.grid().ldims[0] * cmprts.grid().ldims[1] * cmprts.grid().ldims[2];
+
     // all particles need to have same weight!
     real_t wni = 1.; // FIXME, there should at least be some assert to enforce
                      // this //prts[n_start].w());
@@ -69,14 +78,14 @@ struct CudaCollision
 
     k_collide<cuda_mparticles, RngState><<<dimGrid, THREADS_PER_BLOCK>>>(
       cmprts, sort_.d_off.data().get(), sort_.d_id.data().get(), nudt0,
-      rng_state_, cmprts.n_cells());
+      rng_state_, cmprts.n_cells(), n_cells_per_patch);
     cuda_sync_if_enabled();
   }
 
   __device__ static void d_collide(DMparticles dmprts, uint* d_off, uint* d_id,
                                    float nudt0,
                                    typename RngState::Device rng_state,
-                                   uint n_cells)
+                                   uint n_cells, int n_cells_per_patch)
   {
 
     int id = threadIdx.x + blockIdx.x * THREADS_PER_BLOCK;
@@ -87,6 +96,7 @@ struct CudaCollision
     for (uint bidx = blockIdx.x; bidx < n_cells; bidx += gridDim.x) {
       uint beg = d_off[bidx];
       uint end = d_off[bidx + 1];
+      int p = bidx / n_cells_per_patch;
       real_t nudt1 =
         nudt0 * (end - beg) * (end - beg) / ((end - beg) & ~1); // somewhat counteract that we don't collide
                                   // the last particle if odd
@@ -96,6 +106,11 @@ struct CudaCollision
         // d_off[blockIdx.x]);
         auto prt1 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n])};
         auto prt2 = DParticle{dmprts.storage.load_proxy(dmprts, d_id[n + 1])};
+	int cidx1 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n]], p);
+	int cidx2 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n + 1]], p);
+	if (cidx1 != cidx2) {
+	  printf("cidx1 %d cidx2 %d p %d bidx %d\n", cidx1, cidx2, p, bidx);
+	}
         bc(prt1, prt2, nudt1, rng);
         // xi4 is not modified, don't need to store
         dmprts.storage.store_momentum(prt1, d_id[n]);
