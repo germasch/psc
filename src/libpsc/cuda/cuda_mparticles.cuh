@@ -317,9 +317,9 @@ private:
   real_t dqs_;
   real_t dq_[MAX_N_KINDS];
   real_t q_inv_[MAX_N_KINDS];
+public:
   real_t q_[MAX_N_KINDS];
   real_t m_[MAX_N_KINDS];
-public:
   DMparticlesCudaStorage storage;
   DMparticlesCudaStorage alt_storage;
   uint *off_;

@@ -31,9 +31,8 @@ public:
   using real_t = DParticleCuda::real_t;
   using Real3 = DParticleCuda::Real3;
   
-  template<typename DMparticlesCuda>
   __device__
-  MyParticle(float4 xi4, float4 pxi4, const DMparticlesCuda& dmprts)
+  MyParticle(float4 xi4, float4 pxi4, const float* q_by_kind, const float *m_by_kind)
   {
     prt_.x[0] = xi4.x;
     prt_.x[1] = xi4.y;
@@ -43,8 +42,8 @@ public:
     prt_.u[1] = pxi4.y;
     prt_.u[2] = pxi4.z;
     prt_.qni_wni = pxi4.w;
-    q_ = dmprts.m(prt_.kind);
-    m_ = dmprts.q(prt_.kind);
+    q_ = q_by_kind[prt_.kind];
+    m_ = m_by_kind[prt_.kind];
   }
 
   __device__ Real3  x() const { return prt_.x; }
@@ -67,13 +66,11 @@ private:
 };
 
 template <typename cuda_mparticles, typename RngState>
-__global__ static void k_collide2(
-  DMparticlesCuda<typename cuda_mparticles::BS> dmprts, uint* d_off, uint* d_id,
+__global__ static void k_collide2(DMparticlesCuda<typename cuda_mparticles::BS> dmprts,
+				  float4 *d_xi4, float4* d_pxi4, uint* d_off, uint* d_id,
   float nudt0, typename RngState::Device rng_state, uint n_cells, uint n_cells_per_patch)
 {
   using real_t = typename cuda_mparticles::real_t;
-  using DMparticles = DMparticlesCuda<typename cuda_mparticles::BS>;
-  using DParticle = DParticleProxy<DMparticles>;
 
   int id = threadIdx.x + blockIdx.x * THREADS_PER_BLOCK;
   /* Copy state to local memory for efficiency */
@@ -90,12 +87,12 @@ __global__ static void k_collide2(
 	 n += 2 * THREADS_PER_BLOCK) {
       // printf("%d/%d: n = %d off %d\n", blockIdx.x, threadIdx.x, n,
       // d_off[blockIdx.x]);
-      float4 xi4_1 = dmprts.storage.xi4[d_id[n]];
-      float4 pxi4_1 = dmprts.storage.pxi4[d_id[n]];
-      float4 xi4_2 = dmprts.storage.xi4[d_id[n+1]];
-      float4 pxi4_2 = dmprts.storage.pxi4[d_id[n+1]];
-      MyParticle prt1(xi4_1, pxi4_1, dmprts);
-      MyParticle prt2(xi4_2, pxi4_2, dmprts);
+      float4 xi4_1 = d_xi4[d_id[n]];
+      float4 pxi4_1 = d_pxi4[d_id[n]];
+      float4 xi4_2 = d_xi4[d_id[n+1]];
+      float4 pxi4_2 = d_pxi4[d_id[n+1]];
+      MyParticle prt1(xi4_1, pxi4_1, dmprts.q_, dmprts.m_);
+      MyParticle prt2(xi4_2, pxi4_2, dmprts.q_, dmprts.m_);
 #ifndef NDEBUG
       int p = bidx / n_cells_per_patch;
       int cidx1 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n]], p);
@@ -104,8 +101,8 @@ __global__ static void k_collide2(
 #endif
       bc(prt1, prt2, nudt1, rng);
       // xi4 is not modified, don't need to store
-      dmprts.storage.pxi4[d_id[n]] = prt1.pxi4();
-      dmprts.storage.pxi4[d_id[n+1]] = prt2.pxi4();
+      d_pxi4[d_id[n]] = prt1.pxi4();
+      d_pxi4[d_id[n+1]] = prt2.pxi4();
     }
   }
   
@@ -163,9 +160,13 @@ struct CudaCollision
       rng_state_, cmprts.n_cells(), n_cells_per_patch);
     cuda_sync_if_enabled();
 #else
-    k_collide2<cuda_mparticles, RngState><<<dimGrid, THREADS_PER_BLOCK>>>(
-      cmprts, sort_.d_off.data().get(), sort_.d_id.data().get(), nudt0,
-      rng_state_, cmprts.n_cells(), n_cells_per_patch);
+    k_collide2<cuda_mparticles, RngState><<<dimGrid, THREADS_PER_BLOCK>>>(cmprts,
+									  cmprts.storage.xi4.data().get(),
+									  cmprts.storage.pxi4.data().get(),
+									  sort_.d_off.data().get(),
+									  sort_.d_id.data().get(), nudt0,
+									  rng_state_, cmprts.n_cells(),
+									  n_cells_per_patch);
     cuda_sync_if_enabled();
 #endif
   }
