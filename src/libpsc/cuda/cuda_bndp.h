@@ -46,6 +46,7 @@ struct cuda_bndp : cuda_mparticles_indexer<typename CudaMparticles::BS>
     auto oob = thrust::count_if(d_bidx.begin(), d_bidx.end(),
                                 is_outside(cmprts.n_blocks));
     auto sz = d_bidx.size();
+    mprintf("sz %d oob %d\n", sz,  oob);
     assert(cmprts.storage.xi4.size() == sz);
     assert(cmprts.storage.pxi4.size() == sz);
     assert(cmprts.n_prts == sz);
