@@ -19,9 +19,7 @@ CollisionCuda<Mparticles, RngState>::CollisionCuda(const Grid_t& grid,
 template <typename Mparticles, typename RngState>
 void CollisionCuda<Mparticles, RngState>::operator()(Mparticles& mprts)
 {
-  MHERE;
   (*fwd_)(*mprts.cmprts());
-  MHERE;
 }
 
 template <typename Mparticles, typename RngState>

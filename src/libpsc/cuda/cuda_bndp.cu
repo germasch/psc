@@ -115,11 +115,9 @@ void cuda_bndp<CudaMparticles, dim_yz>::post(CudaMparticles* cmprts)
   prof_stop(pr_D1);
 
   prof_start(pr_E);
-#if 1
+#if 0
   cmprts->reorder(cmprts);
-  MHERE;
   assert(cmprts->check_ordered());
-  MHERE;
 #else
   cmprts->need_reorder = true;
 #endif
@@ -313,14 +311,12 @@ uint cuda_bndp<CudaMparticles, DIM>::convert_and_copy_to_dev(
 
       checkInPatchMod(&h_bnd_xi4[n + off].x);
       uint b = blockIndex(h_bnd_xi4[n + off], p);
-      // mprintf("p%d n %d bidx %d xyz %g %g %g\n", p, n, b, h_bnd_xi4[n + off].x, h_bnd_xi4[n + off].y, h_bnd_xi4[n + off].z);
       assert(b < n_blocks);
       h_bnd_idx[n + off] = b;
       // h_bnd_off[n + off] = h_bnd_cnt[b]++;
     }
     off += n_recv;
   }
-  mprintf("n_recv %d\n", n_recv);
 
   cmprts->resize(cmprts->n_prts + n_recv);
 
@@ -349,7 +345,6 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
   auto n_prts_send = d_bidx.size() - cmprts.n_prts;
   auto n_prts_recv = convert_and_copy_to_dev(&cmprts);
   cmprts.n_prts += n_prts_recv;
-  mprintf("n_prts_send %d recv %d n_prts now %d\n", n_prts_send, n_prts_recv, cmprts.n_prts);
 
   thrust::sequence(cmprts.by_block_.d_id.begin(), cmprts.by_block_.d_id.end());
   thrust::stable_sort_by_key(d_bidx.begin(), d_bidx.end(),
@@ -372,12 +367,6 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
   // d_off[0] was set to zero during d_off initialization
 
   cmprts.need_reorder = true;
-#if 1
-  //cmprts.reorder();
-  MHERE;
-  assert(cmprts.check_ordered());
-  MHERE;
-#endif
 }
 
 template struct cuda_bndp<cuda_mparticles<BS144>, dim_yz>;
