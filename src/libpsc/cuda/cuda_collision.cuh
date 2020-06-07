@@ -65,7 +65,7 @@ __global__ static void k_collide2(
   int id = threadIdx.x + blockIdx.x * THREADS_PER_BLOCK;
   /* Copy state to local memory for efficiency */
   auto rng = rng_state[id];
-  BinaryCollision<DParticle> bc;
+  BinaryCollision<MyParticle> bc;
   
   for (uint bidx = blockIdx.x; bidx < n_cells; bidx += gridDim.x) {
     uint beg = d_off[bidx];
@@ -91,11 +91,11 @@ __global__ static void k_collide2(
       int cidx2 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n + 1]], p);
       assert(cidx1 == cidx2);
 #endif
-      bc(_prt1, _prt2, nudt1, rng);
+      bc(prt1, prt2, nudt1, rng);
       // xi4 is not modified, don't need to store
-      ParticleCudaStorage st1(_prt1);
+      ParticleCudaStorage st1(prt1);
       dmprts.storage.pxi4[d_id[n]] = st1.pxi4;
-      ParticleCudaStorage st2(_prt2);
+      ParticleCudaStorage st2(prt2);
       dmprts.storage.pxi4[d_id[n+1]] = st2.pxi4;
     }
   }
