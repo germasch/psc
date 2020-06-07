@@ -171,14 +171,14 @@ struct DParticleIndexer
 
   __device__ int blockNoShift(float xi[3], int p) const
   {
-    static_assert(BS::x::value == 1, "blockNoShift needs work for dim_xyz");
+    uint block_pos_x = __float2int_rd(xi[0] * dxi_[0]) / BS::x::value;
     uint block_pos_y = __float2int_rd(xi[1] * dxi_[1]) / BS::y::value;
     uint block_pos_z = __float2int_rd(xi[2] * dxi_[2]) / BS::z::value;
-
-    if (block_pos_y >= b_mx_[1] || block_pos_z >= b_mx_[2]) {
+    
+    if (block_pos_x >= b_mx_[0] || block_pos_y >= b_mx_[1] || block_pos_z >= b_mx_[2]) {
       return n_blocks_ + p;
     } else {
-      int bidx = (p * b_mx_[2] + block_pos_z) * b_mx_[1] + block_pos_y;
+      int bidx = ((p * b_mx_[2] + block_pos_z) * b_mx_[1] + block_pos_y) * b_mx_[0] + block_pos_x;
       return bidx;
     }
   }
