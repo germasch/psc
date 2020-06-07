@@ -68,7 +68,9 @@ private:
 template <typename cuda_mparticles, typename RngState>
 __global__ static void k_collide2(DMparticlesCuda<typename cuda_mparticles::BS> dmprts,
 				  float4 *d_xi4, float4* d_pxi4, uint* d_off, uint* d_id,
-  float nudt0, typename RngState::Device rng_state, uint n_cells, uint n_cells_per_patch)
+				  float nudt0, typename RngState::Device rng_state,
+				  uint n_cells, uint n_cells_per_patch, float *q_by_kind,
+				  float *m_by_kind)
 {
   using real_t = typename cuda_mparticles::real_t;
 
@@ -89,8 +91,8 @@ __global__ static void k_collide2(DMparticlesCuda<typename cuda_mparticles::BS> 
       // d_off[blockIdx.x]);
       uint n1 = d_id[n];
       uint n2 = d_id[n+1];
-      MyParticle prt1(d_xi4[n1], d_pxi4[n1], dmprts.q_, dmprts.m_);
-      MyParticle prt2(d_xi4[n2], d_pxi4[n2], dmprts.q_, dmprts.m_);
+      MyParticle prt1(d_xi4[n1], d_pxi4[n1], q_by_kind, m_by_kind);
+      MyParticle prt2(d_xi4[n2], d_pxi4[n2], q_by_kind, m_by_kind);
 #ifndef NDEBUG
       int p = bidx / n_cells_per_patch;
       int cidx1 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n]], p);
@@ -158,13 +160,19 @@ struct CudaCollision
       rng_state_, cmprts.n_cells(), n_cells_per_patch);
     cuda_sync_if_enabled();
 #else
+    DMparticles dmprts(cmprts);
+    static const int MAX_N_KINDS = 4;
+    thrust::device_vector<float> d_q_by_kind(dmprts.q_, dmprts.q_ + MAX_N_KINDS);
+    thrust::device_vector<float> d_m_by_kind(dmprts.m_, dmprts.m_ + MAX_N_KINDS);
     k_collide2<cuda_mparticles, RngState><<<dimGrid, THREADS_PER_BLOCK>>>(cmprts,
 									  cmprts.storage.xi4.data().get(),
 									  cmprts.storage.pxi4.data().get(),
 									  sort_.d_off.data().get(),
 									  sort_.d_id.data().get(), nudt0,
 									  rng_state_, cmprts.n_cells(),
-									  n_cells_per_patch);
+									  n_cells_per_patch,
+									  d_q_by_kind.data().get(),
+									  d_m_by_kind.data().get());
     cuda_sync_if_enabled();
 #endif
   }
