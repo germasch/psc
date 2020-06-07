@@ -85,6 +85,7 @@ __global__ static void k_find_random_cell_indices_ids(
 {
   int n = threadIdx.x + THREADS_PER_BLOCK * blockIdx.x;
   if (n > rng_state.size()) {
+    //printf("BUG2: n %d %d\n", n, rng_state.size());
     return;
   }
   
@@ -119,6 +120,16 @@ __global__ static void k_find_block_indices_ids(DMparticlesCuda<BS> dmprts,
     int n = threadIdx.x + blockDim.x * blockIdx.x;
     for (; n < n_prts; n += gridDim.x * blockDim.x) {
       float4 xi4 = dmprts.storage.xi4[n + off];
+
+      int block_pos[3] = {int(__float2int_rd(xi4.x * dmprts.dxi_[0]) / BS::x::value),
+			  int(__float2int_rd(xi4.y * dmprts.dxi_[1]) / BS::y::value),
+			  int(__float2int_rd(xi4.z * dmprts.dxi_[2]) / BS::z::value)};
+      if (!(block_pos[0] >= 0 && block_pos[0] < dmprts.b_mx_[0] &&
+	    block_pos[1] >= 0 && block_pos[1] < dmprts.b_mx_[1] &&
+	    block_pos[2] >= 0 && block_pos[2] < dmprts.b_mx_[2])) {
+	printf("NOT xyz %g %g %g block_pos %d %d %d\n", xi4.x, xi4.y, xi4.z, block_pos[0], block_pos[1], block_pos[2]);
+      }
+      
       d_bidx[n + off] = dmprts.blockIndex(xi4, p);
       d_id[n + off] = n + off;
     }
@@ -256,6 +267,17 @@ struct cuda_mparticles_randomize_sort
   void sort()
   {
     thrust::sort_by_key(d_random_idx.begin(), d_random_idx.end(), d_id.begin());
+
+    thrust::host_vector<int> h_random_idx = d_random_idx;
+    thrust::host_vector<int> h_id = d_id;
+    int N = h_random_idx.size();
+    int last = -1;
+    for (int i = 0; i < N; i++) {
+      if (h_random_idx[i] < last) {
+	printf("BUG last %d now %d i %d\n", last, h_random_idx[i], i);
+      }
+      last = h_random_idx[i];
+    }
   }
 
   void find_offsets()
