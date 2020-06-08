@@ -31,7 +31,7 @@ public:
   using real_t = DParticleCuda::real_t;
   using Real3 = DParticleCuda::Real3;
   
-  __device__
+  __host__ __device__
   MyParticle(float4 xi4, float4 pxi4, const float* q_by_kind, const float *m_by_kind)
   {
     prt_.x[0] = xi4.x;
@@ -46,18 +46,18 @@ public:
     m_ = m_by_kind[prt_.kind];
   }
 
-  __device__ Real3  x() const { return prt_.x; }
-  __device__ Real3& x()       { return prt_.x; }
-  __device__ Real3  u() const { return prt_.u; }
-  __device__ Real3& u()       { return prt_.u; }
-  __device__ int kind() const { return prt_.kind; }
-  __device__ real_t qni_wni() const { return prt_.qni_wni; }
+  __host__ __device__ Real3  x() const { return prt_.x; }
+  __host__ __device__ Real3& x()       { return prt_.x; }
+  __host__ __device__ Real3  u() const { return prt_.u; }
+  __host__ __device__ Real3& u()       { return prt_.u; }
+  __host__ __device__ int kind() const { return prt_.kind; }
+  __host__ __device__ real_t qni_wni() const { return prt_.qni_wni; }
 
-  __device__ real_t q() const { return q_; }
-  __device__ real_t m() const { return m_; }
+  __host__ __device__ real_t q() const { return q_; }
+  __host__ __device__ real_t m() const { return m_; }
 
-  __device__ float4 xi4() const { return float4{x()[0], x()[1], x()[2], cuda_int_as_float(kind())}; }
-  __device__ float4 pxi4() const { return float4{u()[0], u()[1], u()[2], qni_wni()}; }
+  __host__ __device__ float4 xi4() const { return float4{x()[0], x()[1], x()[2], cuda_int_as_float(kind())}; }
+  __host__ __device__ float4 pxi4() const { return float4{u()[0], u()[1], u()[2], qni_wni()}; }
   
 private:
   DParticleCuda prt_;
@@ -109,6 +109,55 @@ __global__ static void k_collide2(DMparticlesCuda<typename cuda_mparticles::BS> 
   rng_state[id] = rng;
 }
 
+template <typename cuda_mparticles, typename RngState>
+static void k_collide3(DMparticlesCuda<typename cuda_mparticles::BS> dmprts,
+		       const thrust::device_vector<float4>& d_xi4,
+		       thrust::device_vector<float4>& d_pxi4,
+		       const thrust::device_vector<uint>& d_off,
+		       const thrust::device_vector<uint>& d_id,
+		       float nudt0, typename RngState::Device rng_state,
+		       uint n_cells, uint n_cells_per_patch, float *q_by_kind,
+		       float *m_by_kind)
+{
+  using real_t = typename cuda_mparticles::real_t;
+
+  // MHERE;
+  thrust::host_vector<uint> h_off(d_off);
+  thrust::host_vector<uint> h_id(d_id);
+  thrust::host_vector<float4> h_xi4(d_xi4);
+  thrust::host_vector<float4> h_pxi4(d_pxi4);
+
+  RngC<real_t> rng;
+  BinaryCollision<MyParticle> bc;
+  // mprintf("n_cells %d %zu\n", n_cells, d_off.size());
+  for (uint bidx = 0; bidx < n_cells; bidx++) {
+    uint beg = h_off[bidx];
+    uint end = h_off[bidx + 1];
+    //mprintf("bidx %d range %d %d\n", bidx, beg, end);
+    real_t nudt1 =
+      nudt0 * (end - beg) * (end - beg) / ((end - beg) & ~1); // somewhat counteract that we don't collide
+    // the last particle if odd
+    for (uint n = beg; n + 1 < end; n += 2) {
+      uint n1 = h_id[n];
+      uint n2 = h_id[n+1];
+      MyParticle prt1(h_xi4[n1], h_pxi4[n1], q_by_kind, m_by_kind);
+      MyParticle prt2(h_xi4[n2], h_pxi4[n2], q_by_kind, m_by_kind);
+#ifndef NDEBUG
+      // int p = bidx / n_cells_per_patch;
+      // int cidx1 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n]], p);
+      // int cidx2 = dmprts.validCellIndex(dmprts.storage.xi4[d_id[n + 1]], p);
+      // assert(cidx1 == cidx2);
+#endif
+      bc(prt1, prt2, nudt1, rng);
+      // xi4 is not modified, don't need to store
+      h_pxi4[n1] = prt1.pxi4();
+      h_pxi4[n2] = prt2.pxi4();
+    }
+  }
+  thrust::copy(h_pxi4.begin(), h_pxi4.end(), d_pxi4.begin());
+  // MHERE;
+}
+
 // ======================================================================
 // cuda_collision
 
@@ -154,7 +203,7 @@ struct CudaCollision
                      // this //prts[n_start].w());
     real_t nudt0 = wni / nicell_ * interval_ * dt_ * nu_;
 
-#if 0
+#if 1
     k_collide<cuda_mparticles, RngState><<<dimGrid, THREADS_PER_BLOCK>>>(
       cmprts, sort_.d_off.data().get(), sort_.d_id.data().get(), nudt0,
       rng_state_, cmprts.n_cells(), n_cells_per_patch);
@@ -164,6 +213,7 @@ struct CudaCollision
     static const int MAX_N_KINDS = 4;
     thrust::device_vector<float> d_q_by_kind(dmprts.q_, dmprts.q_ + MAX_N_KINDS);
     thrust::device_vector<float> d_m_by_kind(dmprts.m_, dmprts.m_ + MAX_N_KINDS);
+#if 0
     k_collide2<cuda_mparticles, RngState><<<dimGrid, THREADS_PER_BLOCK>>>(cmprts,
 									  cmprts.storage.xi4.data().get(),
 									  cmprts.storage.pxi4.data().get(),
@@ -173,6 +223,17 @@ struct CudaCollision
 									  n_cells_per_patch,
 									  d_q_by_kind.data().get(),
 									  d_m_by_kind.data().get());
+#else
+    k_collide3<cuda_mparticles, RngState>(cmprts,
+					  cmprts.storage.xi4,
+					  cmprts.storage.pxi4,
+					  sort_.d_off,
+					  sort_.d_id,
+					  nudt0,
+					  rng_state_, cmprts.n_cells(),
+					  n_cells_per_patch,
+					  dmprts.q_, dmprts.m_);
+#endif
     cuda_sync_if_enabled();
 #endif
   }
