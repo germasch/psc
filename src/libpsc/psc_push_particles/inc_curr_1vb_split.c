@@ -105,14 +105,8 @@ struct Current1vbSplit
     }
 
     int ci0[3] = {};
-    real_t fnqx = qni_wni * fnqxs_;
-    currx(curr_cache, i, fnqx, dx, xa, h, ci0);
-
-    real_t fnqy = qni_wni * fnqys_;
-    curry(curr_cache, i, fnqy, dx, xa, h, ci0);
-
-    real_t fnqz = qni_wni * fnqzs_;
-    currz(curr_cache, i, fnqz, dx, xa, h, ci0);
+    real_t fnq[3] = { qni_wni * fnqxs_, qni_wni * fnqys_, qni_wni * fnqzs_ };
+    deposit(curr_cache, i, fnq, dx, xa, h, ci0);
   }
 
   void calc_j2_one_cell(fields_t curr_cache, real_t qni_wni,
