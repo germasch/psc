@@ -11,7 +11,7 @@
 #include "heating_spot_foil.hxx"
 #include "inject_impl.hxx"
 
-#define DIM_3D
+//#define DIM_3D
 
 // ======================================================================
 // Particle kinds
@@ -232,9 +232,9 @@ Grid_t* setupGrid()
 {
   // --- setup domain
 #ifdef DIM_3D
-  Grid_t::Real3 LL = {8., 40., 40.}; // domain size (in d_e)
-  Int3 gdims = {16, 80, 80};        // global number of grid points
-  Int3 np = {1, 5, 5};                 // division into patches
+  Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
+  Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
+  Int3 np = {5, 5, 3 * 5};                 // division into patches
 #else
   Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
   Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
@@ -374,21 +374,19 @@ void run()
 
   // -- Checks
   ChecksParams checks_params{};
-  checks_params.continuity_every_step = 1;
-  checks_params.continuity_threshold = 1e-3;
+  checks_params.continuity_every_step = 50;
+  checks_params.continuity_threshold = 1e-4;
   checks_params.continuity_verbose = true;
-  checks_params.continuity_dump_always = true;
-  checks_params.gauss_every_step = 1;
-  checks_params.gauss_threshold = 1e-3;
+  checks_params.gauss_every_step = 50;
+  checks_params.gauss_threshold = 1e-4;
   checks_params.gauss_verbose = true;
-  checks_params.gauss_dump_always = true;
   Checks checks{grid, MPI_COMM_WORLD, checks_params};
 
   // -- Marder correction
   double marder_diffusion = 0.9;
   int marder_loop = 3;
   bool marder_dump = false;
-  psc_params.marder_interval = 1;
+  psc_params.marder_interval = 50;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
   // ----------------------------------------------------------------------
