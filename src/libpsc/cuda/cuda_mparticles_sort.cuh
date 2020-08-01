@@ -4,7 +4,6 @@
 #include "cuda_bits.h"
 #include "rng_state.cuh"
 
-#include <rmm/>
 #include <thrust/binary_search.h>
 #include <thrust/device_vector.h>
 #include <thrust/random.h>
