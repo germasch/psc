@@ -527,8 +527,8 @@ int main(int argc, char** argv)
 {
   psc_init(argc, argv);
 #ifdef HAVE_RMM
-  pool_mr = new rmm::mr::cnmem_memory_resource{(1<<30)}; 
-  rmm::mr::set_default_resource(pool_mr);
+  rmm::mr::cnmem_memory_resource pool_mr{}; //(1<<30)}; 
+  rmm::mr::set_default_resource(&pool_mr);
 #endif
   run();
 
