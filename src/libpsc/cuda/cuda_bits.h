@@ -2,18 +2,27 @@
 #ifndef CUDA_BITS_H
 #define CUDA_BITS_H
 
+#ifdef HAVE_RMM
+
+#include <rmm/thrust_rmm_allocator.h>
+
+namespace psc
+{
+template <typename T>
+using device_vector = rmm::device_vector<T>;
+}
+
+#else // !HAVE_RMM
 
 #include <thrust/device_vector.h>
-#ifdef HAVE_RMM
-#include "rmm/thrust_rmm_allocator.h"
 
-template <typename T>
-using device_vector = thrust::device_vector<T, rmm::mr::thrust_allocator<T>>;
-#else
+namespace psc
+{
 template <typename T>
 using device_vector = thrust::device_vector<T>;
-#endif
+}
 
+#endif
 
 #define cudaCheck(ierr)                                                        \
   do {                                                                         \
