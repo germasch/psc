@@ -241,7 +241,8 @@ Grid_t* setupGrid()
   // --- setup domain
 #ifdef DIM_3D
   Grid_t::Real3 LL = {320., 160., 960.}; // domain size (in d_e)
-  Int3 gdims = {320, 160, 960};        // global number of grid points
+  //Int3 gdims = {320, 160, 960};        // global number of grid points
+  Int3 gdims = {160, 80, 480};        // global number of grid points
   Int3 np = {10, 5, 30};                 // division into patches
   //Grid_t::Real3 LL = {1280., 640., 3840.}; // domain size (in d_e)
   //Int3 gdims = {2*1280, 2*640, 2*3840};        // global number of grid points
