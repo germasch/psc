@@ -11,16 +11,22 @@ namespace psc
 {
 template <typename T>
 using device_vector = rmm::device_vector<T>;
-}
+
+static const auto exec_policy = rmm::exec_policy(0) -> on(0);
+} // namespace psc
 
 #else
 #include <thrust/device_vector.h>
+#include <thrust/execution_policy.h>
 
 namespace psc
 {
 template <typename T>
 using device_vector = thrust::device_vector<T>;
-}
+
+static const auto exec_policy = thrust::device;
+} // namespace psc
+
 #endif
 
 #define cudaCheck(ierr)                                                        \
