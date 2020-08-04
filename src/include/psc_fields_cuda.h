@@ -40,7 +40,14 @@ struct CudaMfields : MfieldsCRTP<CudaMfields<S>>
   CudaMfields(const kg::Box3& box, int n_comps, int n_patches)
     : Base{n_comps, box, n_patches},
       storage_(n_patches * n_comps * box.size())
-  {}
+  {
+    static int pr;
+    if (!pr) {
+      pr = prof_register("CudaMfields_ctor", 1, 0, 0);
+    }
+    prof_start(pr);
+    prof_stop(pr);
+  }
 
 private:
   Storage storage_;
