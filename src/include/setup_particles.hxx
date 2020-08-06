@@ -105,7 +105,7 @@ struct SetupParticles
   // setupParticles
 
   template <typename FUNC>
-  void setupParticles(Mparticles& mprts, FUNC init_npt)
+  void setupParticles(Mparticles& mprts, FUNC& init_npt)
   {
     static int pr, pr_0, pr_1, pr_2, pr_3;
     if (!pr) {
