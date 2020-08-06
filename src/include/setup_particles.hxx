@@ -10,6 +10,11 @@ struct psc_particle_npt
   psc::particle::Tag tag;
 };
 
+void init_npt_zero(psc_particle_npt& npt)
+{
+  npt.n = 0;
+}
+
 // ======================================================================
 // SetupParticles
 
@@ -151,7 +156,8 @@ struct SetupParticles
               if (pop < kinds_.size()) {
                 npt.kind = pop;
               }
-              init_npt(pop, pos, p, {jx, jy, jz}, npt);
+              //init_npt(pop, pos, p, {jx, jy, jz}, npt);
+	      init_npt_zero(npt);
 
               int n_in_cell;
               if (pop != neutralizing_population) {
