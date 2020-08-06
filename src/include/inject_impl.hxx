@@ -36,6 +36,31 @@ struct Inject_ : InjectBase
   // ----------------------------------------------------------------------
   // operator()
 
+  struct func_init_npt
+  {
+    func_init_npt(Target_t& target, HMFields& mf_n, float fac, int kind_n)
+      : target_(target), mf_n_(mf_n), fac_(fac), kind_n_(kind_n)
+    {}
+    
+    void operator()(int kind, Double3 pos, int p, Int3 idx,
+		    psc_particle_npt& npt)
+    {
+      if (target_.is_inside(pos)) {
+        target_.init_npt(kind, pos, npt);
+        npt.n -= mf_n_[p](kind_n_, idx[0], idx[1], idx[2]);
+        if (npt.n < 0) {
+          npt.n = 0;
+        }
+        npt.n *= fac_;
+      }
+    }
+
+    Target_t& target_;
+    HMFields& mf_n_;
+    float fac_;
+    int kind_n_;
+  };
+
   void operator()(Mparticles& mprts)
   {
     static int pr, pr_1, pr_2, pr_3, pr_4;
@@ -66,6 +91,7 @@ struct Inject_ : InjectBase
     
     real_t fac = (interval * grid.dt / tau) / (1. + interval * grid.dt / tau);
 
+#if 0
     auto lf_init_npt = [&](int kind, Double3 pos, int p, Int3 idx,
                            psc_particle_npt& npt) {
       if (target_.is_inside(pos)) {
@@ -77,7 +103,10 @@ struct Inject_ : InjectBase
         npt.n *= fac;
       }
     };
-
+#else
+    func_init_npt lf_init_npt(target_, mf_n, fac, kind_n);
+#endif
+    
     prof_start(pr_4);
     setup_particles_.setupParticles(mprts, lf_init_npt);
     prof_stop(pr_4);
