@@ -79,7 +79,6 @@ struct Inject_ : InjectBase
     };
 
     prof_start(pr_4);
-    setup_particles_.fractional_n_particles_per_cell = false;
     setup_particles_.setupParticles(mprts, lf_init_npt);
     prof_stop(pr_4);
     
