@@ -45,15 +45,16 @@ struct Inject_ : InjectBase
     void operator()(int kind, Double3 pos, int p, Int3 idx,
 		    psc_particle_npt& npt)
     {
-      if (target_.is_inside(pos)) {
-	npt.n = .1;
-        // target_.init_npt(kind, pos, npt);
-        // npt.n -= mf_n_[p](kind_n_, idx[0], idx[1], idx[2]);
-        // if (npt.n < 0) {
-        //   npt.n = 0;
-        // }
-        npt.n *= fac_;
-      }
+      npt.n = 0;
+      // if (target_.is_inside(pos)) {
+      // 	npt.n = .1;
+      //   // target_.init_npt(kind, pos, npt);
+      //   // npt.n -= mf_n_[p](kind_n_, idx[0], idx[1], idx[2]);
+      //   // if (npt.n < 0) {
+      //   //   npt.n = 0;
+      //   // }
+      //   npt.n *= fac_;
+      // }
     }
 
     Target_t& target_;
