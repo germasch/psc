@@ -70,7 +70,7 @@ struct Inject_ : InjectBase
                            psc_particle_npt& npt) {
       if (target_.is_inside(pos)) {
         target_.init_npt(kind, pos, npt);
-        npt.n -= mf_n[p](kind_n, idx[0], idx[1], idx[2]);
+        //npt.n -= mf_n[p](kind_n, idx[0], idx[1], idx[2]);
         if (npt.n < 0) {
           npt.n = 0;
         }
