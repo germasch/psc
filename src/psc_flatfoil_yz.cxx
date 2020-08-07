@@ -369,10 +369,10 @@ void run()
   Balance balance{psc_params.balance_interval, 3};
 
   // -- Sort
-  psc_params.sort_interval = 1;
+  psc_params.sort_interval = 5;
 
   // -- Collision
-  int collision_interval = 1;
+  int collision_interval = 5;
   double collision_nu =
     3.76 * std::pow(g.target_Te_heat, 2.) / g.Zi / g.lambda0;
   Collision collision{grid, collision_interval, collision_nu};
@@ -393,7 +393,7 @@ void run()
   double marder_diffusion = 0.9;
   int marder_loop = 3;
   bool marder_dump = false;
-  psc_params.marder_interval = 1;
+  psc_params.marder_interval = 5;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
   // ----------------------------------------------------------------------
@@ -435,7 +435,7 @@ void run()
   heating_foil_params.Mi = grid.kinds[MY_ION].m;
   HeatingSpotFoil heating_spot{grid, heating_foil_params};
 
-  g.heating_interval = 1;
+  g.heating_interval = 5;
   g.heating_begin = 0;
   g.heating_end = 10000000;
   auto& heating =
@@ -455,7 +455,7 @@ void run()
   inject_foil_params.Ti = .001;
   InjectFoil inject_target{inject_foil_params};
 
-  g.inject_interval = 1;
+  g.inject_interval = 5;
   int inject_tau = 40;
 
   SetupParticles<Mparticles> setup_particles(grid);
