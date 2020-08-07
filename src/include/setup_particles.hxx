@@ -37,6 +37,9 @@ struct SetupParticles
 
   int get_n_in_cell(const psc_particle_npt& npt)
   {
+    if (n == 0) {
+      return 0;
+    }
     if (fractional_n_particles_per_cell) {
       int n_prts = npt.n / norm_.cori;
       float rmndr = npt.n / norm_.cori - n_prts;
