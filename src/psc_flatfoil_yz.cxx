@@ -524,3 +524,9 @@ int main(int argc, char** argv)
   psc_finalize();
   return 0;
 }
+
+void init_npt_zero(psc_particle_npt& npt)
+{
+  npt.n = 0;
+}
+
