@@ -157,9 +157,9 @@ struct SetupParticles
               //init_npt(pop, pos, p, {jx, jy, jz}, npt);
 	      init_npt_zero(pop, pos, p, {jx, jy, jz}, npt);
 
-              int n_in_cell = npt.n;
+              int n_in_cell;
               // if (pop != neutralizing_population) {
-              //   n_in_cell = get_n_in_cell(npt);
+	      n_in_cell = get_n_in_cell(npt);
               //   n_q_in_cell += kinds_[npt.kind].q * n_in_cell;
               // } else {
               //   // FIXME, should handle the case where not the last population
