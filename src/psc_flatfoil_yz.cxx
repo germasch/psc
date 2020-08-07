@@ -525,7 +525,7 @@ int main(int argc, char** argv)
   return 0;
 }
 
-void init_npt_zero(int kind, Double3 pos, int p, Int3 idx,
+void init_npt_zero(int kind, Vec3<double> pos, int p, Int3 idx,
 		   psc_particle_npt& npt);
 {
   npt.n = 0;
