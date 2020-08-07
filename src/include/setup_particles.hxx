@@ -37,7 +37,7 @@ struct SetupParticles
 
   int get_n_in_cell(const psc_particle_npt& npt)
   {
-    if (n == 0) {
+    if (npt.n == 0) {
       return 0;
     }
     if (fractional_n_particles_per_cell) {
