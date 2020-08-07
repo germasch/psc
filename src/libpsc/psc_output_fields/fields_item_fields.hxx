@@ -64,9 +64,6 @@ inline HMFields evalMfields(const MFexpression<E>& xp)
 
   prof_start(pr);
   const auto& exp = xp.derived().result();
-  // prof_start(pr_0);
-  // MfieldsC mflds{exp.grid(), exp.n_comps(), exp.ibn()};
-  // prof_stop(pr_0);
 
   prof_start(pr_1);
   auto h_exp = hostMirror(exp);
@@ -76,16 +73,6 @@ inline HMFields evalMfields(const MFexpression<E>& xp)
   copy(exp, h_exp);
   prof_stop(pr_2);
 
-  // prof_start(pr_3);
-  // for (int p = 0; p < mflds.n_patches(); p++) {
-  //   auto flds = mflds[p];
-  //   for (int m = 0; m < exp.n_comps(); m++) {
-  //     mflds.Foreach_3d(0, 0, [&](int i, int j, int k) {
-  //       flds(m, i, j, k) = h_exp[p](m, i, j, k);
-  //     });
-  //   }
-  // }
-  // prof_stop(pr_3);
   prof_stop(pr);
   return h_exp;
 }
