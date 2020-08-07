@@ -130,6 +130,7 @@ struct SetupParticles
 
     prof_start(pr_1);
     int n_prts_total = 0;
+    double t1 = MPI_Wtime();
     for (int p = 0; p < mprts.n_patches(); ++p) {
       auto ldims = grid.ldims;
 
@@ -172,6 +173,10 @@ struct SetupParticles
       }
     }
     prof_stop(pr_1);
+    double t2 = MPI_Wtime();
+    auto ldims = grid.ldims;
+    mprintf("np %d ldims %d %d %d pop %d time %g\n", mprts.n_patches(), ldims[0], ldims[1], ldims[2],
+	    n_populations_, t2 - t1);
 
     mprintf("n_prts_total %d\n", n_prts_total);
     prof_start(pr_2);
