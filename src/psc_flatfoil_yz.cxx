@@ -11,7 +11,7 @@
 #include "heating_spot_foil.hxx"
 #include "inject_impl.hxx"
 
-#define DIM_3D
+//#define DIM_3D
 
 // ======================================================================
 // Particle kinds
@@ -197,9 +197,9 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 10000001; // 5001;
+  psc_params.nmax = 50; // 10000001; // 5001;
   psc_params.cfl = 0.75;
-  psc_params.write_checkpoint_every_step = 1000;
+  psc_params.write_checkpoint_every_step = 50;
   psc_params.stats_every = 1;
 
   // -- start from checkpoint:
@@ -245,13 +245,13 @@ Grid_t* setupGrid()
 {
   // --- setup domain
 #ifdef DIM_3D
-  Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
-  Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
-  Int3 np = {5, 5, 3 * 5};                 // division into patches
+  Grid_t::Real3 LL = {1280., 640., 3840.};    // domain size (in d_e)
+  Int3 gdims = {2 * 1280, 2 * 640, 2 * 3840}; // global number of grid points
+  Int3 np = {2 * 40, 2 * 20, 2 * 120};        // division into patches
 #else
-  Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
-  Int3 np = {1, 50, 3 * 50};                // division into patches
+  Grid_t::Real3 LL = {1., 640., 640.}; // domain size (in d_e)
+  Int3 gdims = {1, 640, 640};          // global number of grid points
+  Int3 np = {1, 20, 20};               // division into patches
 #endif
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
@@ -383,23 +383,23 @@ void run()
   Balance balance{psc_params.balance_interval, 3};
 
   // -- Sort
-  psc_params.sort_interval = 10;
+  psc_params.sort_interval = 20;
 
   // -- Collision
-  int collision_interval = 10;
+  int collision_interval = 20;
   double collision_nu =
     3.76 * std::pow(g.target_Te_heat, 2.) / g.Zi / g.lambda0;
   Collision collision{grid, collision_interval, collision_nu};
 
   // -- Checks
   ChecksParams checks_params{};
-  checks_params.continuity_every_step = 0;
-  checks_params.continuity_threshold = 1e-4;
-  checks_params.continuity_verbose = true;
+  checks_params.continuity_every_step = 200;
+  checks_params.continuity_threshold = 1e-3;
+  checks_params.continuity_verbose = false;
   checks_params.continuity_dump_always = false;
-  checks_params.gauss_every_step = 100;
-  checks_params.gauss_threshold = 1e-4;
-  checks_params.gauss_verbose = true;
+  checks_params.gauss_every_step = 200;
+  checks_params.gauss_threshold = 1e-3;
+  checks_params.gauss_verbose = false;
   checks_params.gauss_dump_always = false;
   Checks checks{grid, MPI_COMM_WORLD, checks_params};
 
@@ -417,10 +417,10 @@ void run()
 
   // -- output fields
   OutputFieldsParams outf_params{};
-  outf_params.pfield_interval = 500;
-  outf_params.tfield_interval = 500;
-  outf_params.tfield_average_every = 50;
-  outf_params.tfield_moments_average_every = 50;
+  outf_params.pfield_interval = -1000;
+  outf_params.tfield_interval = 50;
+  outf_params.tfield_average_every = 10;
+  outf_params.tfield_moments_average_every = 10;
   OutputFields outf{grid, outf_params};
 
   // -- output particles
