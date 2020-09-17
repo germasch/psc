@@ -201,7 +201,7 @@ void setupParameters()
   // -- set some generic PSC parameters
   psc_params.nmax = 10000001; // 5001;
   psc_params.cfl = 0.75;
-  psc_params.write_checkpoint_every_step = 1000;
+  psc_params.write_checkpoint_every_step = 100;
   psc_params.stats_every = 1;
 
   // -- start from checkpoint:
@@ -251,9 +251,12 @@ Grid_t* setupGrid()
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
 #else
-  Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
-  Int3 np = {1, 50, 3 * 50};                // division into patches
+  //Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
+  //Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
+  //Int3 np = {1, 50, 3 * 50};                // division into patches
+    Grid_t::Real3 LL = {1., 32., 3200.}; // domain size (in d_e)
+    Int3 gdims = {1, 32, 2*3200};        // global number of grid points
+    Int3 np = {1, 1, 2*100};                 // division into patches
 #endif
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
