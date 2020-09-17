@@ -486,11 +486,11 @@ void run()
 #ifdef USE_CUDA
   using MFields = HMFields;  
 #else
-  using MFields = MFieldsC;
+  using MFields = MfieldsC;
 #endif
   double fac = (g.inject_interval * grid.dt / inject_tau) / (1. + g.inject_interval * grid.dt / inject_tau);
   auto lf_init_npt = [&](int kind, Double3 pos, int p, Int3 idx,
-                         psc_particle_npt& npt, MFields mf_n) {
+                         psc_particle_npt& npt, MFields& mf_n) {
     if (inject_target.is_inside(pos)) {
   
       if(kind == MY_ELECTRON_HE){
