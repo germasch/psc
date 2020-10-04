@@ -3,6 +3,7 @@
 
 #include <rmm/mr/device/cuda_memory_resource.hpp>
 #include <rmm/mr/device/logging_resource_adaptor.hpp>
+#include <rmm/mr/device/tracking_resource_adaptor.hpp>
 #include <rmm/mr/device/per_device_resource.hpp>
 #include <rmm/thrust_rmm_allocator.h>
 
@@ -22,7 +23,8 @@ void print(const std::vector<int>& vec)
 void test_tracking()
 {
   static rmm::mr::cuda_memory_resource pool_mr;
-  auto log_mr = rmm::mr::make_logging_adaptor(&pool_mr);
+  //auto log_mr = rmm::mr::make_tracking_adaptor(&pool_mr);
+  rmm::mr::tracking_resource_adaptor<decltype(pool_mr)> log_mr{&pool_mr};
   rmm::mr::set_current_device_resource(&log_mr);
   
   rmm::device_vector<double> x;
