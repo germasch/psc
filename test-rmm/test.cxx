@@ -25,7 +25,7 @@ void test_tracking()
   auto log_mr = rmm::mr::make_logging_adaptor(&pool_mr);
   rmm::mr::set_current_device_resource(&log_mr);
   
-  thrust::device_vector<double> x;
+  rmm::device_vector<double> x;
   x.resize(10);
 }
 
