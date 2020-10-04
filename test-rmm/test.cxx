@@ -29,6 +29,7 @@ void test_tracking()
   
   rmm::device_vector<double> x;
   x.resize(10);
+  log_mr.log_outstanding_allocations();
 }
 
 int main()
