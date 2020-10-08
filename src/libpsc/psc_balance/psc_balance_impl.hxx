@@ -377,7 +377,7 @@ private:
       if (factor_fields_ >= 0.) {
 	const int *ldims = grid.ldims;
 	load = n_prts_by_patch[p] + factor_fields_ * ldims[0] * ldims[1] * ldims[2];
-	printf("loads p %d load %g prts %d\n", p, load, n_prts_by_patch[p]);
+	// printf("loads p %d load %g prts %d\n", p, load, n_prts_by_patch[p]);
       } else {
 	load = psc_balance_comp_time_by_patch[p];
       }

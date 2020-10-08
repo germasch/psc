@@ -62,6 +62,9 @@ struct InjectorBuffered
   ~InjectorBuffered()
   {
     assert(n_prts_by_patch_.size() == mprts_.n_patches());
+    for (int p = 0; p < mprts_.n_patches(); p++ ) {
+      printf("inj[%d] = %d\n", p, n_prts_by_patch_[p]);
+    }
     mprts_.inject(buf_, n_prts_by_patch_);
   }
 
