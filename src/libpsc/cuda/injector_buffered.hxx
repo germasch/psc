@@ -67,7 +67,7 @@ struct InjectorBuffered
       printf("inj[%d] = %d\n", p, n_prts_by_patch_[p]);
       n += n_prts_by_patch_[p];
     }
-    printf("inj total = %d // %ld\n", n, buf_.size(););
+    printf("inj total = %d // %ld\n", n, buf_.size());
     mprts_.inject(buf_, n_prts_by_patch_);
   }
 
