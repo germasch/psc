@@ -355,6 +355,7 @@ void cuda_mparticles<BS>::inject(const std::vector<Particle>& buf,
   this->by_block_.find_indices_ids(*this);
   // assert(check_bidx_id_unordered_slow());
 
+  printf("resize %d %d\n", this->n_prts, buf_n);
   resize(this->n_prts + buf_n);
 
   thrust::copy(h_storage.xi4.begin(), h_storage.xi4.end(), this->storage.xi4.begin() + this->n_prts);
