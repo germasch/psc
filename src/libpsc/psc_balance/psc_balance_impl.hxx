@@ -843,7 +843,7 @@ private:
     prof_stop(pr_bal_load);
 
     printf("n_patches_new %d\n", n_patches_new);
-    if (0 && n_patches_new < 0) { // unchanged mapping, nothing tbd
+    if (n_patches_new < 0) { // unchanged mapping, nothing tbd
       mpi_printf(old_grid->comm(), "***** Balance: decomposition unchanged\n");
       return n_prts_by_patch_old;
     }
