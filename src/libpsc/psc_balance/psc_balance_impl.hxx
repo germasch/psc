@@ -745,6 +745,7 @@ private:
       mp_base.reset(new_grid); // frees memory here already
       
       auto mp_new = Mparticles{new_grid};
+      printf("new mprts %d\n", new_grid.n_patches());
       communicate_particles(&ctx, mp_old, mp_new, n_prts_by_patch_new);
       delete &mp_old;
       
