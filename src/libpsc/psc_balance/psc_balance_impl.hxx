@@ -738,6 +738,7 @@ private:
     int n_patches = mp_base.n_patches();
     auto n_prts_by_patch_old = mp_base.sizeByPatch();
     auto n_prts_by_patch_new = ctx.new_n_prts(n_prts_by_patch_old);
+    printf("new2 %d\n", n_prts_by_patch_new.size());
 
     if (typeid(mp_base) != typeid(Mparticles)) {
       auto& mp_old = *new Mparticles{mp_base.grid()};
@@ -841,6 +842,7 @@ private:
     int n_patches_new = find_best_mapping(*old_grid, loads_all);
     prof_stop(pr_bal_load);
 
+    printf("n_patches_new %d\n", n_patches_new);
     if (0 && n_patches_new < 0) { // unchanged mapping, nothing tbd
       mpi_printf(old_grid->comm(), "***** Balance: decomposition unchanged\n");
       return n_prts_by_patch_old;
