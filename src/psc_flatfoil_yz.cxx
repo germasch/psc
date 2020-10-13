@@ -18,7 +18,7 @@
 #define CASE_3D 3
 
 // FIXME select a hardcoded case
-#define CASE CASE_2D
+#define CASE CASE_1D
 
 // ======================================================================
 // Particle kinds
