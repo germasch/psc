@@ -503,8 +503,13 @@ void run()
   heating_foil_params.zl = -1. * g.d_i;
   heating_foil_params.zh = 1. * g.d_i;
   heating_foil_params.xc = 0. * g.d_i;
+#if CASE == CASE_1D
+  heating_foil_params.yc = 0. * g.d_i;
+  heating_foil_params.rH = 1000. * g.d_i;
+#else
   heating_foil_params.yc = 20. * g.d_i;
   heating_foil_params.rH = 12. * g.d_i;
+#endif
   heating_foil_params.T[MY_ELECTRON_HE] = g.target_Te_HE_heat;
   heating_foil_params.T[MY_ELECTRON] = g.target_Te_heat;
   heating_foil_params.T[MY_ION] = g.target_Ti_heat;
