@@ -49,6 +49,15 @@ inline void read_checkpoint(const std::string& filename, Grid_t& grid,
   auto io = kg::io::IOAdios2{};
   auto reader = io.open(filename, kg::io::Mode::Read);
   reader.get("grid", grid);
+#if 1
+  // restore kinds to original order
+  Grid_t::Kinds kinds(N_MY_KINDS);
+  kinds[0] = {-1., 1., "he_e"};
+  kinds[1] = grid.kinds[1]; // electron
+  kinds[2] = grid.kinds[0]; // ion
+  grid.kinds = kinds;
+#endif
+  
   mprts.~Mparticles();
   mflds.~MfieldsState();
   new (&mprts) Mparticles(grid);
