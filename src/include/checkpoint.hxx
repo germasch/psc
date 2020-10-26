@@ -51,7 +51,7 @@ inline void read_checkpoint(const std::string& filename, Grid_t& grid,
   reader.get("grid", grid);
 #if 1
   // restore kinds to original order
-  Grid_t::Kinds kinds(N_MY_KINDS);
+  Grid_t::Kinds kinds(3);
   kinds[0] = {-1., 1., "he_e"};
   kinds[1] = grid.kinds[1]; // electron
   kinds[2] = grid.kinds[0]; // ion

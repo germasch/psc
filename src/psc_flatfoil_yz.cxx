@@ -17,7 +17,7 @@
 #define CASE_2D_SMALL 4
 
 // FIXME select a hardcoded case
-#define CASE CASE_2D
+#define CASE CASE_3D
 
 // ======================================================================
 // Particle kinds
@@ -246,7 +246,7 @@ HMFields make_MfieldsMoment_n<MfieldsCuda>(const Grid_t& grid)
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 10000001; // 5001;
+  psc_params.nmax = 5001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 1000;
   psc_params.stats_every = 1;
@@ -259,7 +259,8 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  // read_checkpoint_filename = "checkpoint_500.bp";
+  // read_checkpoint_filename = "../checkpoint_1000.bp";
+  read_checkpoint_filename = "/gpfs/alpine/proj-shared/fus137/johnd/flatfoil-summit_9-29/memTest3dLong/checkpoint_4000.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
@@ -299,9 +300,12 @@ Grid_t* setupGrid()
 {
   // --- setup domain
 #if CASE == CASE_3D
-  Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
-  Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
-  Int3 np = {5, 5, 3 * 5};                 // division into patches
+  //Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
+  //Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
+  //Int3 np = {5, 5, 3 * 5};                 // division into patches
+  Grid_t::Real3 LL = {64., 160., 960.}; // domain size (in d_e)
+    Int3 gdims = {64, 160, 960};        // global number of grid points
+    Int3 np = {2, 5, 30};                 // division into patches
 #elif CASE == CASE_2D
   Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
   Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
