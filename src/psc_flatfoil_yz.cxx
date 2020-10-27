@@ -15,6 +15,7 @@
 #define CASE_2D 2
 #define CASE_3D 3
 #define CASE_2D_SMALL 4
+#define CASE_3D_SMALL 5
 
 // FIXME select a hardcoded case
 #define CASE CASE_2D
@@ -163,7 +164,7 @@ public:
 //
 // EDIT to change order / floating point type / cuda / 2d/3d
 
-#if CASE == CASE_3D
+#if CASE == CASE_3D || CASE == CASE_3D_SMALL
 using Dim = dim_xyz;
 #else
 using Dim = dim_yz;
@@ -299,6 +300,10 @@ Grid_t* setupGrid()
 {
   // --- setup domain
 #if CASE == CASE_3D
+  Grid_t::Real3 LL = {1280., 640., 3840.};    // domain size (in d_e)
+  Int3 gdims = {2 * 1280, 2 * 640, 2 * 3840}; // global number of grid points
+  Int3 np = {2 * 40, 2 * 20, 2 * 120};        // division into patches
+#elif CASE == CASE_3D_SMALL
   Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
