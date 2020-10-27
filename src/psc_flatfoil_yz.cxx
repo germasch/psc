@@ -476,7 +476,7 @@ void run()
 
   // -- Balance
   psc_params.balance_interval = 500;
-  Balance balance{psc_params.balance_interval, 3};
+  Balance balance{psc_params.balance_interval, .5};
 
   // -- Sort
   psc_params.sort_interval = 10;
