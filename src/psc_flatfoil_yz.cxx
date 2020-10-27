@@ -523,8 +523,8 @@ void run()
   outf_params.pfield_interval = 50;
   outf_params.tfield_interval = 50;
 #endif
-  outf_params.tfield_average_every = 5;
-  outf_params.tfield_moments_average_every = 5;
+  outf_params.tfield_average_every = 25;
+  outf_params.tfield_moments_average_every = 25;
   OutputFields outf{grid, outf_params};
 
   // -- output particles
