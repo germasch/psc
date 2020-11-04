@@ -49,6 +49,24 @@ KG_INLINE static int layoutDataOffset(int n_comps, const Int3& im, int m,
 // ======================================================================
 // SArrayContainer
 
+namespace detail
+{
+
+template <typename L, typename F>
+KG_INLINE int index(const F& f, int m, Int3 idx)
+{
+#ifdef BOUNDS_CHECK
+  assert(m >= 0 && m < n_comps_);
+  assert(idx[0] >= ib_[0] && idx[0] < ib_[0] + im_[0]);
+  assert(idx[1] >= ib_[1] && idx[1] < ib_[1] + im_[1]);
+  assert(idx[2] >= ib_[2] && idx[2] < ib_[2] + im_[2]);
+#endif
+
+  return layoutDataOffset<L>(f.n_comps_, f.im(), m, idx - f.ib());
+}
+
+} // namespace detail
+
 template <typename C>
 struct SArrayContainerInnerTypes;
 
@@ -68,7 +86,7 @@ public:
   using const_pointer = typename Storage::const_pointer;
 
   KG_INLINE SArrayContainer(const Box3& box, int n_comps)
-    : box_{box}, n_comps_{n_comps}
+    : box_{box}, n_comps_{n_comps}, off_{layoutDataOffset<Layout>(n_comps_, im(), 0, -box.ib())}
   {}
 
   KG_INLINE const Box3& box() const { return box_; }
@@ -85,12 +103,12 @@ public:
 
   KG_INLINE const_reference operator()(int m, int i, int j, int k) const
   {
-    return storage()[index(m, {i, j, k})];
+    return storage()[detail::index<Layout>(*this, m, {i, j, k})];
   }
 
   KG_INLINE reference operator()(int m, int i, int j, int k)
   {
-    return storage()[index(m, {i, j, k})];
+    return storage()[detail::index<Layout>(*this, m, {i, j, k})];
   }
 
   KG_INLINE int index(int m, Int3 idx) const
@@ -102,11 +120,12 @@ public:
     assert(idx[2] >= ib_[2] && idx[2] < ib_[2] + im_[2]);
 #endif
 
-    return layoutDataOffset<Layout>(n_comps_, im(), m, idx - ib());
+    return layoutDataOffset<Layout>(n_comps_, im(), m, idx) + off_;
   }
 
   void zero(int m)
   {
+    static_assert(std::is_same<Layout, LayoutSOA>::value, "zero only works for SOA");
     // FIXME, only correct for SOA!!!
     std::memset(&(*this)(m, ib()[0], ib()[1], ib()[2]), 0,
                 n_cells() * sizeof(value_type));
@@ -194,7 +213,7 @@ public:
     }
   }
 
-protected:
+  // protected:
   KG_INLINE Storage& storage() { return derived().storageImpl(); }
   KG_INLINE const Storage& storage() const { return derived().storageImpl(); }
   KG_INLINE Derived& derived() { return *static_cast<Derived*>(this); }
@@ -203,9 +222,10 @@ protected:
     return *static_cast<const Derived*>(this);
   }
 
-private:
+  // private:
   Box3 box_;    //> lower bounds and length per direction
   int n_comps_; // # of components
+  int off_;
 };
 
 } // namespace kg

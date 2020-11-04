@@ -15,9 +15,10 @@
 #define CASE_2D 2
 #define CASE_3D 3
 #define CASE_2D_SMALL 4
+#define CASE_3D_SMALL 5
 
 // FIXME select a hardcoded case
-#define CASE CASE_2D
+#define CASE CASE_2D_SMALL
 
 // ======================================================================
 // Particle kinds
@@ -163,7 +164,7 @@ public:
 //
 // EDIT to change order / floating point type / cuda / 2d/3d
 
-#if CASE == CASE_3D
+#if CASE == CASE_3D || CASE == CASE_3D_SMALL
 using Dim = dim_xyz;
 #else
 using Dim = dim_yz;
@@ -246,7 +247,7 @@ HMFields make_MfieldsMoment_n<MfieldsCuda>(const Grid_t& grid)
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 10000001; // 5001;
+  psc_params.nmax = 5001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 1000;
   psc_params.stats_every = 1;
@@ -267,7 +268,7 @@ void setupParameters()
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
 #else
-  g.mass_ratio = 64.;
+  g.mass_ratio = 16.;
 #endif
   g.lambda0 = 20.;
 
@@ -299,6 +300,13 @@ Grid_t* setupGrid()
 {
   // --- setup domain
 #if CASE == CASE_3D
+  // Grid_t::Real3 LL = {1280., 640., 3840.};    // domain size (in d_e)
+  // Int3 gdims = {2 * 1280, 2 * 640, 2 * 3840}; // global number of grid points
+  // Int3 np = {2 * 40, 2 * 20, 2 * 120};        // division into patches
+  Grid_t::Real3 LL = {640., 320., 1920.};   // domain size (in d_e)
+  Int3 gdims = {1 * 640, 1 * 320, 1 * 320}; // global number of grid points
+  Int3 np = {20, 10, 10};                   // division into patches
+#elif CASE == CASE_3D_SMALL
   Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
@@ -468,7 +476,7 @@ void run()
 
   // -- Balance
   psc_params.balance_interval = 500;
-  Balance balance{psc_params.balance_interval, 3};
+  Balance balance{psc_params.balance_interval, .5};
 
   // -- Sort
   psc_params.sort_interval = 10;
@@ -512,11 +520,12 @@ void run()
   outf_params.pfield_interval = 100;
   outf_params.tfield_interval = -500;
 #else
-  outf_params.pfield_interval = 500;
-  outf_params.tfield_interval = 500;
+  outf_params.pfield_interval = 50;
+  outf_params.pfield_moments_interval = 0;
+  outf_params.tfield_interval = 0;
 #endif
-  outf_params.tfield_average_every = 50;
-  outf_params.tfield_moments_average_every = 50;
+  outf_params.tfield_average_every = 25;
+  outf_params.tfield_moments_average_every = 25;
   OutputFields outf{grid, outf_params};
 
   // -- output particles
@@ -598,15 +607,15 @@ void run()
 
       if (kind == MY_ELECTRON_HE || kind == MY_ELECTRON) {
         npt.n =
-          inject_target.n - (mf_n[p](MY_ELECTRON, idx[0], idx[1], idx[2]) +
-                             mf_n[p](MY_ELECTRON_HE, idx[0], idx[1], idx[2]));
+          inject_target.n - (mf_n(MY_ELECTRON, idx[0], idx[1], idx[2], p) +
+                             mf_n(MY_ELECTRON_HE, idx[0], idx[1], idx[2], p));
         if (kind == MY_ELECTRON_HE) {
           npt.n *= g.electron_HE_ratio;
         } else {
           npt.n *= (1. - g.electron_HE_ratio);
         }
       } else { // ions
-        npt.n -= mf_n[p](kind, idx[0], idx[1], idx[2]);
+        npt.n -= mf_n(kind, idx[0], idx[1], idx[2], p);
       }
       if (npt.n < 0) {
         npt.n = 0;
@@ -627,20 +636,24 @@ void run()
 
     if (g.inject_interval > 0 && timestep % g.inject_interval == 0) {
       mpi_printf(comm, "***** Performing injection...\n");
+      prof_barrier("inject start");
       prof_start(pr_inject);
       moment_n.update(mprts);
       mf_n = evalMfields(moment_n);
       setup_particles.setupParticles(mprts, lf_inject);
       prof_stop(pr_inject);
+      prof_barrier("inject final");
     }
 
     // only heating between heating_tb and heating_te
     if (timestep >= g.heating_begin && timestep < g.heating_end &&
         g.heating_interval > 0 && timestep % g.heating_interval == 0) {
       mpi_printf(comm, "***** Performing heating...\n");
+      prof_barrier("heating start");
       prof_start(pr_heating);
       heating(mprts);
       prof_stop(pr_heating);
+      prof_barrier("heating final");
     }
   };
 

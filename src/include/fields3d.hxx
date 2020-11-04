@@ -230,7 +230,7 @@ public:
   using InnerTypes = MfieldsCRTPInnerTypes<D>;
   using Storage = typename InnerTypes::Storage;
   using Real = typename Storage::value_type;
-  using fields_view_t = kg::SArrayView<Real>;
+  using fields_view_t = kg::SArrayView<Real, kg::LayoutSOA, true>;
 
   KG_INLINE const kg::Box3& box() const { return box_; }
   KG_INLINE const Int3& ib() const { return box_.ib(); }
@@ -259,6 +259,21 @@ public:
   {
     size_t stride = n_comps() * box().size();
     return fields_view_t(box(), n_comps(), &storage()[p * stride]);
+  }
+
+  KG_INLINE int index(int m, int i, int j, int k, int p)
+  {
+    return (((p * n_comps() + m) * im(2) + (k - ib(2))) * im(1) + (j - ib(1))) * im(0) + (i - ib(0));
+  }
+
+  KG_INLINE const Real& operator()(int m, int i, int j, int k, int p) const
+  {
+    return storage()[index(m, i, j, k, p)];
+  }
+
+  KG_INLINE Real& operator()(int m, int i, int j, int k, int p)
+  {
+    return storage()[index(m, i, j, k, p)];
   }
 
   void zero_comp(int m)
@@ -336,7 +351,7 @@ public:
                ijk[1]++) {
             for (ijk[0] = box_.ib(0); ijk[0] < box_.ib(0) + box_.im(0);
                  ijk[0]++) {
-              (*this)[p](m, ijk[0], ijk[1], ijk[2]) = rhs(m, ijk, p);
+              (*this)(m, ijk[0], ijk[1], ijk[2], p) = rhs(m, ijk, p);
             }
           }
         }
@@ -361,7 +376,7 @@ public:
                ijk[1]++) {
             for (ijk[0] = box_.ib(0); ijk[0] < box_.ib(0) + box_.im(0);
                  ijk[0]++) {
-              (*this)[p](m, ijk[0], ijk[1], ijk[2]) += rhs(m, ijk, p);
+              (*this)(m, ijk[0], ijk[1], ijk[2], p) += rhs(m, ijk, p);
             }
           }
         }

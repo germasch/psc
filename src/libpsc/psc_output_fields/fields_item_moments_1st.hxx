@@ -273,15 +273,18 @@ public:
 
   explicit Moments_1st(const Mparticles& _mprts) : Base{_mprts.grid()}
   {
-    static int pr, pr2;
+    static int pr, pr_A, pr_B;
     if (!pr) {
       pr = prof_register("Moments_1st cuda", 1., 0, 0);
-      pr2 = prof_register("Moments_1st process", 1., 0, 0);
+      pr_A = prof_register("Moments_1st get", 1., 0, 0);
+      pr_B = prof_register("Moments_1st process", 1., 0, 0);
     }
 
     prof_start(pr);
+    prof_start(pr_A);
     auto& mprts = const_cast<Mparticles&>(_mprts);
     auto&& h_mprts = mprts.template get_as<MparticlesSingle>();
+    prof_stop(pr_A);
 
     using Particle = typename MparticlesSingle::ConstAccessor::Particle;
     using Real = typename Particle::real_t;
@@ -292,7 +295,7 @@ public:
 
     auto accessor = h_mprts.accessor();
 
-    prof_start(pr2);
+    prof_start(pr_B);
     for (int p = 0; p < h_mprts.n_patches(); p++) {
       deposit.flds_ = deposit.mflds_[p];
       auto flds = deposit.mflds_[p];
@@ -377,7 +380,7 @@ public:
         }
       }
     }
-    prof_stop(pr2);
+    prof_stop(pr_B);
     Base::bnd_.add_ghosts(Base::mres_);
 
     mprts.put_as(h_mprts, MP_DONT_COPY);

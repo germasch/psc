@@ -49,6 +49,8 @@ struct CudaCollision
       pr_sort = prof_register("coll sort", 1., 0, 0);
     }
 
+    prof_barrier("coll start");
+
     if (cmprts.n_prts == 0) {
       return;
     }
@@ -87,6 +89,8 @@ struct CudaCollision
       rng_state_, cmprts.n_cells(), n_cells_per_patch);
     cuda_sync_if_enabled();
     prof_stop(pr);
+
+    prof_barrier("coll final");
   }
 
   __device__ static void d_collide(DMparticles dmprts, uint* d_off, uint* d_id,
