@@ -554,8 +554,19 @@ public:
   Item_jeh(MfieldsState& mflds)
     : mflds_(mflds.grid(), NR_FIELDS, mflds.grid().ibn)
   {
+    static int pr_A, pr_B, pr_C;
+    if (!pr_A) {
+      pr_A = prof_register("jeh A", 1., 0, 0);
+      pr_B = prof_register("jeh B", 1., 0, 0);
+      pr_C = prof_register("jeh C", 1., 0, 0);
+    }
+    prof_start(pr_A);
     auto hmflds = hostMirror(mflds);
+    prof_stop(pr_A);
+    prof_start(pr_B);
     copy(mflds, hmflds);
+    prof_stop(pr_B);
+    prof_start(pr_C);
     for (int p = 0; p < mflds_.n_patches(); p++) {
       for (int m = 0; m < mflds_.n_comps(); m++) {
         mflds_.Foreach_3d(0, 0, [&](int i, int j, int k) {
@@ -563,6 +574,7 @@ public:
         });
       }
     }
+    prof_stop(pr_C);
   }
 
   Real operator()(int m, Int3 ijk, int p) const

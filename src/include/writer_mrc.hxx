@@ -71,9 +71,22 @@ public:
   void write(const Mfields& _mflds, const Grid_t& grid, const std::string& name,
              const std::vector<std::string>& comp_names)
   {
+    static int pr_A, pr_B, pr_C, pr_D, pr_E;
+    if (!pr_A) {
+      pr_A = prof_register("write A", 1., 0, 0);
+      pr_B = prof_register("write B", 1., 0, 0);
+      pr_C = prof_register("write C", 1., 0, 0);
+      pr_D = prof_register("write D", 1., 0, 0);
+      pr_E = prof_register("write E", 1., 0, 0);
+    }
+    prof_barrier("barrier A");
+    prof_start(pr_A);
     auto&& eval_mflds = evalMfields(_mflds);
     auto& mflds = const_cast<MfieldsC&>(eval_mflds);
+    prof_stop(pr_A);
 
+    prof_barrier("barrier B");
+    prof_start(pr_B);
     int n_comps = comp_names.size();
     // FIXME, should generally equal the # of component in mflds,
     // but this way allows us to write fewer components, useful to hack around
@@ -87,7 +100,9 @@ public:
     for (int m = 0; m < n_comps; m++) {
       mrc_fld_set_comp_name(fld, m, comp_names[m].c_str());
     }
+    prof_stop(pr_B);
 
+    prof_start(pr_C);
     for (int p = 0; p < mflds.n_patches(); p++) {
       for (int m = 0; m < n_comps; m++) {
         mrc_fld_foreach(fld, i, j, k, 0, 0)
@@ -97,9 +112,15 @@ public:
         mrc_fld_foreach_end;
       }
     }
+    prof_stop(pr_C);
 
+    prof_barrier("barrier D");
+    prof_start(pr_D);
     mrc_fld_write(fld, io_.get());
+    prof_stop(pr_D);
+    prof_start(pr_E);
     mrc_fld_destroy(fld);
+    prof_stop(pr_E);
   }
 
 private:

@@ -627,20 +627,24 @@ void run()
 
     if (g.inject_interval > 0 && timestep % g.inject_interval == 0) {
       mpi_printf(comm, "***** Performing injection...\n");
+      prof_barrier("inject start");
       prof_start(pr_inject);
       moment_n.update(mprts);
       mf_n = evalMfields(moment_n);
       setup_particles.setupParticles(mprts, lf_inject);
       prof_stop(pr_inject);
+      prof_barrier("inject final");
     }
 
     // only heating between heating_tb and heating_te
     if (timestep >= g.heating_begin && timestep < g.heating_end &&
         g.heating_interval > 0 && timestep % g.heating_interval == 0) {
       mpi_printf(comm, "***** Performing heating...\n");
+      prof_barrier("heating start");
       prof_start(pr_heating);
       heating(mprts);
       prof_stop(pr_heating);
+      prof_barrier("heating final");
     }
   };
 

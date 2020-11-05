@@ -60,7 +60,14 @@ struct Bnd_ : BndBase
       balance_generation_cnt_ = psc_balance_generation_cnt;
       reset(mflds.grid());
     }
+    static int pr;
+    if (!pr) {
+      pr = prof_register("bnd: addg", 1., 0, 0);
+    }
+
+    prof_start(pr);
     mrc_ddc_add_ghosts(ddc_, mb, me, &mflds);
+    prof_stop(pr);
   }
 
   // ----------------------------------------------------------------------
@@ -84,6 +91,12 @@ struct Bnd_ : BndBase
   static void copy_to_buf(int mb, int me, int p, int ilo[3], int ihi[3],
                           void* _buf, void* ctx)
   {
+    static int pr;
+    if (!pr) {
+      pr = prof_register("bnd: copy_to_buf", 1., 0, 0);
+    }
+
+    prof_start(pr);
     auto& mf = *static_cast<Mfields*>(ctx);
     auto F = mf[p];
     real_t* buf = static_cast<real_t*>(_buf);
@@ -97,11 +110,18 @@ struct Bnd_ : BndBase
         }
       }
     }
+    prof_stop(pr);
   }
 
   static void add_from_buf(int mb, int me, int p, int ilo[3], int ihi[3],
                            void* _buf, void* ctx)
   {
+    static int pr;
+    if (!pr) {
+      pr = prof_register("bnd: add_from_buf", 1., 0, 0);
+    }
+
+    prof_start(pr);
     auto& mf = *static_cast<Mfields*>(ctx);
     auto F = mf[p];
     real_t* buf = static_cast<real_t*>(_buf);
@@ -115,11 +135,19 @@ struct Bnd_ : BndBase
         }
       }
     }
+
+    prof_stop(pr);
   }
 
   static void copy_from_buf(int mb, int me, int p, int ilo[3], int ihi[3],
                             void* _buf, void* ctx)
   {
+    static int pr;
+    if (!pr) {
+      pr = prof_register("bnd: copy_from_buf", 1., 0, 0);
+    }
+
+    prof_start(pr);
     auto& mf = *static_cast<Mfields*>(ctx);
     auto F = mf[p];
     real_t* buf = static_cast<real_t*>(_buf);
@@ -133,6 +161,7 @@ struct Bnd_ : BndBase
         }
       }
     }
+    prof_stop(pr);
   }
 
 private:
