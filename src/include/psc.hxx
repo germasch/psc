@@ -407,6 +407,9 @@ struct Psc
       balance_(grid_, mprts_);
     }
 
+    printf("np %d sz %zu np %d sz %zu\n", grid_->n_patches(), grid_->n_patches() * sizeof(float) * (4 + grid_->domain.ldims[0]) * (4 + grid_->domain.ldims[1]) * (4 + grid_->domain.ldims[2]),
+	   mprts_.size(), mprts_.size() * 8 * sizeof(float));
+
     if (p_.sort_interval > 0 && timestep % p_.sort_interval == 0) {
       mpi_printf(comm, "***** Sorting...\n");
       prof_start(pr_sort);
