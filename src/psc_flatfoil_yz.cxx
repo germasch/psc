@@ -247,7 +247,7 @@ HMFields make_MfieldsMoment_n<MfieldsCuda>(const Grid_t& grid)
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 5001; // 5001;
+  psc_params.nmax = 10001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 1000;
   psc_params.stats_every = 1;
@@ -267,8 +267,10 @@ void setupParameters()
   g.Zi = 1.;
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
-#else
+#if CASE == CASE_3D
   g.mass_ratio = 16.;
+#else
+  g.mass_ratio = 64.;
 #endif
   g.lambda0 = 20.;
 
