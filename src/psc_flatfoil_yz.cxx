@@ -267,7 +267,7 @@ void setupParameters()
   g.Zi = 1.;
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
-#if CASE == CASE_3D
+#elif CASE == CASE_3D
   g.mass_ratio = 16.;
 #else
   g.mass_ratio = 64.;
