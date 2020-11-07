@@ -476,7 +476,7 @@ void run()
 
   // -- Balance
   psc_params.balance_interval = 500;
-  Balance balance{psc_params.balance_interval, .5};
+  Balance balance{psc_params.balance_interval, 10., true};
 
   // -- Sort
   psc_params.sort_interval = 10;
@@ -520,7 +520,8 @@ void run()
   outf_params.pfield_interval = 100;
   outf_params.tfield_interval = -500;
 #else
-  outf_params.pfield_interval = 50;
+  outf_params.pfield_interval = 0;
+  outf_params.pfield_moments_interval = 50;
   outf_params.tfield_interval = 0;
 #endif
   outf_params.tfield_average_every = 25;
