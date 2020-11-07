@@ -277,7 +277,7 @@ void setupParameters()
   g.target_Te_HE = 0.001;
   g.target_Ti = 0.001;
 
-  g.electron_HE_ratio = 0.01;
+  g.electron_HE_ratio = 0.;//0.01;
 
   g.target_Te_heat = 0.04;
   g.target_Ti_heat = 0.0;
