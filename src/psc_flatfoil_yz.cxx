@@ -247,7 +247,7 @@ HMFields make_MfieldsMoment_n<MfieldsCuda>(const Grid_t& grid)
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 40001; // 5001;
+  psc_params.nmax = 20001; // 5001;
   psc_params.cfl = 0.99;
   psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
@@ -270,7 +270,7 @@ void setupParameters()
 #elif CASE == CASE_3D
   g.mass_ratio = 16.;
 #else
-  g.mass_ratio = 256.;
+  g.mass_ratio = 64.;
 #endif
   g.lambda0 = 20.;
 
@@ -313,9 +313,9 @@ Grid_t* setupGrid()
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
 #elif CASE == CASE_2D
-  Grid_t::Real3 LL = {1., 2 * 800., 2 * 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 4 * 800, 4 * 3 * 800}; // global number of grid points
-  Int3 np = {1, 50, 3 * 50};              // division into patches
+  Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
+  Int3 gdims = {1, 4 * 800, 4 * 3 * 800};   // global number of grid points
+  Int3 np = {1, 50, 3 * 50};                // division into patches
 #elif CASE == CASE_2D_SMALL
   Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {1, 160, 3 * 160};         // global number of grid points
@@ -477,7 +477,7 @@ void run()
   // Set up various objects needed to run this case
 
   // -- Balance
-  psc_params.balance_interval = 1000;
+  psc_params.balance_interval = 500;
   Balance balance{psc_params.balance_interval, 10.};
 
   // -- Sort
