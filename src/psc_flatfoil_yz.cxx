@@ -247,9 +247,9 @@ HMFields make_MfieldsMoment_n<MfieldsCuda>(const Grid_t& grid)
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 20001; // 5001;
-  psc_params.cfl = 0.75;
-  psc_params.write_checkpoint_every_step = 1000;
+  psc_params.nmax = 40001; // 5001;
+  psc_params.cfl = 0.99;
+  psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
 
   // -- start from checkpoint:
@@ -522,7 +522,7 @@ void run()
   outf_params.pfield_interval = 100;
   outf_params.tfield_interval = -500;
 #else
-  outf_params.pfield_interval = 500;
+  outf_params.pfield_interval = 2000;
   outf_params.tfield_interval = 0;
 #endif
   outf_params.tfield_average_every = 25;
