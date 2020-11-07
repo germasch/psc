@@ -277,7 +277,7 @@ void setupParameters()
   g.target_Te_HE = 0.001;
   g.target_Ti = 0.001;
 
-  g.electron_HE_ratio = 0.;//0.01;
+  g.electron_HE_ratio = 0.01;
 
   g.target_Te_heat = 0.04;
   g.target_Ti_heat = 0.0;
@@ -312,7 +312,7 @@ Grid_t* setupGrid()
   Int3 np = {5, 5, 3 * 5};                 // division into patches
 #elif CASE == CASE_2D
   Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
+  Int3 gdims = {1, 4 * 800, 4 * 3 * 800};   // global number of grid points
   Int3 np = {1, 50, 3 * 50};                // division into patches
 #elif CASE == CASE_2D_SMALL
   Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
