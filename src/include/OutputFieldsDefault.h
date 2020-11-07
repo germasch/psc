@@ -6,10 +6,12 @@
 #include "fields_item.hxx"
 #include "psc_particles_double.h"
 
+#include "../libpsc/cuda/fields_item_moments_1st_cuda.hxx"
+
 #include <memory>
 
 template <typename Mparticles>
-using FieldsItem_Moments_1st_cc = Moments_1st<Mparticles>;
+using FieldsItem_Moments_1st_cc = Moment_1st_cuda<Mparticles, dim_xyz>;
 
 // ======================================================================
 // OutputFieldsParams
@@ -109,20 +111,20 @@ public:
     if (!pr) {
       pr = prof_register("outf", 1., 0, 0);
     }
-#if 1
-    static int pr_field, pr_moment, pr_field_calc, pr_moment_calc,
+
+    static int pr_field, pr_moment, pr_field_calc, pr_moment_calc, pr_moment_copy,
       pr_field_write, pr_moment_write, pr_field_acc, pr_moment_acc;
     if (!pr_field) {
       pr_field = prof_register("outf_field", 1., 0, 0);
       pr_moment = prof_register("outf_moment", 1., 0, 0);
       pr_field_calc = prof_register("outf_field_calc", 1., 0, 0);
       pr_moment_calc = prof_register("outf_moment_calc", 1., 0, 0);
+      pr_moment_copy = prof_register("outf_moment_copy", 1., 0, 0);
       pr_field_write = prof_register("outf_field_write", 1., 0, 0);
       pr_moment_write = prof_register("outf_moment_write", 1., 0, 0);
       pr_field_acc = prof_register("outf_field_acc", 1., 0, 0);
       pr_moment_acc = prof_register("outf_moment_acc", 1., 0, 0);
     }
-#endif
 
     auto timestep = grid.timestep();
     if (first_time) {
@@ -202,6 +204,9 @@ public:
       prof_start(pr_moment_calc);
       FieldsItem_Moments_1st_cc<Mparticles> pfd_moments{mprts};
       prof_stop(pr_moment_calc);
+      prof_start(pr_moment_copy);
+      auto h_moments = evalMfields(pfd_moments.result());
+      prof_stop(pr_moment_copy);
 
       if (do_pfield_moments) {
         mpi_printf(grid.comm(), "***** Writing PFD moment output\n");
@@ -210,7 +215,8 @@ public:
         prof_start(pr_moment_write);
         io_pfd_moments_.begin_step(grid);
         io_pfd_moments_.set_subset(grid, rn, rx);
-        _write_pfd(io_pfd_moments_, pfd_moments);
+        //_write_pfd(io_pfd_moments_, h_moments);
+	io_pfd_moments_.write(h_moments, grid, pfd_moments.name(), pfd_moments.comp_names(grid));
         io_pfd_moments_.end_step();
         prof_stop(pr_moment_write);
       }
@@ -218,7 +224,7 @@ public:
       if (doaccum_tfield_moments) {
         // tfd += pfd
         prof_start(pr_moment_acc);
-        tfd_moments_ += pfd_moments;
+        //tfd_moments_ += pfd_moments;
         prof_stop(pr_moment_acc);
         naccum_moments_++;
       }
@@ -229,7 +235,7 @@ public:
         prof_start(pr_moment_write);
         io_tfd_moments_.begin_step(grid);
         io_tfd_moments_.set_subset(grid, rn, rx);
-        _write_tfd(io_tfd_moments_, tfd_moments_, pfd_moments, naccum_moments_);
+        //_write_tfd(io_tfd_moments_, tfd_moments_, pfd_moments, naccum_moments_);
         io_tfd_moments_.end_step();
         prof_stop(pr_moment_write);
         naccum_moments_ = 0;
