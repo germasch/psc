@@ -567,18 +567,13 @@ public:
     copy(mflds, hmflds);
     prof_stop(pr_B);
     prof_start(pr_C);
-    float max = 0.;
     for (int p = 0; p < mflds_.n_patches(); p++) {
       for (int m = 0; m < mflds_.n_comps(); m++) {
         mflds_.Foreach_3d(0, 0, [&](int i, int j, int k) {
           mflds_(m, i, j, k, p) = hmflds(m, i, j, k, p);
-	  if (m == 0) {
-	    max = std::max(max,  hmflds(m, i, j, k, p));
-	  }
         });
       }
     }
-    printf("max %g\n", max);
     prof_stop(pr_C);
   }
 
