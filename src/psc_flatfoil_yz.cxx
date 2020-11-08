@@ -260,7 +260,7 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  // read_checkpoint_filename = "../flatfoil-20201107g/checkpoint_40000.bp";
+  read_checkpoint_filename = "../flatfoil-20201107g/checkpoint_40000.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
