@@ -270,7 +270,7 @@ void setupParameters()
 #elif CASE == CASE_3D
   g.mass_ratio = 16.;
 #else
-  g.mass_ratio = 64.;
+  g.mass_ratio = 256.;
 #endif
   g.lambda0 = 20.;
 
@@ -313,9 +313,9 @@ Grid_t* setupGrid()
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
 #elif CASE == CASE_2D
-  Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 4 * 800, 4 * 3 * 800};   // global number of grid points
-  Int3 np = {1, 50, 3 * 50};                // division into patches
+  Grid_t::Real3 LL = {1., 2 * 800., 2 * 3. * 800.}; // domain size (in d_e)
+  Int3 gdims = {1, 4 * 800, 4 * 3 * 800}; // global number of grid points
+  Int3 np = {1, 2 * 50, 2 * 3 * 50};      // division into patches
 #elif CASE == CASE_2D_SMALL
   Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {1, 160, 3 * 160};         // global number of grid points
