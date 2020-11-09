@@ -306,8 +306,8 @@ Grid_t* setupGrid()
   // Int3 gdims = {2 * 1280, 2 * 640, 2 * 3840}; // global number of grid points
   // Int3 np = {2 * 40, 2 * 20, 2 * 120};        // division into patches
   Grid_t::Real3 LL = {640., 320., 1920.};   // domain size (in d_e)
-  Int3 gdims = {1 * 640, 1 * 320, 1 * 320}; // global number of grid points
-  Int3 np = {20, 10, 10};                   // division into patches
+  Int3 gdims = {2 * 640, 2 * 320, 2 * 320}; // global number of grid points
+  Int3 np = {40, 20, 20};                   // division into patches
 #elif CASE == CASE_3D_SMALL
   Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
@@ -522,7 +522,7 @@ void run()
   outf_params.pfield_interval = 100;
   outf_params.tfield_interval = -500;
 #else
-  outf_params.pfield_interval = 200;
+  outf_params.pfield_interval = 1000;
   outf_params.tfield_interval = 0;
 #endif
   outf_params.tfield_average_every = 25;
