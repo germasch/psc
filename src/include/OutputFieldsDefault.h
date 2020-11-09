@@ -11,7 +11,7 @@
 #include <memory>
 
 template <typename Mparticles>
-using FieldsItem_Moments_1st_cc = Moment_1st_cuda<Mparticles, dim_yz>;
+using FieldsItem_Moments_1st_cc = Moment_1st_cuda<Mparticles, dim_xyz>;
 
 // ======================================================================
 // OutputFieldsParams
