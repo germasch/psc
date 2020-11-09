@@ -522,7 +522,7 @@ void run()
   outf_params.pfield_interval = 100;
   outf_params.tfield_interval = -500;
 #else
-  outf_params.pfield_interval = 2000;
+  outf_params.pfield_interval = 200;
   outf_params.tfield_interval = 0;
 #endif
   outf_params.tfield_average_every = 25;
