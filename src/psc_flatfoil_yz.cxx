@@ -268,7 +268,7 @@ void setupParameters()
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
 #elif CASE == CASE_3D
-  g.mass_ratio = 16.;
+  g.mass_ratio = 64.;
 #else
   g.mass_ratio = 256.;
 #endif
@@ -305,17 +305,21 @@ Grid_t* setupGrid()
   // Grid_t::Real3 LL = {1280., 640., 3840.};    // domain size (in d_e)
   // Int3 gdims = {2 * 1280, 2 * 640, 2 * 3840}; // global number of grid points
   // Int3 np = {2 * 40, 2 * 20, 2 * 120};        // division into patches
-  Grid_t::Real3 LL = {640., 320., 1920.};   // domain size (in d_e)
-  Int3 gdims = {2 * 640, 2 * 320, 2 * 320}; // global number of grid points
-  Int3 np = {40, 20, 20};                   // division into patches
+  // Grid_t::Real3 LL = {640., 320., 1920.};   // domain size (in d_e)
+  // Int3 gdims = {2 * 640, 2 * 320, 2 * 320}; // global number of grid points
+  // Int3 np = {40, 20, 20};                   // division into patches
+  Grid_t::Real3 LL = {32., 800., 3. * 800.}; // domain size (in d_e)
+  Int3 gdims = {2 * 16, 2 * 800, 2 * 3 * 800};   // global number of grid points
+  Int3 np = {1, 50, 3 * 50};                // division into patches
 #elif CASE == CASE_3D_SMALL
   Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
 #elif CASE == CASE_2D
   Grid_t::Real3 LL = {1., 2 * 800., 2 * 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 4 * 2 * 800, 4 * 2 * 3 * 800}; // global number of grid points
-  Int3 np = {1, 2 * 50, 2 * 3 * 50};      // division into patches
+  Int3 gdims = {1, 4 * 2 * 800,
+                4 * 2 * 3 * 800};    // global number of grid points
+  Int3 np = {1, 2 * 50, 2 * 3 * 50}; // division into patches
 #elif CASE == CASE_2D_SMALL
   Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {1, 160, 3 * 160};         // global number of grid points
@@ -505,7 +509,7 @@ void run()
   double marder_diffusion = 0.9;
   int marder_loop = 3;
   bool marder_dump = false;
-  psc_params.marder_interval = 0;//100;
+  psc_params.marder_interval = 0; // 100;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
   // ----------------------------------------------------------------------
