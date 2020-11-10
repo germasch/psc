@@ -18,7 +18,7 @@
 #define CASE_3D_SMALL 5
 
 // FIXME select a hardcoded case
-#define CASE CASE_3D
+#define CASE CASE_2D
 
 // ======================================================================
 // Particle kinds
@@ -247,7 +247,7 @@ HMFields make_MfieldsMoment_n<MfieldsCuda>(const Grid_t& grid)
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 80001; // 5001;
+  psc_params.nmax = 40001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
@@ -260,7 +260,7 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  // read_checkpoint_filename = "../flatfoil-20201107g/checkpoint_40000.bp";
+  // read_checkpoint_filename = "checkpoint_500.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
@@ -268,7 +268,7 @@ void setupParameters()
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
 #elif CASE == CASE_3D
-  g.mass_ratio = 64.;
+  g.mass_ratio = 16.;
 #else
   g.mass_ratio = 256.;
 #endif
@@ -305,21 +305,17 @@ Grid_t* setupGrid()
   // Grid_t::Real3 LL = {1280., 640., 3840.};    // domain size (in d_e)
   // Int3 gdims = {2 * 1280, 2 * 640, 2 * 3840}; // global number of grid points
   // Int3 np = {2 * 40, 2 * 20, 2 * 120};        // division into patches
-  // Grid_t::Real3 LL = {640., 320., 1920.};   // domain size (in d_e)
-  // Int3 gdims = {2 * 640, 2 * 320, 2 * 320}; // global number of grid points
-  // Int3 np = {40, 20, 20};                   // division into patches
-  Grid_t::Real3 LL = {32., 800., 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {2 * 16, 2 * 800, 2 * 3 * 800};   // global number of grid points
-  Int3 np = {1, 50, 3 * 50};                // division into patches
+  Grid_t::Real3 LL = {640., 320., 1920.};   // domain size (in d_e)
+  Int3 gdims = {1 * 640, 1 * 320, 1 * 320}; // global number of grid points
+  Int3 np = {20, 10, 10};                   // division into patches
 #elif CASE == CASE_3D_SMALL
   Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
 #elif CASE == CASE_2D
   Grid_t::Real3 LL = {1., 2 * 800., 2 * 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 4 * 2 * 800,
-                4 * 2 * 3 * 800};    // global number of grid points
-  Int3 np = {1, 2 * 50, 2 * 3 * 50}; // division into patches
+  Int3 gdims = {1, 4 * 800, 4 * 3 * 800}; // global number of grid points
+  Int3 np = {1, 2 * 50, 2 * 3 * 50};      // division into patches
 #elif CASE == CASE_2D_SMALL
   Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {1, 160, 3 * 160};         // global number of grid points
@@ -499,7 +495,7 @@ void run()
   checks_params.continuity_threshold = 1e-4;
   checks_params.continuity_verbose = true;
   checks_params.continuity_dump_always = false;
-  checks_params.gauss_every_step = 0;
+  checks_params.gauss_every_step = 100;
   checks_params.gauss_threshold = 1e-4;
   checks_params.gauss_verbose = true;
   checks_params.gauss_dump_always = false;
@@ -509,7 +505,7 @@ void run()
   double marder_diffusion = 0.9;
   int marder_loop = 3;
   bool marder_dump = false;
-  psc_params.marder_interval = 0; // 100;
+  psc_params.marder_interval = 100;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
   // ----------------------------------------------------------------------
@@ -526,7 +522,7 @@ void run()
   outf_params.pfield_interval = 100;
   outf_params.tfield_interval = -500;
 #else
-  outf_params.pfield_interval = 1000;
+  outf_params.pfield_interval = 2000;
   outf_params.tfield_interval = 0;
 #endif
   outf_params.tfield_average_every = 25;
