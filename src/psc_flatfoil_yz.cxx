@@ -247,7 +247,7 @@ HMFields make_MfieldsMoment_n<MfieldsCuda>(const Grid_t& grid)
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 160001; // 5001;
+  psc_params.nmax = 200001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
@@ -260,7 +260,7 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  read_checkpoint_filename = "../flatfoil-20201110e/checkpoint_66000.bp";
+  read_checkpoint_filename = "../flatfoil-20201110f/checkpoint_112000.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
