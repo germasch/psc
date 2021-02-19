@@ -28,7 +28,7 @@ target_link_libraries(psc PUBLIC gtensor::gtensor)
 target_compile_features(psc PUBLIC cxx_std_11)
 
 if (USE_CUDA)
-  target_sources(psc PRIVATE
+  target_gtensor_sources(psc PRIVATE
     cuda/cuda_base.cu
 
     cuda/psc_particles_cuda.cxx
@@ -62,7 +62,6 @@ if (USE_CUDA)
     
     cuda/cuda_heating.cu)
   target_include_directories(psc PUBLIC cuda)
-  target_link_libraries(psc PUBLIC Thrust gtensor::gtensor)
 endif()
 
 if (PSC_HAVE_RMM)
