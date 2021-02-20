@@ -610,6 +610,18 @@ extern template const MfieldsStateBase::Convert
 
 using namespace gt::placeholders;
 
+template <typename Item>
+auto adapt_item(const Item& item)
+{
+  auto& mflds = item;
+  auto ldims = item.grid().ldims;
+  auto mf =
+    gt::adapt<5>(&mflds(0, {0, 0, 0}, 0), {ldims[0], ldims[1], ldims[2],
+                                           mflds.n_comps(), mflds.n_patches()});
+
+  return mf;
+}
+
 template <typename Mfields>
 auto adapt(const Mfields& _mflds)
 {

@@ -516,7 +516,7 @@ public:
 
   Item_jeh(MfieldsState& mflds) : mflds_{mflds} {}
 
-  Real operator()(int m, Int3 ijk, int p) const
+  const Real& operator()(int m, Int3 ijk, int p) const
   {
     return mflds_(m, ijk[0], ijk[1], ijk[2], p);
   }
@@ -565,7 +565,7 @@ public:
     }
   }
 
-  Real operator()(int m, Int3 ijk, int p) const
+  const Real& operator()(int m, Int3 ijk, int p) const
   {
     return mflds_(m, ijk[0], ijk[1], ijk[2], p);
   }
