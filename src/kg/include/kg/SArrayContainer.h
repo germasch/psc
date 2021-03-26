@@ -2,6 +2,8 @@
 #ifndef KG_SARRAY_CONTAINER_H
 #define KG_SARRAY_CONTAINER_H
 
+#define BOUNDS_CHECK
+
 #include <kg/Array3d.h>
 #include <kg/Macros.h>
 #include <kg/Vec3.h>
