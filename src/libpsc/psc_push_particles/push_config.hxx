@@ -28,7 +28,7 @@ struct curr_cache_t : fields_t
     : fields_t(
         {f.ib(),
          {f.storage().shape(0), f.storage().shape(1), f.storage().shape(2)}},
-        f.storage().shape(3), f.storage().data())
+        f.storage().shape(3), f.storage())
   {}
 
   void add(int m, int i, int j, int k, real_t val)
