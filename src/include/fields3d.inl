@@ -27,8 +27,8 @@ public:
       auto count = makeDims(n_comps, mflds.ldims());
       auto ib = makeDims(0, -mflds.box().ib());
       auto im = makeDims(n_comps, mflds.box().im());
-      writer.putVariable(const_cast<Mfields&>(mflds)[p].data(), launch, shape,
-                         {start, count}, {ib, im}); // FIXME cast
+      writer.putVariable(const_cast<Mfields&>(mflds)[p].storage().data(),
+                         launch, shape, {start, count}, {ib, im}); // FIXME cast
     }
   }
 

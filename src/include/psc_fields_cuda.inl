@@ -10,7 +10,7 @@
 template <typename MF>
 class kg::io::Descr<
   MF, typename std::enable_if<std::is_same<MF, MfieldsCuda>::value ||
-			      std::is_same<MF, MfieldsStateCuda>::value,
+                                std::is_same<MF, MfieldsStateCuda>::value,
                               void>::type>
 {
 public:
@@ -34,8 +34,8 @@ public:
       auto count = makeDims(n_comps, grid.ldims);
       auto ib = makeDims(0, -mflds.box().ib());
       auto im = makeDims(n_comps, mflds.box().im());
-      writer.putVariable(mflds[p].data(), launch, shape, {start, count},
-                         {ib, im}); // FIXME cast
+      writer.putVariable(mflds[p].storage().data(), launch, shape,
+                         {start, count}, {ib, im}); // FIXME cast
     }
 
     // host mirror will go away as this function returns, so need
@@ -62,15 +62,15 @@ public:
       auto count = makeDims(n_comps, grid.ldims);
       auto ib = makeDims(0, -mflds.box().ib());
       auto im = makeDims(n_comps, mflds.box().im());
-      reader.getVariable(h_mflds[p].data(), launch, {start, count});
+      reader.getVariable(h_mflds[p].storage().data(), launch, {start, count});
     }
     reader.performGets();
 
     for (int p = 0; p < mflds.n_patches(); p++) {
       for (int m = 0; m < n_comps; m++) {
-	h_mflds.Foreach_3d(0, 0, [&](int i, int j, int k) {
-	    mflds[p](m, i, j, k) = h_mflds[p](m, i, j, k);
-	  });
+        h_mflds.Foreach_3d(0, 0, [&](int i, int j, int k) {
+          mflds[p](m, i, j, k) = h_mflds[p](m, i, j, k);
+        });
       }
     }
     copy(mflds, mflds_cuda);
