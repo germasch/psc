@@ -117,23 +117,25 @@ private:
 
     int bx = ldims[0] == 1 ? 0 : 1;
     if (d == 1) {
+      auto f = make_Fields3d<dim_xyz>(flds);
       for (int iz = -1; iz < ldims[2] + 1; iz++) {
         for (int ix = -bx; ix < ldims[0] + bx; ix++) {
           int iy = 0;
           {
             for (int m = mb; m < me; m++) {
-              flds(m, ix, iy, iz) += flds(m, ix, iy - 1, iz);
+              f(m, ix, iy, iz) += f(m, ix, iy - 1, iz);
             }
           }
         }
       }
     } else if (d == 2) {
+      auto f = make_Fields3d<dim_xyz>(flds);
       for (int iy = 0 * -1; iy < ldims[1] + 0 * 1; iy++) {
         for (int ix = -bx; ix < ldims[0] + bx; ix++) {
           int iz = 0;
           {
             for (int m = mb; m < me; m++) {
-              flds(m, ix, iy, iz) += flds(m, ix, iy, iz - 1);
+              f(m, ix, iy, iz) += f(m, ix, iy, iz - 1);
             }
           }
         }
@@ -151,23 +153,25 @@ private:
 
     int bx = ldims[0] == 1 ? 0 : 1;
     if (d == 1) {
+      auto f = make_Fields3d<dim_xyz>(flds);
       for (int iz = -1; iz < ldims[2] + 1; iz++) {
         for (int ix = -bx; ix < ldims[0] + bx; ix++) {
           int iy = ldims[1] - 1;
           {
             for (int m = mb; m < me; m++) {
-              flds(m, ix, iy, iz) += flds(m, ix, iy + 1, iz);
+              f(m, ix, iy, iz) += f(m, ix, iy + 1, iz);
             }
           }
         }
       }
     } else if (d == 2) {
+      auto f = make_Fields3d<dim_xyz>(flds);
       for (int iy = 0 * -1; iy < ldims[1] + 0 * 1; iy++) {
         for (int ix = -bx; ix < ldims[0] + bx; ix++) {
           int iz = ldims[2] - 1;
           {
             for (int m = mb; m < me; m++) {
-              flds(m, ix, iy, iz) += flds(m, ix, iy, iz + 1);
+              f(m, ix, iy, iz) += f(m, ix, iy, iz + 1);
             }
           }
         }
