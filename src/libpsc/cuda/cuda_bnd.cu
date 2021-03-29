@@ -5,6 +5,7 @@
 #include "cuda_bits.h"
 
 #include "psc.h"
+#include "fields.hxx"
 
 #define BLOCKSIZE_X 1
 #define BLOCKSIZE_Y 4
@@ -45,8 +46,9 @@ __global__ static void fill_ghosts_periodic_yz(DFields d_flds, int mb, int me)
   if (inside)
     return;
 
+  auto _d_flds = make_Fields3d<dim_xyz>(d_flds);
   for (int m = mb; m < me; m++) {
-    d_flds(m, 0, iy - SW, iz - SW) = d_flds(m, 0, jy - SW, jz - SW);
+    _d_flds(m, 0, iy - SW, iz - SW) = _d_flds(m, 0, jy - SW, jz - SW);
   }
 }
 
@@ -85,8 +87,9 @@ __global__ static void fill_ghosts_periodic_z(DFields d_flds, int mb, int me)
   if (inside)
     return;
 
+  auto _d_flds = make_Fields3d<dim_xyz>(d_flds);
   for (int m = mb; m < me; m++) {
-    d_flds(m, 0, iy - SW, iz - SW) = d_flds(m, 0, jy - SW, jz - SW);
+    _d_flds(m, 0, iy - SW, iz - SW) = _d_flds(m, 0, jy - SW, jz - SW);
   }
 }
 
@@ -105,25 +108,28 @@ __global__ static void add_ghosts_periodic_yz(DFields d_flds, int mb, int me)
   int iy = blockIdx.x * blockDim.x + threadIdx.x;
   int iz = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if (!(iy < d_flds.storage().shape(1) - 2 * SW && iz < d_flds.storage().shape(2) - 2 * SW))
+  auto _d_flds = make_Fields3d<dim_xyz>(d_flds);
+
+  if (!(iy < d_flds.storage().shape(1) - 2 * SW &&
+        iz < d_flds.storage().shape(2) - 2 * SW))
     return;
 
   if (iy < SW) {
     int jy = iy + (d_flds.storage().shape(1) - 2 * SW);
     int jz = iz;
     for (int m = mb; m < me; m++) {
-      d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+      _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
     }
     if (iz < SW) {
       jz = iz + (d_flds.storage().shape(2) - 2 * SW);
       for (int m = mb; m < me; m++) {
-        d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+        _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
       }
     }
     if (iz >= d_flds.storage().shape(2) - 3 * SW) {
       jz = iz - (d_flds.storage().shape(2) - 2 * SW);
       for (int m = mb; m < me; m++) {
-        d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+        _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
       }
     }
   }
@@ -131,31 +137,31 @@ __global__ static void add_ghosts_periodic_yz(DFields d_flds, int mb, int me)
     int jy = iy - (d_flds.storage().shape(1) - 2 * SW);
     int jz = iz;
     for (int m = mb; m < me; m++) {
-      d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+      _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
     }
     if (iz < SW) {
       jz = iz + (d_flds.storage().shape(2) - 2 * SW);
       for (int m = mb; m < me; m++) {
-        d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+        _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
       }
     }
     if (iz >= d_flds.storage().shape(2) - 3 * SW) {
       jz = iz - (d_flds.storage().shape(2) - 2 * SW);
       for (int m = mb; m < me; m++) {
-        d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+        _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
       }
     }
   }
   if (iz < SW) {
     int jy = iy, jz = iz + (d_flds.storage().shape(2) - 2 * SW);
     for (int m = mb; m < me; m++) {
-      d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+      _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
     }
   }
   if (iz >= d_flds.storage().shape(2) - 3 * SW) {
     int jy = iy, jz = iz - (d_flds.storage().shape(2) - 2 * SW);
     for (int m = mb; m < me; m++) {
-      d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+      _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
     }
   }
 }
@@ -177,19 +183,22 @@ __global__ static void add_ghosts_periodic_z(DFields d_flds, int mb, int me)
   int iy = blockIdx.x * blockDim.x + threadIdx.x;
   int iz = blockIdx.y * blockDim.y + threadIdx.y;
 
-  if (!(iy < d_flds.storage().shape(1) - 2 * SW && iz < d_flds.storage().shape(2) - 2 * SW))
+  auto _d_flds = make_Fields3d<dim_xyz>(d_flds);
+
+  if (!(iy < d_flds.storage().shape(1) - 2 * SW &&
+        iz < d_flds.storage().shape(2) - 2 * SW))
     return;
 
   if (iz < SW) {
     int jy = iy, jz = iz + (d_flds.storage().shape(2) - 2 * SW);
     for (int m = mb; m < me; m++) {
-      d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+      _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
     }
   }
   if (iz >= d_flds.storage().shape(2) - 3 * SW) {
     int jy = iy, jz = iz - (d_flds.storage().shape(2) - 2 * SW);
     for (int m = mb; m < me; m++) {
-      d_flds(m, 0, iy, iz) += d_flds(m, 0, jy, jz);
+      _d_flds(m, 0, iy, iz) += _d_flds(m, 0, jy, jz);
     }
   }
 }
@@ -210,21 +219,23 @@ __global__ static void conducting_wall_H_y(DFields d_flds)
 {
   int iz = blockIdx.x * blockDim.x + threadIdx.x - SW;
 
+  auto _d_flds = make_Fields3d<dim_xyz>(d_flds);
+
   if (iz >= d_flds.storage().shape(2) - SW)
     return;
 
   int my = d_flds.storage().shape(1) - 2 * SW;
 
   if (lo) {
-    d_flds(HY, 0, -1, iz) = d_flds(HY, 0, 1, iz);
-    d_flds(HX, 0, -1, iz) = -d_flds(HX, 0, 0, iz);
-    d_flds(HZ, 0, -1, iz) = -d_flds(HZ, 0, 0, iz);
+    _d_flds(HY, 0, -1, iz) = _d_flds(HY, 0, 1, iz);
+    _d_flds(HX, 0, -1, iz) = -_d_flds(HX, 0, 0, iz);
+    _d_flds(HZ, 0, -1, iz) = -_d_flds(HZ, 0, 0, iz);
   }
 
   if (hi) {
-    d_flds(HY, 0, my + 1, iz) = d_flds(HY, 0, my - 1, iz);
-    d_flds(HX, 0, my, iz) = -d_flds(HX, 0, my - 1, iz);
-    d_flds(HZ, 0, my, iz) = -d_flds(HZ, 0, my - 1, iz);
+    _d_flds(HY, 0, my + 1, iz) = _d_flds(HY, 0, my - 1, iz);
+    _d_flds(HX, 0, my, iz) = -_d_flds(HX, 0, my - 1, iz);
+    _d_flds(HZ, 0, my, iz) = -_d_flds(HZ, 0, my - 1, iz);
   }
 }
 
@@ -233,25 +244,27 @@ __global__ static void conducting_wall_E_y(DFields d_flds)
 {
   int iz = blockIdx.x * blockDim.x + threadIdx.x - SW;
 
+  auto _d_flds = make_Fields3d<dim_xyz>(d_flds);
+
   if (iz >= d_flds.storage().shape(2) - SW)
     return;
 
   int my = d_flds.storage().shape(1) - 2 * SW;
 
   if (lo) {
-    d_flds(EX, 0, 0, iz) = 0.;
-    d_flds(EX, 0, -1, iz) = d_flds(EX, 0, 1, iz);
-    d_flds(EY, 0, -1, iz) = -d_flds(EY, 0, 0, iz);
-    d_flds(EZ, 0, 0, iz) = 0.;
-    d_flds(EZ, 0, -1, iz) = d_flds(EZ, 0, 1, iz);
+    _d_flds(EX, 0, 0, iz) = 0.;
+    _d_flds(EX, 0, -1, iz) = _d_flds(EX, 0, 1, iz);
+    _d_flds(EY, 0, -1, iz) = -_d_flds(EY, 0, 0, iz);
+    _d_flds(EZ, 0, 0, iz) = 0.;
+    _d_flds(EZ, 0, -1, iz) = _d_flds(EZ, 0, 1, iz);
   }
 
   if (hi) {
-    d_flds(EX, 0, my, iz) = 0.;
-    d_flds(EX, 0, my + 1, iz) = d_flds(EX, 0, my - 1, iz);
-    d_flds(EY, 0, my, iz) = -d_flds(EY, 0, my - 1, iz);
-    d_flds(EZ, 0, my, iz) = 0.;
-    d_flds(EZ, 0, my + 1, iz) = d_flds(EZ, 0, my - 1, iz);
+    _d_flds(EX, 0, my, iz) = 0.;
+    _d_flds(EX, 0, my + 1, iz) = _d_flds(EX, 0, my - 1, iz);
+    _d_flds(EY, 0, my, iz) = -_d_flds(EY, 0, my - 1, iz);
+    _d_flds(EZ, 0, my, iz) = 0.;
+    _d_flds(EZ, 0, my + 1, iz) = _d_flds(EZ, 0, my - 1, iz);
   }
 }
 
@@ -260,27 +273,29 @@ __global__ static void conducting_wall_J_y(DFields d_flds)
 {
   int iz = blockIdx.x * blockDim.x + threadIdx.x - SW;
 
+  auto _d_flds = make_Fields3d<dim_xyz>(d_flds);
+
   if (iz >= d_flds.storage().shape(2) - SW)
     return;
 
   int my = d_flds.storage().shape(1) - 2 * SW;
 
   if (lo) {
-    d_flds(JYI, 0, 0, iz) -= d_flds(JYI, 0, -1, iz);
-    d_flds(JYI, 0, -1, iz) = 0.;
-    d_flds(JXI, 0, 1, iz) += d_flds(JXI, 0, -1, iz);
-    d_flds(JXI, 0, -1, iz) = 0.;
-    d_flds(JZI, 0, 1, iz) += d_flds(JZI, 0, -1, iz);
-    d_flds(JZI, 0, -1, iz) = 0.;
+    _d_flds(JYI, 0, 0, iz) -= _d_flds(JYI, 0, -1, iz);
+    _d_flds(JYI, 0, -1, iz) = 0.;
+    _d_flds(JXI, 0, 1, iz) += _d_flds(JXI, 0, -1, iz);
+    _d_flds(JXI, 0, -1, iz) = 0.;
+    _d_flds(JZI, 0, 1, iz) += _d_flds(JZI, 0, -1, iz);
+    _d_flds(JZI, 0, -1, iz) = 0.;
   }
 
   if (hi) {
-    d_flds(JYI, 0, my - 1, iz) -= d_flds(JYI, 0, my, iz);
-    d_flds(JYI, 0, my, iz) = 0.;
-    d_flds(JXI, 0, my - 1, iz) += d_flds(JXI, 0, my + 1, iz);
-    d_flds(JXI, 0, my + 1, iz) = 0.;
-    d_flds(JZI, 0, my - 1, iz) += d_flds(JZI, 0, my + 1, iz);
-    d_flds(JZI, 0, my + 1, iz) = 0.;
+    _d_flds(JYI, 0, my - 1, iz) -= _d_flds(JYI, 0, my, iz);
+    _d_flds(JYI, 0, my, iz) = 0.;
+    _d_flds(JXI, 0, my - 1, iz) += _d_flds(JXI, 0, my + 1, iz);
+    _d_flds(JXI, 0, my + 1, iz) = 0.;
+    _d_flds(JZI, 0, my - 1, iz) += _d_flds(JZI, 0, my + 1, iz);
+    _d_flds(JZI, 0, my + 1, iz) = 0.;
   }
 }
 
