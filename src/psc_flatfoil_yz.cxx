@@ -603,7 +603,7 @@ void run()
   inject_foil_params.Ti = g.target_Ti;
   InjectFoil inject_target{inject_foil_params};
 
-  g.inject_interval = 20;
+  g.inject_interval = 2;
   int inject_tau = 40;
 
   SetupParticles<Mparticles> setup_particles(grid);
