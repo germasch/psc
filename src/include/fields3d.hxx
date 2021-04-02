@@ -542,6 +542,9 @@ struct MfieldsStateFromMfields : MfieldsStateBase
 
   Mfields& mflds() { return mflds_; }
 
+  Int3 ib() const { return mflds_.ib(); }
+  auto gt() { return mflds_.storage(); }
+
 public: // FIXME public so that we can read/write it, friend needs include which
         // gives nvcc issues
   Mfields mflds_;
