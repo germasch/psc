@@ -76,7 +76,7 @@ public:
 
   auto gt()
   {
-    Int3 bnd = ibn();
+    Int3 bnd = Base::mres_.ibn();
     return Base::mres_.gt().view(_s(bnd[0], -bnd[0]), _s(bnd[1], -bnd[1]),
                                  _s(bnd[2], -bnd[2]));
   }
