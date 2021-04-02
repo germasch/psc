@@ -51,7 +51,7 @@ public:
   using base_type::derived;
 
   gstrided() = default;
-  gstrided(const shape_type& shape, const strides_type& strides);
+  GT_INLINE gstrided(const shape_type& shape, const strides_type& strides);
 
   GT_INLINE int shape(int i) const;
   GT_INLINE const shape_type& shape() const;

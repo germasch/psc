@@ -35,14 +35,14 @@ public:
 
   // construct from exactly N elements provided
   template <typename... U, std::enable_if_t<sizeof...(U) == N, int> = 0>
-  sarray(U... args);
-  sarray(const T* p, std::size_t n);
-  sarray(const T data[N]);
+  GT_INLINE sarray(U... args);
+  GT_INLINE sarray(const T* p, std::size_t n);
+  GT_INLINE sarray(const T data[N]);
 
   template <typename O>
-  bool operator==(const O& o) const;
+  GT_INLINE bool operator==(const O& o) const;
   template <typename O>
-  bool operator!=(const O& o) const;
+  GT_INLINE bool operator!=(const O& o) const;
 
   GT_INLINE constexpr static std::size_t size();
 
