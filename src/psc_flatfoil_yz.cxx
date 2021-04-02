@@ -516,7 +516,7 @@ void run()
   // -- Marder correction
   double marder_diffusion = 0.9;
   int marder_loop = 3;
-  bool marder_dump = false;
+  bool marder_dump = true;
   psc_params.marder_interval = 100;
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
