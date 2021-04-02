@@ -614,7 +614,7 @@ void run()
       mpi_printf(comm, "***** Performing injection...\n");
       prof_start(pr_inject);
       moment_n.update(mprts);
-      gt_n = evalMfields(moment_n).gt();
+      gt_n = moment_n.gt();
       setup_particles.setupParticles(mprts, lf_inject);
       prof_stop(pr_inject);
     }
