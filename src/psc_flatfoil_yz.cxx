@@ -503,11 +503,11 @@ void run()
 
   // -- Checks
   ChecksParams checks_params{};
-  checks_params.continuity_every_step = 0;
+  checks_params.continuity_every_step = 1;
   checks_params.continuity_threshold = 1e-4;
   checks_params.continuity_verbose = true;
   checks_params.continuity_dump_always = false;
-  checks_params.gauss_every_step = 100;
+  checks_params.gauss_every_step = 1;
   checks_params.gauss_threshold = 1e-4;
   checks_params.gauss_verbose = true;
   checks_params.gauss_dump_always = false;
