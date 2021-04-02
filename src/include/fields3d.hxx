@@ -594,13 +594,8 @@ auto adapt(const Mfields& _mflds)
 {
   auto& mflds = const_cast<std::remove_const_t<Mfields>&>(_mflds);
   auto ib = mflds.ib(), im = mflds.im(), bnd = -ib;
-  auto mf_ =
-    gt::adapt<5>(&mflds(0, ib[0], ib[1], ib[2], 0),
-                 {im[0], im[1], im[2], mflds.n_comps(), mflds.n_patches()});
-  auto mf = std::move(mf_).view(_s(bnd[0], -bnd[0]), _s(bnd[1], -bnd[1]),
-                                _s(bnd[2], -bnd[2]));
-
-  return mf;
+  return mflds.storage().view(_s(bnd[0], -bnd[0]), _s(bnd[1], -bnd[1]),
+                              _s(bnd[2], -bnd[2]));
 }
 
 #endif
