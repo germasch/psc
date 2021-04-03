@@ -60,11 +60,6 @@ inline MfieldsC evalMfields(const MfieldsSingle& _exp)
   return mflds;
 }
 
-inline const MfieldsC& evalMfields(const MfieldsC& mflds)
-{
-  return mflds;
-}
-
 #ifdef USE_CUDA
 
 template <typename E,
