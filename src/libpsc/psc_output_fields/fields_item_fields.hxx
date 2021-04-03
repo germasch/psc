@@ -18,9 +18,10 @@ inline auto to_gt(const E& e)
     {grid.ldims[0], grid.ldims[1], grid.ldims[2], e.n_comps(), e.n_patches()});
   auto k_res = res.to_kernel();
 
-  gt::launch<5>(res.shape(), [=](int i, int j, int k, int m, int p) {
-    k_res(i, j, k, m, p) = e(m, {i, j, k}, p);
-  });
+  gt::launch<5, gt::space::host>(res.shape(),
+                                 [=](int i, int j, int k, int m, int p) {
+                                   k_res(i, j, k, m, p) = e(m, {i, j, k}, p);
+                                 });
 
   return res;
 }

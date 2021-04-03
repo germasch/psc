@@ -185,9 +185,8 @@ struct ChecksCuda
         writer.open("gauss");
       }
       writer.begin_step(grid.timestep(), grid.timestep() * grid.dt);
-      writer.write(adapt(evalMfields(rho)), grid, "rho", {"rho"});
-      writer.write(adapt(evalMfields(dive)), dive.grid(), dive.name(),
-                   dive.comp_names());
+      writer.write(rho.gt(), grid, "rho", {"rho"});
+      writer.write(dive.gt(), dive.grid(), dive.name(), dive.comp_names());
       writer.end_step();
     }
 
