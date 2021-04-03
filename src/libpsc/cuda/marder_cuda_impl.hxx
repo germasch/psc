@@ -45,8 +45,8 @@ struct MarderCuda : MarderBase
       static int cnt;
       io_.begin_step(cnt, cnt); // ppsc->timestep, ppsc->timestep * ppsc->dt);
       cnt++;
-      io_.write(adapt(evalMfields(rho)), rho.grid(), "rho", {"rho"});
-      io_.write(adapt(evalMfields(dive)), dive.grid(), "dive", {"dive"});
+      io_.write(rho.gt(), rho.grid(), "rho", {"rho"});
+      io_.write(dive.gt(), dive.grid(), "dive", {"dive"});
       io_.end_step();
     }
 
