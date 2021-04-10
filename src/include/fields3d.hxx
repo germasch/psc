@@ -649,4 +649,9 @@ MF& hostMirror(MF& mflds)
   return mflds;
 }
 
+// FIXME, should check whether from and to are really identical
+template <typename MF>
+void copy(const MF& from, MF& to)
+{}
+
 #endif
