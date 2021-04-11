@@ -11,8 +11,6 @@
 
 #include "mrc_json.h"
 
-struct cuda_mfields;
-
 struct fields_cuda_t
 {
   using real_t = float;
