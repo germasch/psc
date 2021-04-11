@@ -10,8 +10,8 @@
 #include <mrc_io.h>
 
 void cuda_marder_correct_yz(struct cuda_mfields* cmflds,
-                            struct cuda_mfields* cmf, int p, float fac[3],
-                            int ly[3], int ry[3], int lz[3], int rz[3]);
+                            struct cuda_mfields* cmf, int p, Float3 fac,
+                            Int3 ly, Int3 ry, Int3 lz, Int3 rz);
 
 // FIXME: checkpointing won't properly restore state
 // FIXME: if the subclass creates objects, it'd be cleaner to have them
@@ -94,7 +94,7 @@ struct MarderCuda : MarderBase
     float diffusion_max = 1. / 2. / (.5 * grid.dt) / inv_sum;
     float diffusion = diffusion_max * diffusion_;
 
-    float fac[3];
+    Float3 fac;
     fac[0] = .5 * grid.dt * diffusion / dx[0];
     fac[1] = .5 * grid.dt * diffusion / dx[1];
     fac[2] = .5 * grid.dt * diffusion / dx[2];
@@ -119,16 +119,16 @@ struct MarderCuda : MarderBase
         }
       }
 
-      const int* ldims = grid.ldims;
+      Int3 ldims = grid.ldims;
 
-      int lx[3] = {l_cc[0], l_nc[1], l_nc[2]};
-      int rx[3] = {r_cc[0] + ldims[0], r_nc[1] + ldims[1], r_nc[2] + ldims[2]};
+      Int3 lx = {l_cc[0], l_nc[1], l_nc[2]};
+      Int3 rx = {r_cc[0] + ldims[0], r_nc[1] + ldims[1], r_nc[2] + ldims[2]};
 
-      int ly[3] = {l_nc[0], l_cc[1], l_nc[2]};
-      int ry[3] = {r_nc[0] + ldims[0], r_cc[1] + ldims[1], r_nc[2] + ldims[2]};
+      Int3 ly = {l_nc[0], l_cc[1], l_nc[2]};
+      Int3 ry = {r_nc[0] + ldims[0], r_cc[1] + ldims[1], r_nc[2] + ldims[2]};
 
-      int lz[3] = {l_nc[0], l_nc[1], l_cc[2]};
-      int rz[3] = {r_nc[0] + ldims[0], r_nc[1] + ldims[1], r_cc[2] + ldims[2]};
+      Int3 lz = {l_nc[0], l_nc[1], l_cc[2]};
+      Int3 rz = {r_nc[0] + ldims[0], r_nc[1] + ldims[1], r_cc[2] + ldims[2]};
 
       if (grid.isInvar(0)) {
         cuda_marder_correct_yz(cmflds, cmf, p, fac, ly, ry, lz, rz);
