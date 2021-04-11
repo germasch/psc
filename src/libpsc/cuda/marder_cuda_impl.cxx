@@ -2,12 +2,10 @@
 #include "marder_cuda_impl.hxx"
 
 #define BND 2
-#define BLOCKSIZE_X 1
-#define BLOCKSIZE_Y 16
-#define BLOCKSIZE_Z 16
 
-void cuda_marder_correct_yz_gold(MfieldsCuda& mflds, MfieldsCuda& mf, int p,
-                                 Float3 fac, Int3 ly, Int3 ry, Int3 lz, Int3 rz)
+void cuda_marder_correct_yz_gold(MfieldsStateCuda& mflds, MfieldsCuda& mf,
+                                 int p, Float3 fac, Int3 ly, Int3 ry, Int3 lz,
+                                 Int3 rz)
 {
   auto h_mflds = hostMirror(mflds);
   auto h_mf = hostMirror(mf);
@@ -34,21 +32,16 @@ void cuda_marder_correct_yz_gold(MfieldsCuda& mflds, MfieldsCuda& mf, int p,
   copy(h_mflds, mflds);
 }
 
-void cuda_marder_correct_yz(struct cuda_mfields* cmflds,
-                            struct cuda_mfields* cmf, int p, Float3 fac,
-                            Int3 ly, Int3 ry, Int3 lz, Int3 rz)
+void cuda_marder_correct_yz(MfieldsStateCuda& mflds, MfieldsCuda& mf, int p,
+                            Float3 fac, Int3 ly, Int3 ry, Int3 lz, Int3 rz)
 {
 #if 0
   cuda_marder_correct_yz_gold(mflds, mf, p, fac, ly, ry, lz, rz);
   return;
 #endif
 
-  if (cmflds->n_patches() == 0) {
-    return;
-  }
-
-  auto gt_flds = cmflds->storage().view(_all, _all, _all, _all, p).to_kernel();
-  auto gt_f = cmf->storage().view(_all, _all, _all, 0, p).to_kernel();
+  auto gt_flds = mflds.gt().view(_all, _all, _all, _all, p).to_kernel();
+  auto gt_f = mf.gt().view(_all, _all, _all, 0, p).to_kernel();
 
   gt::launch<2>({gt_flds.shape(1), gt_flds.shape(2)}, GT_LAMBDA(int iy,
                                                                 int iz) {
