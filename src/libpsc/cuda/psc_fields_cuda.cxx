@@ -21,51 +21,16 @@ static void psc_mfields_cuda_copy_from_c(MfieldsBase& mflds_cuda,
   if (mb == 0 && me == 0) {
     return;
   }
-  auto& mf_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda);
-  auto& mf_c = dynamic_cast<MfieldsC&>(mflds_c);
-  auto h_mf_cuda = hostMirror(mf_cuda);
+  auto& gt_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda).storage();
+  auto& gt_c = dynamic_cast<MfieldsC&>(mflds_c).storage();
 
+  auto&& h_gt_cuda = gt::host_mirror(gt_cuda);
   if (!(mb == 0 && me == mflds_cuda._n_comps())) {
-    copy(mf_cuda, h_mf_cuda);
+    gt::copy(gt_cuda, h_gt_cuda);
   }
-  for (int p = 0; p < mf_cuda.n_patches(); p++) {
-    auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
-    auto flds_c = make_Fields3d<dim_xyz>(mf_c[p]);
-    for (int m = mb; m < me; m++) {
-      for (int jz = flds.ib()[2]; jz < flds.ib()[2] + flds.shape(2); jz++) {
-        for (int jy = flds.ib()[1]; jy < flds.ib()[1] + flds.shape(1); jy++) {
-          for (int jx = flds.ib()[0]; jx < flds.ib()[0] + flds.shape(0); jx++) {
-            flds(m, jx, jy, jz) = flds_c(m, jx, jy, jz);
-          }
-        }
-      }
-    }
-  }
-  copy(h_mf_cuda, mf_cuda);
-}
-
-static void psc_mfields_cuda_copy_to_c(MfieldsBase& mflds_cuda,
-                                       MfieldsBase& mflds_c, int mb, int me)
-{
-  auto& mf_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda);
-  auto& mf_c = dynamic_cast<MfieldsC&>(mflds_c);
-  auto h_mf_cuda = hostMirror(mf_cuda);
-
-  copy(mf_cuda, h_mf_cuda);
-  for (int p = 0; p < mf_cuda.n_patches(); p++) {
-    auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
-    auto flds_c = make_Fields3d<dim_xyz>(mf_c[p]);
-
-    for (int m = mb; m < me; m++) {
-      for (int jz = flds.ib()[2]; jz < flds.ib()[2] + flds.shape(2); jz++) {
-        for (int jy = flds.ib()[1]; jy < flds.ib()[1] + flds.shape(1); jy++) {
-          for (int jx = flds.ib()[0]; jx < flds.ib()[0] + flds.shape(0); jx++) {
-            flds_c(m, jx, jy, jz) = flds(m, jx, jy, jz);
-          }
-        }
-      }
-    }
-  }
+  h_gt_cuda.view(_all, _all, _all, _s(mb, me)) =
+    gt_c.view(_all, _all, _all, _s(mb, me));
+  gt::copy(h_gt_cuda, gt_cuda);
 }
 
 static void psc_mfields_state_cuda_copy_from_c(MfieldsStateBase& mflds_cuda,
@@ -75,52 +40,41 @@ static void psc_mfields_state_cuda_copy_from_c(MfieldsStateBase& mflds_cuda,
   if (mb == 0 && me == 0) {
     return;
   }
-  auto& mf_cuda = dynamic_cast<MfieldsStateCuda&>(mflds_cuda);
-  auto& mf_c = dynamic_cast<MfieldsStateDouble&>(mflds_c);
-  auto h_mf_cuda = hostMirror(mf_cuda);
+  auto& gt_cuda = dynamic_cast<MfieldsStateCuda&>(mflds_cuda).storage();
+  auto& gt_c = dynamic_cast<MfieldsStateDouble&>(mflds_c).storage();
 
+  auto&& h_gt_cuda = gt::host_mirror(gt_cuda);
   if (!(mb == 0 && me == mflds_cuda._n_comps())) {
-    copy(mf_cuda, h_mf_cuda);
+    gt::copy(gt_cuda, h_gt_cuda);
   }
-  for (int p = 0; p < mf_cuda.n_patches(); p++) {
-    auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
-    auto flds_c = make_Fields3d<dim_xyz>(mf_c[p]);
-    for (int m = mb; m < me; m++) {
-      for (int jz = flds.ib()[2]; jz < flds.ib()[2] + flds.shape(2); jz++) {
-        for (int jy = flds.ib()[1]; jy < flds.ib()[1] + flds.shape(1); jy++) {
-          for (int jx = flds.ib()[0]; jx < flds.ib()[0] + flds.shape(0); jx++) {
-            flds(m, jx, jy, jz) = flds_c(m, jx, jy, jz);
-          }
-        }
-      }
-    }
-  }
-  copy(h_mf_cuda, mf_cuda);
+  h_gt_cuda.view(_all, _all, _all, _s(mb, me)) =
+    gt_c.view(_all, _all, _all, _s(mb, me));
+  gt::copy(h_gt_cuda, gt_cuda);
+}
+
+static void psc_mfields_cuda_copy_to_c(MfieldsBase& mflds_cuda,
+                                       MfieldsBase& mflds_c, int mb, int me)
+{
+  auto& gt_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda).storage();
+  auto& gt_c = dynamic_cast<MfieldsC&>(mflds_c).storage();
+
+  auto&& h_gt_cuda = gt::host_mirror(gt_cuda);
+  gt::copy(gt_cuda, h_gt_cuda);
+  gt_c.view(_all, _all, _all, _s(mb, me)) =
+    h_gt_cuda.view(_all, _all, _all, _s(mb, me));
 }
 
 static void psc_mfields_state_cuda_copy_to_c(MfieldsStateBase& mflds_cuda,
                                              MfieldsStateBase& mflds_c, int mb,
                                              int me)
 {
-  auto& mf_cuda = dynamic_cast<MfieldsStateCuda&>(mflds_cuda);
-  auto& mf_c = dynamic_cast<MfieldsStateDouble&>(mflds_c);
-  auto h_mf_cuda = hostMirror(mf_cuda);
+  auto& gt_cuda = dynamic_cast<MfieldsStateCuda&>(mflds_cuda).storage();
+  auto& gt_c = dynamic_cast<MfieldsStateDouble&>(mflds_c).storage();
 
-  copy(mf_cuda, h_mf_cuda);
-  for (int p = 0; p < mf_cuda.n_patches(); p++) {
-    auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
-    auto flds_c = make_Fields3d<dim_xyz>(mf_c[p]);
-
-    for (int m = mb; m < me; m++) {
-      for (int jz = flds.ib()[2]; jz < flds.ib()[2] + flds.shape(2); jz++) {
-        for (int jy = flds.ib()[1]; jy < flds.ib()[1] + flds.shape(1); jy++) {
-          for (int jx = flds.ib()[0]; jx < flds.ib()[0] + flds.shape(0); jx++) {
-            flds_c(m, jx, jy, jz) = flds(m, jx, jy, jz);
-          }
-        }
-      }
-    }
-  }
+  auto&& h_gt_cuda = gt::host_mirror(gt_cuda);
+  gt::copy(gt_cuda, h_gt_cuda);
+  gt_c.view(_all, _all, _all, _s(mb, me)) =
+    h_gt_cuda.view(_all, _all, _all, _s(mb, me));
 }
 
 // ======================================================================
@@ -133,28 +87,16 @@ static void psc_mfields_cuda_copy_from_single(MfieldsBase& mflds_cuda,
   if (mb == 0 && me == 0) {
     return;
   }
-  auto& mf_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda);
-  auto& mf_single = dynamic_cast<MfieldsSingle&>(mflds_single);
-  auto h_mf_cuda = hostMirror(mf_cuda);
+  auto& gt_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda).storage();
+  auto& gt_single = dynamic_cast<MfieldsSingle&>(mflds_single).storage();
 
+  auto&& h_gt_cuda = gt::host_mirror(gt_cuda);
   if (!(mb == 0 && me == mflds_cuda._n_comps())) {
-    copy(mf_cuda, h_mf_cuda);
+    gt::copy(gt_cuda, h_gt_cuda);
   }
-  for (int p = 0; p < mf_cuda.n_patches(); p++) {
-    auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
-    auto flds_s = make_Fields3d<dim_xyz>(mf_single[p]);
-
-    for (int m = mb; m < me; m++) {
-      for (int jz = flds.ib()[2]; jz < flds.ib()[2] + flds.shape(2); jz++) {
-        for (int jy = flds.ib()[1]; jy < flds.ib()[1] + flds.shape(1); jy++) {
-          for (int jx = flds.ib()[0]; jx < flds.ib()[0] + flds.shape(0); jx++) {
-            flds(m, jx, jy, jz) = flds_s(m, jx, jy, jz);
-          }
-        }
-      }
-    }
-  }
-  copy(h_mf_cuda, mf_cuda);
+  h_gt_cuda.view(_all, _all, _all, _s(mb, me)) =
+    gt_single.view(_all, _all, _all, _s(mb, me));
+  gt::copy(h_gt_cuda, gt_cuda);
 }
 
 static void psc_mfields_state_cuda_copy_from_single(
@@ -163,77 +105,41 @@ static void psc_mfields_state_cuda_copy_from_single(
   if (mb == 0 && me == 0) {
     return;
   }
-  auto& mf_cuda = dynamic_cast<MfieldsStateCuda&>(mflds_cuda);
-  auto& mf_single = dynamic_cast<MfieldsStateSingle&>(mflds_single);
-  auto h_mf_cuda = hostMirror(mf_cuda);
+  auto& gt_cuda = dynamic_cast<MfieldsStateCuda&>(mflds_cuda).storage();
+  auto& gt_single = dynamic_cast<MfieldsStateSingle&>(mflds_single).storage();
 
+  auto&& h_gt_cuda = gt::host_mirror(gt_cuda);
   if (!(mb == 0 && me == mflds_cuda._n_comps())) {
-    copy(mf_cuda, h_mf_cuda);
+    gt::copy(gt_cuda, h_gt_cuda);
   }
-  for (int p = 0; p < mf_cuda.n_patches(); p++) {
-    auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
-    auto flds_s = make_Fields3d<dim_xyz>(mf_single[p]);
-
-    for (int m = mb; m < me; m++) {
-      for (int jz = flds.ib()[2]; jz < flds.ib()[2] + flds.shape(2); jz++) {
-        for (int jy = flds.ib()[1]; jy < flds.ib()[1] + flds.shape(1); jy++) {
-          for (int jx = flds.ib()[0]; jx < flds.ib()[0] + flds.shape(0); jx++) {
-            flds(m, jx, jy, jz) = flds_s(m, jx, jy, jz);
-          }
-        }
-      }
-    }
-  }
-  copy(h_mf_cuda, mf_cuda);
+  h_gt_cuda.view(_all, _all, _all, _s(mb, me)) =
+    gt_single.view(_all, _all, _all, _s(mb, me));
+  gt::copy(h_gt_cuda, gt_cuda);
 }
 
 static void psc_mfields_cuda_copy_to_single(MfieldsBase& mflds_cuda,
                                             MfieldsBase& mflds_single, int mb,
                                             int me)
 {
-  auto& mf_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda);
-  auto& mf_single = dynamic_cast<MfieldsSingle&>(mflds_single);
-  auto h_mf_cuda = hostMirror(mf_cuda);
+  auto& gt_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda).storage();
+  auto& gt_single = dynamic_cast<MfieldsSingle&>(mflds_single).storage();
 
-  copy(mf_cuda, h_mf_cuda);
-  for (int p = 0; p < mf_cuda.n_patches(); p++) {
-    auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
-    auto flds_s = make_Fields3d<dim_xyz>(mf_single[p]);
-
-    for (int m = mb; m < me; m++) {
-      for (int jz = flds.ib()[2]; jz < flds.ib()[2] + flds.shape(2); jz++) {
-        for (int jy = flds.ib()[1]; jy < flds.ib()[1] + flds.shape(1); jy++) {
-          for (int jx = flds.ib()[0]; jx < flds.ib()[0] + flds.shape(0); jx++) {
-            flds_s(m, jx, jy, jz) = flds(m, jx, jy, jz);
-          }
-        }
-      }
-    }
-  }
+  auto&& h_gt_cuda = gt::host_mirror(gt_cuda);
+  gt::copy(gt_cuda, h_gt_cuda);
+  gt_single.view(_all, _all, _all, _s(mb, me)) =
+    h_gt_cuda.view(_all, _all, _all, _s(mb, me));
 }
 
 static void psc_mfields_state_cuda_copy_to_single(
   MfieldsStateBase& mflds_cuda, MfieldsStateBase& mflds_single, int mb, int me)
 {
-  auto& mf_cuda = dynamic_cast<MfieldsStateCuda&>(mflds_cuda);
-  auto& mf_single = dynamic_cast<MfieldsStateSingle&>(mflds_single);
-  auto h_mf_cuda = hostMirror(mf_cuda);
+  auto& gt_cuda = dynamic_cast<MfieldsStateCuda&>(mflds_cuda).storage();
+  auto& gt_single = dynamic_cast<MfieldsStateSingle&>(mflds_single).storage();
 
-  copy(mf_cuda, h_mf_cuda);
-  for (int p = 0; p < mf_cuda.n_patches(); p++) {
-    auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
-    auto flds_s = make_Fields3d<dim_xyz>(mf_single[p]);
-
-    for (int m = mb; m < me; m++) {
-      for (int jz = flds.ib()[2]; jz < flds.ib()[2] + flds.shape(2); jz++) {
-        for (int jy = flds.ib()[1]; jy < flds.ib()[1] + flds.shape(1); jy++) {
-          for (int jx = flds.ib()[0]; jx < flds.ib()[0] + flds.shape(0); jx++) {
-            flds_s(m, jx, jy, jz) = flds(m, jx, jy, jz);
-          }
-        }
-      }
-    }
-  }
+  auto&& h_gt_cuda = gt::host_mirror(gt_cuda);
+  gt::copy(gt_cuda, h_gt_cuda);
+  gt_single.view(_all, _all, _all, _s(mb, me)) =
+    h_gt_cuda.view(_all, _all, _all, _s(mb, me));
 }
 
 // ======================================================================
