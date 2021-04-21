@@ -13,7 +13,6 @@ template <typename MF>
 struct Bnd_ : BndBase
 {
   using Mfields = MF;
-  using MfieldsHost = hostMirror_t<Mfields>;
   using real_t = typename Mfields::real_t;
 
   struct Context

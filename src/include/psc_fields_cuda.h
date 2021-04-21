@@ -70,43 +70,6 @@ private:
   friend class MfieldsCRTP<MfieldsCuda>;
 };
 
-inline MfieldsSingle hostMirror(MfieldsCuda& mflds)
-{
-  return MfieldsSingle{mflds.grid(), mflds.n_comps(), mflds.ibn()};
-}
-
-inline MfieldsSingle hostMirror(const MfieldsCuda& mflds)
-{
-  return MfieldsSingle{mflds.grid(), mflds.n_comps(), mflds.ibn()};
-}
-
-inline void copy(const MfieldsCuda& mflds, MfieldsSingle& hmflds)
-{
-  static int pr;
-  if (!pr) {
-    pr = prof_register("mflds to host", 1., 0, 0);
-  }
-  prof_start(pr);
-  // gt::copy(mflds.gt(), hmflds.storage());
-  thrust::copy(mflds.gt().data(), mflds.gt().data() + mflds.gt().size(),
-               hmflds.storage().data());
-  prof_stop(pr);
-}
-
-inline void copy(const MfieldsSingle& hmflds, MfieldsCuda& mflds)
-{
-  static int pr;
-  if (!pr) {
-    pr = prof_register("mflds from host", 1., 0, 0);
-  }
-  prof_start(pr);
-  // gt::copy(hmflds.storage(), mflds.gt());
-  thrust::copy(hmflds.storage().data(),
-               hmflds.storage().data() + hmflds.storage().size(),
-               mflds.gt().data());
-  prof_stop(pr);
-}
-
 // ======================================================================
 // MfieldsStateCuda
 
@@ -155,26 +118,6 @@ struct Mfields_from_type_space<T, gt::space::device>
   using type = MfieldsCuda;
 };
 } // namespace detail
-
-inline MfieldsSingle hostMirror(MfieldsStateCuda& mflds)
-{
-  return hostMirror(mflds.mflds());
-}
-
-inline MfieldsSingle hostMirror(const MfieldsStateCuda& mflds)
-{
-  return hostMirror(mflds.mflds());
-}
-
-inline void copy(const MfieldsStateCuda& mflds, MfieldsSingle& hmflds)
-{
-  copy(mflds.mflds(), hmflds);
-}
-
-inline void copy(const MfieldsSingle& hmflds, MfieldsStateCuda& mflds)
-{
-  copy(hmflds, mflds.mflds());
-}
 
 // ----------------------------------------------------------------------
 // FIXME hacky workaround for lack of gt::view on device

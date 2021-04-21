@@ -477,23 +477,6 @@ auto host_mirror(const E& e)
 
 } // namespace gt
 
-template <typename MF>
-using hostMirror_t =
-  std::decay_t<decltype(hostMirror(std::declval<const MF>()))>;
-
-template <typename MF>
-MF& hostMirror(MF& mflds)
-{
-  return mflds;
-}
-
-// FIXME, doesn't actually copy, only for hostMirror use
-template <typename MF>
-void copy(const MF& from, MF& to)
-{
-  assert(from.storage().data() == to.storage().data());
-}
-
 // ======================================================================
 // Mfields_from_gt_t
 
