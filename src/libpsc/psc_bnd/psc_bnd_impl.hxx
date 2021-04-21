@@ -99,15 +99,16 @@ struct Bnd_ : BndBase
     kg::Vec<int, 4> lo = {ilo[0], ilo[1], ilo[2], mb};
     kg::Vec<int, 4> hi = {ihi[0], ihi[1], ihi[2], me};
     auto& mf = *static_cast<MfieldsHost*>(ctx);
-    auto F = make_Fields3d<dim_xyz>(mf.gt().view(_all, _all, _all, _all, p),
-                                    -mf.ibn());
+    auto&& mf_gt = mf.gt();
+    auto ib = mf.ib();
     auto buf = gt::adapt<4>(static_cast<real_t*>(_buf), hi - lo);
 
     for (int m = mb; m < me; m++) {
       for (int iz = ilo[2]; iz < ihi[2]; iz++) {
         for (int iy = ilo[1]; iy < ihi[1]; iy++) {
           for (int ix = ilo[0]; ix < ihi[0]; ix++) {
-            buf(ix - lo[0], iy - lo[1], iz - lo[2], m - mb) = F(m, ix, iy, iz);
+            buf(ix - lo[0], iy - lo[1], iz - lo[2], m - mb) =
+              mf_gt(ix - ib[0], iy - ib[1], iz - ib[2], m, p);
           }
         }
       }
