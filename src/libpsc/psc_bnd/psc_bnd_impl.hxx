@@ -69,13 +69,14 @@ struct Bnd_ : BndBase
       balance_generation_cnt_ = psc_balance_generation_cnt;
       reset(mflds.grid());
     }
-    {
-      auto&& h_mflds = hostMirror(mflds);
-      copy(mflds, h_mflds);
-      Context ctx(mflds.ib(), h_mflds.storage());
-      mrc_ddc_add_ghosts(ddc_, mb, me, &ctx);
-      copy(h_mflds, mflds);
-    }
+
+    auto&& h_gt = gt::host_mirror(mflds.storage());
+    gt::copy(mflds.storage(), h_gt);
+
+    Context ctx(mflds.ib(), h_gt);
+    mrc_ddc_add_ghosts(ddc_, mb, me, &ctx);
+
+    gt::copy(h_gt, mflds.storage());
   }
 
   // ----------------------------------------------------------------------
@@ -90,13 +91,13 @@ struct Bnd_ : BndBase
     // FIXME
     // I don't think we need as many points, and only stencil star
     // rather then box
-    {
-      auto&& h_mflds = hostMirror(mflds);
-      copy(mflds, h_mflds);
-      Context ctx(mflds.ib(), h_mflds.storage());
-      mrc_ddc_fill_ghosts(ddc_, mb, me, &ctx);
-      copy(h_mflds, mflds);
-    }
+    auto&& h_gt = gt::host_mirror(mflds.storage());
+    gt::copy(mflds.storage(), h_gt);
+
+    Context ctx(mflds.ib(), h_gt);
+    mrc_ddc_fill_ghosts(ddc_, mb, me, &ctx);
+
+    gt::copy(h_gt, mflds.storage());
   }
 
   // ----------------------------------------------------------------------
