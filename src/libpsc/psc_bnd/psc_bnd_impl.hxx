@@ -16,6 +16,14 @@ struct Bnd_ : BndBase
   using MfieldsHost = hostMirror_t<Mfields>;
   using real_t = typename Mfields::real_t;
 
+  struct Context
+  {
+    Context(const Int3& ib, gt::gtensor<real_t, 5>& gt) : ib(ib), gt(gt) {}
+
+    Int3 ib;
+    gt::gtensor<real_t, 5>& gt;
+  };
+
   // ----------------------------------------------------------------------
   // ctor
 
@@ -64,8 +72,8 @@ struct Bnd_ : BndBase
     {
       auto&& h_mflds = hostMirror(mflds);
       copy(mflds, h_mflds);
-
-      mrc_ddc_add_ghosts(ddc_, mb, me, &h_mflds);
+      Context ctx(mflds.ib(), h_mflds.storage());
+      mrc_ddc_add_ghosts(ddc_, mb, me, &ctx);
       copy(h_mflds, mflds);
     }
   }
@@ -85,7 +93,8 @@ struct Bnd_ : BndBase
     {
       auto&& h_mflds = hostMirror(mflds);
       copy(mflds, h_mflds);
-      mrc_ddc_fill_ghosts(ddc_, mb, me, &h_mflds);
+      Context ctx(mflds.ib(), h_mflds.storage());
+      mrc_ddc_fill_ghosts(ddc_, mb, me, &ctx);
       copy(h_mflds, mflds);
     }
   }
@@ -94,46 +103,46 @@ struct Bnd_ : BndBase
   // copy_to_buf
 
   static void copy_to_buf(int mb, int me, int p, int ilo[3], int ihi[3],
-                          void* _buf, void* ctx)
+                          void* _buf, void* _ctx)
   {
     kg::Vec<int, 4> lo = {ilo[0], ilo[1], ilo[2], mb};
     kg::Vec<int, 4> hi = {ihi[0], ihi[1], ihi[2], me};
+    Context& ctx = *static_cast<Context*>(_ctx);
     auto buf = gt::adapt<4>(static_cast<real_t*>(_buf), hi - lo);
-    auto& mf = *static_cast<MfieldsHost*>(ctx);
-    auto ib = mf.ib();
+    auto ib = ctx.ib;
 
-    buf = mf.gt().view(_s(lo[0] - ib[0], hi[0] - ib[0]),
-                       _s(lo[1] - ib[1], hi[1] - ib[1]),
-                       _s(lo[2] - ib[2], hi[2] - ib[2]), _s(mb, me), p);
+    buf = ctx.gt.view(_s(lo[0] - ib[0], hi[0] - ib[0]),
+                      _s(lo[1] - ib[1], hi[1] - ib[1]),
+                      _s(lo[2] - ib[2], hi[2] - ib[2]), _s(mb, me), p);
   }
 
   static void add_from_buf(int mb, int me, int p, int ilo[3], int ihi[3],
-                           void* _buf, void* ctx)
+                           void* _buf, void* _ctx)
   {
     kg::Vec<int, 4> lo = {ilo[0], ilo[1], ilo[2], mb};
     kg::Vec<int, 4> hi = {ihi[0], ihi[1], ihi[2], me};
+    Context& ctx = *static_cast<Context*>(_ctx);
     auto buf = gt::adapt<4>(static_cast<real_t*>(_buf), hi - lo);
-    auto& mf = *static_cast<MfieldsHost*>(ctx);
-    auto ib = mf.ib();
+    auto ib = ctx.ib;
 
-    auto&& mf_gt = mf.gt().view(
-      _s(lo[0] - ib[0], hi[0] - ib[0]), _s(lo[1] - ib[1], hi[1] - ib[1]),
-      _s(lo[2] - ib[2], hi[2] - ib[2]), _s(mb, me), p);
+    auto&& mf_gt = ctx.gt.view(_s(lo[0] - ib[0], hi[0] - ib[0]),
+                               _s(lo[1] - ib[1], hi[1] - ib[1]),
+                               _s(lo[2] - ib[2], hi[2] - ib[2]), _s(mb, me), p);
     mf_gt = mf_gt + buf;
   }
 
   static void copy_from_buf(int mb, int me, int p, int ilo[3], int ihi[3],
-                            void* _buf, void* ctx)
+                            void* _buf, void* _ctx)
   {
     kg::Vec<int, 4> lo = {ilo[0], ilo[1], ilo[2], mb};
     kg::Vec<int, 4> hi = {ihi[0], ihi[1], ihi[2], me};
+    Context& ctx = *static_cast<Context*>(_ctx);
     auto buf = gt::adapt<4>(static_cast<real_t*>(_buf), hi - lo);
-    auto& mf = *static_cast<MfieldsHost*>(ctx);
-    auto ib = mf.ib();
+    auto ib = ctx.ib;
 
-    mf.gt().view(_s(lo[0] - ib[0], hi[0] - ib[0]),
-                 _s(lo[1] - ib[1], hi[1] - ib[1]),
-                 _s(lo[2] - ib[2], hi[2] - ib[2]), _s(mb, me), p) = buf;
+    ctx.gt.view(_s(lo[0] - ib[0], hi[0] - ib[0]),
+                _s(lo[1] - ib[1], hi[1] - ib[1]),
+                _s(lo[2] - ib[2], hi[2] - ib[2]), _s(mb, me), p) = buf;
   }
 
 private:
