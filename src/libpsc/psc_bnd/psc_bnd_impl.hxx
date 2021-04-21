@@ -98,57 +98,42 @@ struct Bnd_ : BndBase
   {
     kg::Vec<int, 4> lo = {ilo[0], ilo[1], ilo[2], mb};
     kg::Vec<int, 4> hi = {ihi[0], ihi[1], ihi[2], me};
-    auto& mf = *static_cast<MfieldsHost*>(ctx);
-    auto&& mf_gt = mf.gt().view(_all, _all, _all, _s(mb, me), p);
-    auto ib = mf.ib();
     auto buf = gt::adapt<4>(static_cast<real_t*>(_buf), hi - lo);
+    auto& mf = *static_cast<MfieldsHost*>(ctx);
+    auto ib = mf.ib();
 
-    for (int m = 0; m < me - mb; m++) {
-      for (int iz = 0; iz < hi[2] - lo[2]; iz++) {
-        for (int iy = 0; iy < hi[1] - lo[1]; iy++) {
-          for (int ix = 0; ix < hi[0] - lo[0]; ix++) {
-            buf(ix, iy, iz, m) = mf_gt(ix + lo[0] - ib[0], iy + lo[1] - ib[1],
-                                       iz + lo[2] - ib[2], m);
-          }
-        }
-      }
-    }
+    buf = mf.gt().view(_s(lo[0] - ib[0], hi[0] - ib[0]),
+                       _s(lo[1] - ib[1], hi[1] - ib[1]),
+                       _s(lo[2] - ib[2], hi[2] - ib[2]), _s(mb, me), p);
   }
 
   static void add_from_buf(int mb, int me, int p, int ilo[3], int ihi[3],
                            void* _buf, void* ctx)
   {
+    kg::Vec<int, 4> lo = {ilo[0], ilo[1], ilo[2], mb};
+    kg::Vec<int, 4> hi = {ihi[0], ihi[1], ihi[2], me};
+    auto buf = gt::adapt<4>(static_cast<real_t*>(_buf), hi - lo);
     auto& mf = *static_cast<MfieldsHost*>(ctx);
-    auto F = make_Fields3d<dim_xyz>(mf[p]);
-    real_t* buf = static_cast<real_t*>(_buf);
+    auto ib = mf.ib();
 
-    for (int m = mb; m < me; m++) {
-      for (int iz = ilo[2]; iz < ihi[2]; iz++) {
-        for (int iy = ilo[1]; iy < ihi[1]; iy++) {
-          for (int ix = ilo[0]; ix < ihi[0]; ix++) {
-            F(m, ix, iy, iz) += MRC_DDC_BUF3(buf, m - mb, ix, iy, iz);
-          }
-        }
-      }
-    }
+    auto&& mf_gt = mf.gt().view(
+      _s(lo[0] - ib[0], hi[0] - ib[0]), _s(lo[1] - ib[1], hi[1] - ib[1]),
+      _s(lo[2] - ib[2], hi[2] - ib[2]), _s(mb, me), p);
+    mf_gt = mf_gt + buf;
   }
 
   static void copy_from_buf(int mb, int me, int p, int ilo[3], int ihi[3],
                             void* _buf, void* ctx)
   {
+    kg::Vec<int, 4> lo = {ilo[0], ilo[1], ilo[2], mb};
+    kg::Vec<int, 4> hi = {ihi[0], ihi[1], ihi[2], me};
+    auto buf = gt::adapt<4>(static_cast<real_t*>(_buf), hi - lo);
     auto& mf = *static_cast<MfieldsHost*>(ctx);
-    auto F = make_Fields3d<dim_xyz>(mf[p]);
-    real_t* buf = static_cast<real_t*>(_buf);
+    auto ib = mf.ib();
 
-    for (int m = mb; m < me; m++) {
-      for (int iz = ilo[2]; iz < ihi[2]; iz++) {
-        for (int iy = ilo[1]; iy < ihi[1]; iy++) {
-          for (int ix = ilo[0]; ix < ihi[0]; ix++) {
-            F(m, ix, iy, iz) = MRC_DDC_BUF3(buf, m - mb, ix, iy, iz);
-          }
-        }
-      }
-    }
+    mf.gt().view(_s(lo[0] - ib[0], hi[0] - ib[0]),
+                 _s(lo[1] - ib[1], hi[1] - ib[1]),
+                 _s(lo[2] - ib[2], hi[2] - ib[2]), _s(mb, me), p) = buf;
   }
 
 private:
