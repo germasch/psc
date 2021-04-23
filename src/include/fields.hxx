@@ -7,6 +7,8 @@
 
 #include <gtensor/gtensor.h>
 
+using namespace gt::placeholders;
+
 // ======================================================================
 // Fields3d
 //
@@ -80,6 +82,13 @@ template <typename D, typename F>
 GT_INLINE auto make_Fields3d(const F& f, Int3 ib)
 {
   return Fields3d<F, D>(f, ib);
+}
+
+template <typename E>
+inline auto view_interior(E&& e, const Int3& bnd)
+{
+  return std::forward<E>(e).view(_s(bnd[0], -bnd[0]), _s(bnd[1], -bnd[1]),
+                                 _s(bnd[2], -bnd[2]));
 }
 
 #endif
