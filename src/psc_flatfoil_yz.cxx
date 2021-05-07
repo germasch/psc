@@ -26,7 +26,7 @@
 
 // FIXME select a hardcoded case, if not already specified
 #ifndef CASE
-#define CASE CASE_2D
+#define CASE CASE_3D
 #endif
 
 // ======================================================================
@@ -238,7 +238,7 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 10000001; // 5001;
+  psc_params.nmax = 1501; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 1000;
   psc_params.stats_every = 1;
