@@ -164,11 +164,14 @@ public:
 
   explicit Moment_1st_cuda(const Grid_t& grid)
     : Base{grid}, bnd_{grid, grid.ibn}
-  {}
+  {
+    mem_stats(__FILE__, __LINE__);
+  }
 
   explicit Moment_1st_cuda(const Mparticles& mprts)
     : Base{mprts.grid()}, bnd_{mprts.grid(), mprts.grid().ibn}
   {
+    mem_stats(__FILE__, __LINE__);
     update(mprts);
   }
 
@@ -189,17 +192,20 @@ public:
     prof_start(pr_1);
     Base::mres_.gt().view() = 0.;
     prof_stop(pr_1);
+    mem_stats(__FILE__, __LINE__);
 
     prof_start(pr_2);
     CudaMoments1stAll<cuda_mparticles<typename Mparticles::BS>, dim> cmoments;
     cmoments(cmprts, Base::mres_);
     prof_stop(pr_2);
+    mem_stats(__FILE__, __LINE__);
 
     prof_start(pr_3);
     bnd_.add_ghosts(Base::mres_, 0, Base::mres_.n_comps());
     prof_stop(pr_3);
 
     prof_stop(pr);
+    mem_stats(__FILE__, __LINE__);
   }
 
   const Mfields& result() const { return Base::mres_; }

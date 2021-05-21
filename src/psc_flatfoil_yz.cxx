@@ -10,6 +10,10 @@
 #include "../libpsc/psc_heating/psc_heating_impl.hxx"
 #include "heating_spot_foil.hxx"
 
+#include <rmm/mr/device/logging_resource_adaptor.hpp>
+#include <rmm/mr/device/tracking_resource_adaptor.hpp>
+#include <rmm/mr/device/pool_memory_resource.hpp>
+
 // quasi 1-d
 #define CASE_1D 1
 #define CASE_2D 2
@@ -393,6 +397,53 @@ void initializeFields(MfieldsState& mflds)
   });
 }
 
+extern std::size_t mem_particles;
+extern std::size_t mem_collisions;
+extern std::size_t mem_sort;
+extern std::size_t mem_bnd;
+extern std::size_t mem_heating;
+
+void mem_stats(std::string file, int line)
+{
+  std::size_t mem_fields = 0;
+  for (auto mflds : MfieldsBase::instances) {
+    auto mflds_cuda = dynamic_cast<MfieldsCuda*>(mflds);
+    if (mflds_cuda) {
+      auto dims = mflds->_grid().ldims + 2 * mflds->ibn();
+      auto n_patches = mflds->_grid().n_patches();
+      std::size_t bytes = sizeof(float) * dims[0] * dims[1] * dims[2] *
+                          n_patches * mflds->_n_comps();
+      // std::cout << "===== MfieldsCuda # of components " << mflds->_n_comps()
+      //           << " bytes " << bytes << "\n";
+      mem_fields += bytes;
+    } else {
+      // std::cout << "===== MfieldsBase # of components " << mflds->_n_comps()
+      //           << "\n";
+    }
+  }
+  std::cout << "===== MEM " << file << ":" << line << "\n";
+  std::cout << "===== fields     " << mem_fields << " bytes  # "
+            << MfieldsBase::instances.size() << "\n";
+  std::cout << "===== particles  " << mem_particles << " bytes\n";
+  std::cout << "===== collisions " << mem_collisions << " bytes\n";
+  std::cout << "===== sort       " << mem_sort << " bytes\n";
+  std::cout << "===== bnd        " << mem_bnd << " bytes\n";
+  std::cout << "===== heating    " << mem_heating << " bytes\n";
+  std::size_t total = mem_fields + mem_particles + mem_collisions + mem_sort +
+                      mem_bnd + mem_heating;
+
+  using pool = rmm::mr::pool_memory_resource<rmm::mr::device_memory_resource>;
+  using track = rmm::mr::tracking_resource_adaptor<pool>;
+  using log = rmm::mr::logging_resource_adaptor<track>;
+  auto mr = rmm::mr::get_current_device_resource();
+  auto log_mr = dynamic_cast<log*>(mr);
+  assert(log_mr);
+  auto track_mr = log_mr->get_upstream();
+  auto bytes = track_mr->get_allocated_bytes();
+  std::cout << "===== alloced " << bytes << " total " << total
+            << " unaccounted " << bytes - total << "\n";
+}
+
 // ======================================================================
 // run
 //
@@ -609,6 +660,8 @@ void run()
       pr_heating = prof_register("heating", 1., 0, 0);
     }
 
+    mem_stats(__FILE__, __LINE__);
+
     auto comm = grid.comm();
     auto timestep = grid.timestep();
 
@@ -660,11 +713,15 @@ void run()
   // ----------------------------------------------------------------------
   // setup initial conditions
 
+  mem_stats(__FILE__, __LINE__);
+
   if (read_checkpoint_filename.empty()) {
     initializeParticles(setup_particles, balance, grid_ptr, mprts,
                         inject_target);
     initializeFields(mflds);
   }
+
+  mem_stats(__FILE__, __LINE__);
 
   // ----------------------------------------------------------------------
   // hand off to PscIntegrator to run the simulation
@@ -684,6 +741,8 @@ int main(int argc, char** argv)
   psc_init(argc, argv);
 
   run();
+
+  mem_stats(__FILE__, __LINE__);
 
   psc_finalize();
   return 0;

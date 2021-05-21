@@ -68,4 +68,12 @@ __host__ __device__ static inline int cuda_float_as_int(float f)
   return u.i;
 };
 
+template <typename V>
+std::size_t allocated_bytes(const V& v)
+{
+  return v.capacity() * sizeof(typename V::value_type);
+}
+
+void mem_stats(std::string file, int line);
+
 #endif

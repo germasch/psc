@@ -11,6 +11,8 @@
 
 #include <curand_kernel.h>
 
+extern std::size_t mem_sort;
+
 template <typename BS>
 struct cuda_mparticles;
 
@@ -219,12 +221,38 @@ public:
 
 struct cuda_mparticles_randomize_sort
 {
+  cuda_mparticles_randomize_sort()
+  {
+    mem_sort += d_off.capacity() * sizeof(typename decltype(d_off)::value_type);
+    mem_sort += d_id.capacity() * sizeof(typename decltype(d_id)::value_type);
+    mem_sort += d_random_idx.capacity() *
+                sizeof(typename decltype(d_random_idx)::value_type);
+  }
+
+  ~cuda_mparticles_randomize_sort()
+  {
+    mem_sort -= d_off.capacity() * sizeof(typename decltype(d_off)::value_type);
+    mem_sort -= d_id.capacity() * sizeof(typename decltype(d_id)::value_type);
+    mem_sort -= d_random_idx.capacity() *
+                sizeof(typename decltype(d_random_idx)::value_type);
+  }
+
   template <typename BS>
   void find_indices_ids(cuda_mparticles<BS>& cmprts)
   {
+    mem_sort -= d_off.capacity() * sizeof(typename decltype(d_off)::value_type);
     d_off.resize(cmprts.n_cells() + 1);
+    mem_sort += d_off.capacity() * sizeof(typename decltype(d_off)::value_type);
+
+    mem_sort -= d_id.capacity() * sizeof(typename decltype(d_id)::value_type);
     d_id.resize(cmprts.n_prts);
+    mem_sort += d_id.capacity() * sizeof(typename decltype(d_id)::value_type);
+
+    mem_sort -= d_random_idx.capacity() *
+                sizeof(typename decltype(d_random_idx)::value_type);
     d_random_idx.resize(cmprts.n_prts);
+    mem_sort += d_random_idx.capacity() *
+                sizeof(typename decltype(d_random_idx)::value_type);
 
     if (cmprts.n_patches() == 0) {
       return;
@@ -247,7 +275,11 @@ struct cuda_mparticles_randomize_sort
     }
 
     if (max_n_prts > rng_state_.size()) {
+      mem_sort -= rng_state_.capacity() *
+                  sizeof(typename decltype(rng_state_)::value_type);
       rng_state_.resize(2 * max_n_prts);
+      mem_sort += rng_state_.capacity() *
+                  sizeof(typename decltype(rng_state_)::value_type);
     }
 
     dim3 dimGrid((max_n_prts + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
