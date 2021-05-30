@@ -37,7 +37,7 @@ using DMparticlesCudaStorage = MparticlesCudaStorage_<gt::span<float4>>;
 namespace helper
 {
 template <typename S>
-void grow(S& vec, std::size_t n)
+void reserve(S& vec, std::size_t n)
 {
   S new_vec(n);
   new_vec.resize(vec.size());
@@ -155,8 +155,8 @@ public:
       pxi4.reserve(1.2 * n);
 #else
       // workaround thrust mem leak and exponential growth
-      helper::reserve(xi4, 1.2 * n);
-      helper::reserve(pxi4, 1.2 * n);
+      helper::reserve(xi4, 1.1 * n);
+      helper::reserve(pxi4, 1.1 * n);
 #endif
     }
     xi4.resize(n);
