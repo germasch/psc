@@ -115,6 +115,35 @@ inline void find_cell_indices_ids(cuda_mparticles<BS>& cmprts,
 // ----------------------------------------------------------------------
 // find_random_cell_indices_ids
 
+#if 1
+template <typename BS, typename Block>
+__global__ static void k_find_random_cell_indices_ids(
+  DMparticlesCuda<BS> dmprts, double* d_random_idx, uint* d_id,
+  RngStateCuda::Device rng_state)
+{
+  Block current_block;
+  if (!current_block.init(dmprts)) {
+    return;
+  }
+
+  int block_begin = dmprts.off_[current_block.bid];
+  int block_end = dmprts.off_[current_block.bid + 1];
+  for (int n : in_block_loop(block_begin, block_end)) {
+    if (n < block_begin) {
+      continue;
+    }
+    auto rng = rng_state[n];
+
+    auto prt = dmprts.storage[n];
+    d_random_idx[n] =
+      dmprts.validCellIndex(prt, current_block.p) + .5 * rng.uniform();
+    d_id[n] = n;
+
+    rng_state[n] = rng;
+  }
+}
+
+#else
 template <typename BS>
 __global__ static void k_find_random_cell_indices_ids(
   DMparticlesCuda<BS> dmprts, double* d_random_idx, uint* d_id, int n_patches,
@@ -140,6 +169,7 @@ __global__ static void k_find_random_cell_indices_ids(
 
   rng_state[n] = rng;
 }
+#endif
 
 // ----------------------------------------------------------------------
 // find_block_indices_ids
@@ -293,6 +323,26 @@ struct cuda_mparticles_randomize_sort
       return;
     }
 
+#if 1
+    int n_prts = cmprts.n_prts;
+    if (n_prts > rng_state_.size()) {
+      mem_sort -= rng_state_.capacity() *
+                  sizeof(typename decltype(rng_state_)::value_type);
+      rng_state_.resize(2 * n_prts);
+      mem_sort += rng_state_.capacity() *
+                  sizeof(typename decltype(rng_state_)::value_type);
+    }
+
+    using Block = BlockSimple<BS, dim_yz>;
+    dim3 dimGrid = Block::dimGrid(cmprts);
+
+    for (auto block_start : Block::block_starts()) {
+      ::k_find_random_cell_indices_ids<BS, Block>
+        <<<dimGrid, THREADS_PER_BLOCK>>>(cmprts, d_random_idx.data().get(),
+                                         d_id.data().get(), rng_state_);
+      cuda_sync_if_enabled();
+    }
+#else
     // OPT: if we didn't need max_n_prts, we wouldn't have to get the
     // sizes / offsets at all, and it seems likely we could do a better
     // job here in general
@@ -324,6 +374,7 @@ struct cuda_mparticles_randomize_sort
       cmprts, d_random_idx.data().get(), d_id.data().get(), cmprts.n_patches(),
       cmprts.n_blocks_per_patch, rng_state_);
     cuda_sync_if_enabled();
+#endif
   }
 
   void sort()
