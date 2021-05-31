@@ -11,7 +11,8 @@
 #include "testing.hxx"
 
 using dim = dim_yz;
-using Mparticles = MparticlesCuda<BS144>;
+using BS = BS144;
+using Mparticles = MparticlesCuda<BS>;
 
 // ======================================================================
 // RngStateCuda
@@ -159,7 +160,7 @@ TEST(cuda_mparticles_sort, sort)
 
   auto sort = cuda_mparticles_sort(cmprts.n_cells());
 
-  sort.find_indices_ids(cmprts);
+  sort.find_indices_ids<BS, dim>(cmprts);
   EXPECT_EQ(sort.d_idx, (std::vector<int>{0, 0, 9, 9, 9, 1, 1, 1, 1, 82, 82, 91,
                                           91, 83, 83}));
   EXPECT_EQ(sort.d_id, (std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
@@ -276,7 +277,7 @@ TEST(CollisionTest, Test2)
 
   auto& cmprts = *mprts.cmprts();
   auto sort_by_cell = cuda_mparticles_sort(cmprts.n_cells());
-  sort_by_cell.find_indices_ids(cmprts);
+  sort_by_cell.find_indices_ids<BS, dim>(cmprts);
   EXPECT_EQ(sort_by_cell.d_idx, (std::vector<int>{0, 0, 9, 9, 9, 1, 1, 1, 1, 82,
                                                   82, 91, 91, 83, 83}));
   EXPECT_EQ(sort_by_cell.d_id, (std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
