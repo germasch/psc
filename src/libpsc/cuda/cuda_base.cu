@@ -27,6 +27,8 @@ using pool_mr_type = rmm::mr::pool_memory_resource<device_mr_type>;
 // using track_mr_type = rmm::mr::tracking_resource_adaptor<pool_mr_type>;
 using track_mr_type = rmm::mr::tracking_resource_adaptor<device_mr_type>;
 using log_mr_type = rmm::mr::logging_resource_adaptor<track_mr_type>;
+
+static std::unique_ptr<track_mr_type> track_mr;
 #endif
 
 void cuda_base_init(void)
@@ -43,8 +45,8 @@ void cuda_base_init(void)
   static rmm::mr::logging_resource_adaptor<device_mr_type> _log_mr{
     mr, std::cout, true};
   static pool_mr_type pool_mr{&_log_mr};
-  static track_mr_type track_mr{&pool_mr};
-  static log_mr_type log_mr{&track_mr, std::cout, true};
+  track_mr.reset(new track_mr_type{&pool_mr});
+  static log_mr_type log_mr{track_mr.get(), std::cout, true};
   rmm::mr::set_current_device_resource(&log_mr);
 #endif
 
@@ -139,10 +141,6 @@ void cuda_base_init(void)
 std::size_t mem_cuda_allocated()
 {
 #ifdef PSC_HAVE_RMM
-  auto mr = rmm::mr::get_current_device_resource();
-  auto log_mr = dynamic_cast<log_mr_type*>(mr);
-  assert(log_mr);
-  auto track_mr = log_mr->get_upstream();
   return track_mr->get_allocated_bytes();
 #else
   return 0;
