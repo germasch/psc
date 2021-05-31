@@ -147,9 +147,7 @@ struct Psc
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     log_.open("mem-" + std::to_string(rank) + ".log");
 
-    log_ << "step,n_patches,n_prts,fields,nfields,particles,collisions,sort,"
-            "sort_block,bnd,bndp,heating,allocated,total,unaccounted"
-         << "\n";
+    mem_stats_csv_header(log_);
 
     initialize_stats();
     initialize();
