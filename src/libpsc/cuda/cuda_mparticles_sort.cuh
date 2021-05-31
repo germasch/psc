@@ -22,6 +22,8 @@ struct DMparticlesCuda;
 
 #define THREADS_PER_BLOCK 256
 
+using dim = dim_yz; // FIXME
+
 // ----------------------------------------------------------------------
 // find_cell_indices_ids
 
@@ -45,6 +47,31 @@ __global__ static void k_find_cell_indices_ids(DMparticlesCuda<BS> dmprts,
 }
 
 template <typename BS>
+__global__ static void k_find_cell_indices_ids_2(DMparticlesCuda<BS> dmprts,
+                                                 uint* d_cidx, uint* d_id,
+                                                 int n_patches,
+                                                 int n_blocks_per_patch)
+{
+  using Block = BlockSimple<BS, dim>;
+  Block current_block;
+  if (!current_block.init(dmprts)) {
+    return;
+  }
+
+  int block_begin = dmprts.off_[current_block.bid];
+  int block_end = dmprts.off_[current_block.bid + 1];
+  for (int n : in_block_loop(block_begin, block_end)) {
+    if (n < block_begin) {
+      continue;
+    }
+    auto prt = dmprts.storage[n];
+    printf("n %d prt %g\n", n, prt.u[0]);
+    d_cidx[n] = dmprts.validCellIndex(prt, current_block.p);
+    d_id[n] = n;
+  }
+}
+
+template <typename BS>
 inline void find_cell_indices_ids(cuda_mparticles<BS>& cmprts,
                                   psc::device_vector<uint>& d_cidx,
                                   psc::device_vector<uint>& d_id)
@@ -53,6 +80,18 @@ inline void find_cell_indices_ids(cuda_mparticles<BS>& cmprts,
     return;
   }
 
+#if 1
+  using Block = BlockSimple<BS, dim>;
+  dim3 dimGrid = Block::dimGrid(cmprts);
+
+  for (auto block_start : Block::block_starts()) {
+    std::cout << "block_start " << block_start << "\n";
+    ::k_find_cell_indices_ids_2<BS><<<dimGrid, THREADS_PER_BLOCK>>>(
+      cmprts, d_cidx.data().get(), d_id.data().get(), cmprts.n_patches(),
+      cmprts.n_blocks_per_patch);
+    cuda_sync_if_enabled();
+  }
+#else
   // OPT: if we didn't need max_n_prts, we wouldn't have to get the
   // sizes / offsets at all, and it seems likely we could do a better
   // job here in general
@@ -76,6 +115,7 @@ inline void find_cell_indices_ids(cuda_mparticles<BS>& cmprts,
     <<<dimGrid, dimBlock>>>(cmprts, d_cidx.data().get(), d_id.data().get(),
                             cmprts.n_patches(), cmprts.n_blocks_per_patch);
   cuda_sync_if_enabled();
+#endif
 }
 
 // ----------------------------------------------------------------------
