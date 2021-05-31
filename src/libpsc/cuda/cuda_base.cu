@@ -14,7 +14,7 @@
 #include <mrc_common.h>
 
 std::size_t mem_particles;
-std::size_t mem_sort;
+std::size_t mem_randomize_sort;
 std::size_t mem_sort_by_block;
 std::size_t mem_bnd;
 std::size_t mem_heating;
@@ -127,11 +127,11 @@ void cuda_base_init(void)
       "  Compute mode:                                  %s\n",
       deviceProp.computeMode == cudaComputeModeDefault
         ? "Default (multiple host threads can use this device simultaneously)"
-      : deviceProp.computeMode == cudaComputeModeExclusive
-        ? "Exclusive (only one host thread at a time can use this device)"
-      : deviceProp.computeMode == cudaComputeModeProhibited
-        ? "Prohibited (no host thread can use this device)"
-        : "Unknown");
+        : deviceProp.computeMode == cudaComputeModeExclusive
+            ? "Exclusive (only one host thread at a time can use this device)"
+            : deviceProp.computeMode == cudaComputeModeProhibited
+                ? "Prohibited (no host thread can use this device)"
+                : "Unknown");
 #endif
   }
 }
