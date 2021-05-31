@@ -151,6 +151,12 @@ TEST(cuda_mparticles_sort, sort)
   auto mprts = make_mparticles(grid);
 
   auto& cmprts = *mprts.cmprts();
+  std::cout << "off sz " << cmprts.by_block_.d_off.size() << "\n";
+  std::cout << "off ";
+  std::copy(cmprts.by_block_.d_off.begin(), cmprts.by_block_.d_off.end(),
+            std::ostream_iterator<double>(std::cout, " "));
+  std::cout << "\n";
+
   auto sort = cuda_mparticles_sort(cmprts.n_cells());
 
   sort.find_indices_ids(cmprts);
@@ -186,6 +192,7 @@ TEST(cuda_mparticles_sort, sort)
   }
   std::copy(sort.d_off.begin(), sort.d_off.end(),
             std::ostream_iterator<int>(std::cout, " "));
+  std::cout << "\n";
   EXPECT_EQ(sort.d_off, off);
 }
 
@@ -239,6 +246,7 @@ TEST(cuda_mparticles_randomize_sort, sort)
   }
   std::copy(sort.d_off.begin(), sort.d_off.end(),
             std::ostream_iterator<int>(std::cout, " "));
+  std::cout << "\n";
   EXPECT_EQ(sort.d_off, off);
 
 #if 1
