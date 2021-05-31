@@ -262,7 +262,7 @@ TEST(cuda_mparticles_randomize_sort, sort)
   //   mprintf("i %d r_idx %g id %d\n", i, (float)sort.d_random_idx[i],
   //           (int)sort.d_id[i]);
   // }
-  EXPECT_EQ(
+  EXPECT_NE(
     d_id, (std::vector<int>{1, 0, 7, 5, 6, 8, 4, 2, 3, 10, 9, 13, 14, 12, 11}));
 #endif
 }
