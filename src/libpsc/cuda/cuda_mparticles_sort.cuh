@@ -221,7 +221,6 @@ struct cuda_mparticles_randomize_sort
   {
     mem_sort -= allocated_bytes(d_off);
     mem_sort -= allocated_bytes(d_id);
-    mem_sort -= allocated_bytes(d_random_idx);
   }
 
   template <typename BS, typename dim>
@@ -239,9 +238,7 @@ struct cuda_mparticles_randomize_sort
     d_id.resize(cmprts.n_prts);
     mem_sort += allocated_bytes(d_id);
 
-    mem_sort -= allocated_bytes(d_random_idx);
-    d_random_idx.resize(cmprts.n_prts);
-    mem_sort += allocated_bytes(d_random_idx);
+    psc::device_vector<double> d_random_idx(cmprts.n_prts);
 
     find_indices_ids<BS, dim>(cmprts, d_random_idx, d_id);
     sort(d_random_idx, d_id);
@@ -302,7 +299,6 @@ public:
            // are at indices [offsets[cell] .. offsets[cell+1][
 
 private:
-  psc::device_vector<double> d_random_idx; // randomized cell index
   RngStateCuda rng_state_;
 };
 
