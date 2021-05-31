@@ -22,17 +22,14 @@ struct DMparticlesCuda;
 
 #define THREADS_PER_BLOCK 256
 
-using dim = dim_yz; // FIXME
-
 // ----------------------------------------------------------------------
 // find_cell_indices_ids
 
 #if 1
-template <typename BS>
+template <typename BS, typename Block>
 __global__ static void k_find_cell_indices_ids(DMparticlesCuda<BS> dmprts,
                                                uint* d_cidx, uint* d_id)
 {
-  using Block = BlockSimple<BS, dim>;
   Block current_block;
   if (!current_block.init(dmprts)) {
     return;
@@ -70,7 +67,7 @@ __global__ static void k_find_cell_indices_ids(DMparticlesCuda<BS> dmprts,
 }
 #endif
 
-template <typename BS>
+template <typename BS, typename dim>
 inline void find_cell_indices_ids(cuda_mparticles<BS>& cmprts,
                                   psc::device_vector<uint>& d_cidx,
                                   psc::device_vector<uint>& d_id)
@@ -84,7 +81,7 @@ inline void find_cell_indices_ids(cuda_mparticles<BS>& cmprts,
   dim3 dimGrid = Block::dimGrid(cmprts);
 
   for (auto block_start : Block::block_starts()) {
-    ::k_find_cell_indices_ids<BS><<<dimGrid, THREADS_PER_BLOCK>>>(
+    ::k_find_cell_indices_ids<BS, Block><<<dimGrid, THREADS_PER_BLOCK>>>(
       cmprts, d_cidx.data().get(), d_id.data().get());
     cuda_sync_if_enabled();
   }
@@ -211,12 +208,12 @@ struct cuda_mparticles_sort
 {
   cuda_mparticles_sort(uint n_cells) : d_off(n_cells + 1) {}
 
-  template <typename BS>
+  template <typename BS, typename dim>
   void find_indices_ids(cuda_mparticles<BS>& cmprts)
   {
     d_idx.resize(cmprts.n_prts);
     d_id.resize(cmprts.n_prts);
-    find_cell_indices_ids(cmprts, d_idx, d_id);
+    find_cell_indices_ids<BS, dim>(cmprts, d_idx, d_id);
   }
 
   void stable_sort_cidx()
