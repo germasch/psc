@@ -27,6 +27,29 @@ using dim = dim_yz; // FIXME
 // ----------------------------------------------------------------------
 // find_cell_indices_ids
 
+#if 1
+template <typename BS>
+__global__ static void k_find_cell_indices_ids(DMparticlesCuda<BS> dmprts,
+                                               uint* d_cidx, uint* d_id)
+{
+  using Block = BlockSimple<BS, dim>;
+  Block current_block;
+  if (!current_block.init(dmprts)) {
+    return;
+  }
+
+  int block_begin = dmprts.off_[current_block.bid];
+  int block_end = dmprts.off_[current_block.bid + 1];
+  for (int n : in_block_loop(block_begin, block_end)) {
+    if (n < block_begin) {
+      continue;
+    }
+    auto prt = dmprts.storage[n];
+    d_cidx[n] = dmprts.validCellIndex(prt, current_block.p);
+    d_id[n] = n;
+  }
+}
+#else
 template <typename BS>
 __global__ static void k_find_cell_indices_ids(DMparticlesCuda<BS> dmprts,
                                                uint* d_cidx, uint* d_id,
@@ -45,31 +68,7 @@ __global__ static void k_find_cell_indices_ids(DMparticlesCuda<BS> dmprts,
     }
   }
 }
-
-template <typename BS>
-__global__ static void k_find_cell_indices_ids_2(DMparticlesCuda<BS> dmprts,
-                                                 uint* d_cidx, uint* d_id,
-                                                 int n_patches,
-                                                 int n_blocks_per_patch)
-{
-  using Block = BlockSimple<BS, dim>;
-  Block current_block;
-  if (!current_block.init(dmprts)) {
-    return;
-  }
-
-  int block_begin = dmprts.off_[current_block.bid];
-  int block_end = dmprts.off_[current_block.bid + 1];
-  for (int n : in_block_loop(block_begin, block_end)) {
-    if (n < block_begin) {
-      continue;
-    }
-    auto prt = dmprts.storage[n];
-    printf("n %d prt %g\n", n, prt.u[0]);
-    d_cidx[n] = dmprts.validCellIndex(prt, current_block.p);
-    d_id[n] = n;
-  }
-}
+#endif
 
 template <typename BS>
 inline void find_cell_indices_ids(cuda_mparticles<BS>& cmprts,
@@ -85,10 +84,8 @@ inline void find_cell_indices_ids(cuda_mparticles<BS>& cmprts,
   dim3 dimGrid = Block::dimGrid(cmprts);
 
   for (auto block_start : Block::block_starts()) {
-    std::cout << "block_start " << block_start << "\n";
-    ::k_find_cell_indices_ids_2<BS><<<dimGrid, THREADS_PER_BLOCK>>>(
-      cmprts, d_cidx.data().get(), d_id.data().get(), cmprts.n_patches(),
-      cmprts.n_blocks_per_patch);
+    ::k_find_cell_indices_ids<BS><<<dimGrid, THREADS_PER_BLOCK>>>(
+      cmprts, d_cidx.data().get(), d_id.data().get());
     cuda_sync_if_enabled();
   }
 #else
