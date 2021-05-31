@@ -476,8 +476,8 @@ void run()
   // -- Checks
   ChecksParams checks_params{};
 #if CASE == CASE_2D_SMALL
-  checks_params.continuity_every_step = 1;
-  checks_params.continuity_dump_always = true;
+  checks_params.continuity_every_step = 10;
+  checks_params.continuity_dump_always = false;
 #else
   checks_params.continuity_every_step = 0;
   checks_params.continuity_dump_always = false;
@@ -486,8 +486,8 @@ void run()
   checks_params.continuity_verbose = true;
 
 #if CASE == CASE_2D_SMALL
-  checks_params.gauss_every_step = 1;
-  checks_params.gauss_dump_always = true;
+  checks_params.gauss_every_step = 10;
+  checks_params.gauss_dump_always = false;
 #else
   checks_params.gauss_every_step = 100;
   checks_params.gauss_dump_always = false;
@@ -501,8 +501,8 @@ void run()
   double marder_diffusion = 0.9;
   int marder_loop = 3;
 #if CASE == CASE_2D_SMALL
-  bool marder_dump = true;
-  psc_params.marder_interval = 2;
+  bool marder_dump = false;
+  psc_params.marder_interval = 10;
 #else
   bool marder_dump = false;
   psc_params.marder_interval = 100;
@@ -521,8 +521,8 @@ void run()
   outf_item_params.pfield_interval = 100;
   outf_item_params.tfield_interval = -100;
 #elif CASE == CASE_2D_SMALL
-  outf_item_params.pfield_interval = 4;
-  outf_item_params.tfield_interval = 4;
+  outf_item_params.pfield_interval = -4;
+  outf_item_params.tfield_interval = -4;
 #else
   outf_item_params.pfield_interval = -500;
   outf_item_params.tfield_interval = -500;
