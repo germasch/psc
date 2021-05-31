@@ -224,9 +224,13 @@ struct cuda_mparticles_randomize_sort
     mem_sort -= allocated_bytes(d_random_idx);
   }
 
-  template <typename BS>
-  void find_indices_ids(cuda_mparticles<BS>& cmprts)
+  template <typename BS, typename dim>
+  void operator()(cuda_mparticles<BS>& cmprts)
   {
+    if (cmprts.n_patches() == 0) {
+      return;
+    }
+
     mem_sort -= allocated_bytes(d_off);
     d_off.resize(cmprts.n_cells() + 1);
     mem_sort += allocated_bytes(d_off);
@@ -239,12 +243,21 @@ struct cuda_mparticles_randomize_sort
     d_random_idx.resize(cmprts.n_prts);
     mem_sort += allocated_bytes(d_random_idx);
 
-    if (cmprts.n_patches() == 0) {
-      return;
-    }
+    find_indices_ids<BS, dim>(cmprts, d_random_idx, d_id);
+    sort(d_random_idx, d_id);
+    find_offsets(d_random_idx, d_off);
+  }
 
-    using Block = BlockSimple<BS, dim_yz>;
+  template <typename BS, typename dim>
+  void find_indices_ids(cuda_mparticles<BS>& cmprts,
+                        psc::device_vector<double>& d_random_idx,
+                        psc::device_vector<uint>& d_id)
+  {
+    using Block = BlockSimple<BS, dim>;
     dim3 dimGrid = Block::dimGrid(cmprts);
+
+    assert(d_random_idx.size() == cmprts.n_prts);
+    assert(d_id.size() == cmprts.n_prts);
 
     int n_blocks = cmprts.b_mx()[0] * cmprts.b_mx()[1] * cmprts.b_mx()[2] *
                    cmprts.n_patches();
@@ -261,7 +274,8 @@ struct cuda_mparticles_randomize_sort
     cuda_sync_if_enabled();
   }
 
-  void sort()
+  void sort(psc::device_vector<double>& d_random_idx,
+            psc::device_vector<uint>& d_id)
   {
 #ifdef PSC_HAVE_RMM
     thrust::sort_by_key(rmm::exec_policy(), d_random_idx.begin(),
@@ -271,7 +285,8 @@ struct cuda_mparticles_randomize_sort
 #endif
   }
 
-  void find_offsets()
+  void find_offsets(psc::device_vector<double>& d_random_idx,
+                    psc::device_vector<uint>& d_off)
   {
     int n_cells = d_off.size() - 1;
     thrust::counting_iterator<uint> search_begin(0);
@@ -281,11 +296,13 @@ struct cuda_mparticles_randomize_sort
   }
 
 public:
-  psc::device_vector<double> d_random_idx; // randomized cell index
-  psc::device_vector<uint> d_id;           // particle id used for reordering
+  psc::device_vector<uint> d_id; // particle id used for reordering
   psc::device_vector<uint>
     d_off; // particles per cell
            // are at indices [offsets[cell] .. offsets[cell+1][
+
+private:
+  psc::device_vector<double> d_random_idx; // randomized cell index
   RngStateCuda rng_state_;
 };
 
