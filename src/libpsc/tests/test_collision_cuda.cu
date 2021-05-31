@@ -152,11 +152,11 @@ TEST(cuda_mparticles_sort, sort)
   auto mprts = make_mparticles(grid);
 
   auto& cmprts = *mprts.cmprts();
-  std::cout << "off sz " << cmprts.by_block_.d_off.size() << "\n";
-  std::cout << "off ";
-  std::copy(cmprts.by_block_.d_off.begin(), cmprts.by_block_.d_off.end(),
-            std::ostream_iterator<double>(std::cout, " "));
-  std::cout << "\n";
+  // std::cout << "off sz " << cmprts.by_block_.d_off.size() << "\n";
+  // std::cout << "off ";
+  // std::copy(cmprts.by_block_.d_off.begin(), cmprts.by_block_.d_off.end(),
+  //           std::ostream_iterator<double>(std::cout, " "));
+  // std::cout << "\n";
 
   auto sort = cuda_mparticles_sort(cmprts.n_cells());
 
@@ -191,9 +191,9 @@ TEST(cuda_mparticles_sort, sort)
   for (int i = 92; i <= 256; i++) {
     off[i] = 15;
   }
-  std::copy(sort.d_off.begin(), sort.d_off.end(),
-            std::ostream_iterator<int>(std::cout, " "));
-  std::cout << "\n";
+  // std::copy(sort.d_off.begin(), sort.d_off.end(),
+  //           std::ostream_iterator<int>(std::cout, " "));
+  // std::cout << "\n";
   EXPECT_EQ(sort.d_off, off);
 }
 
@@ -213,8 +213,8 @@ TEST(cuda_mparticles_randomize_sort, sort)
                                          12, 13, 14}));
 
   sort.sort();
-  EXPECT_EQ(sort.d_id, (std::vector<int>{0, 1, 7, 5, 8, 6, 2, 4, 3, 9, 10, 13,
-                                         14, 11, 12}));
+  EXPECT_EQ(sort.d_id, (std::vector<int>{1, 0, 7, 5, 6, 8, 4, 2, 3, 10, 9, 13,
+                                         14, 12, 11}));
 
   auto last = sort.d_random_idx[0];
   for (int i = 1; i < cmprts.size(); i++) {
@@ -245,9 +245,9 @@ TEST(cuda_mparticles_randomize_sort, sort)
   for (int i = 92; i <= 256; i++) {
     off[i] = 15;
   }
-  std::copy(sort.d_off.begin(), sort.d_off.end(),
-            std::ostream_iterator<int>(std::cout, " "));
-  std::cout << "\n";
+  // std::copy(sort.d_off.begin(), sort.d_off.end(),
+  //           std::ostream_iterator<int>(std::cout, " "));
+  // std::cout << "\n";
   EXPECT_EQ(sort.d_off, off);
 
 #if 1
