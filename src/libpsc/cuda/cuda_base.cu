@@ -46,8 +46,9 @@ void cuda_base_init(void)
     mr, std::cout, true};
   static pool_mr_type pool_mr{&_log_mr};
   track_mr.reset(new track_mr_type{&pool_mr});
-  static log_mr_type log_mr{track_mr.get(), std::cout, true};
-  rmm::mr::set_current_device_resource(&log_mr);
+  //   static log_mr_type log_mr{track_mr.get(), std::cout, true};
+  //   rmm::mr::set_current_device_resource(&log_mr);
+  rmm::mr::set_current_device_resource(track_mr.get());
 #endif
 
   int deviceCount;
