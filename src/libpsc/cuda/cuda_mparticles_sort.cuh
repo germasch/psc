@@ -245,7 +245,7 @@ struct cuda_mparticles_randomize_sort
                         psc::device_vector<double>& d_random_idx,
                         psc::device_vector<uint>& d_id)
   {
-    using Block = BlockSimple<BS, dim>;
+    using Block = BlockSimple2<BS, dim>;
     dim3 dimGrid = Block::dimGrid(cmprts);
 
     assert(d_random_idx.size() == cmprts.n_prts);
@@ -254,6 +254,7 @@ struct cuda_mparticles_randomize_sort
     int n_blocks = cmprts.b_mx()[0] * cmprts.b_mx()[1] * cmprts.b_mx()[2] *
                    cmprts.n_patches();
 
+    std::cout << "n_blocks " << n_blocks << " dimGrid " << dimGrid.x << "\n";
     if (dimGrid.x * THREADS_PER_BLOCK > rng_state_.size()) {
       mem_randomize_sort -= allocated_bytes(rng_state_);
       rng_state_.resize(dimGrid.x * THREADS_PER_BLOCK);
