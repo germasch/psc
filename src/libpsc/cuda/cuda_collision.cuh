@@ -58,9 +58,13 @@ struct CudaCollision
     }
     prof_start(pr_sort);
     cmprts.reorder();
-    sort_.find_indices_ids(cmprts);
-    sort_.sort();
-    sort_.find_offsets();
+    // FIXME
+    using dim = dim_yz;
+    const auto& grid = cmprts.grid();
+    assert(grid.isInvar(0) == dim::InvarX::value);
+    assert(grid.isInvar(1) == dim::InvarY::value);
+    assert(grid.isInvar(2) == dim::InvarZ::value);
+    sort_.operator()<typename cuda_mparticles::BS, dim>(cmprts);
     prof_stop(pr_sort);
     // for (int c = 0; c <= cmprts.n_cells(); c++) {
     //   printf("off[%d] = %d\n", c, int(sort_by_cell.d_off[c]));
