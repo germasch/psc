@@ -19,6 +19,8 @@
 #include "psc_fields_cuda.inl"
 #endif
 
+#include <spdlog/spdlog.h>
+
 #include <fstream>
 
 #ifdef VPIC
@@ -184,10 +186,12 @@ struct Psc
 
     // initial output / stats
     mpi_printf(grid().comm(), "Performing initial diagnostics.\n");
+    spdlog::info("Performing initial diagnostics.");
     diagnostics();
     print_status();
 
     mpi_printf(grid().comm(), "Initialization complete.\n");
+    spdlog::info("Initialization complete.");
   }
 
   // ----------------------------------------------------------------------
@@ -213,6 +217,9 @@ struct Psc
                  "**** Step %d / %d, Code Time %g, Wall Time %g\n",
                  grid().timestep() + 1, p_.nmax, grid().timestep() * grid().dt,
                  MPI_Wtime() - time_start_);
+      spdlog::info("Step {} / {}, Code time {}, Wall time {}",
+                   grid().timestep(), p_.nmax, grid().timestep() * grid().dt,
+                   MPI_Wtime() - time_start_);
 
       // prof_start(pr_time_step_no_comm);
       // prof_stop(
@@ -244,6 +251,7 @@ struct Psc
 
         if (wallclock_elapsed_max > p_.wallclock_limit) {
           mpi_printf(MPI_COMM_WORLD, "WARNING: Max wallclock time elapsed!\n");
+          spdlog::warn("WARNING: Max wallclock time elapsed!");
           break;
         }
       }
@@ -415,11 +423,13 @@ struct Psc
 #endif
 
     if (p_.balance_interval > 0 && timestep % p_.balance_interval == 0) {
+      spdlog::trace("Balancing...");
       balance_(grid_, mprts_);
     }
 
     if (p_.sort_interval > 0 && timestep % p_.sort_interval == 0) {
       mpi_printf(comm, "***** Sorting...\n");
+      spdlog::trace("Sorting...");
       prof_start(pr_sort);
       sort_(mprts_);
       prof_stop(pr_sort);
@@ -427,6 +437,7 @@ struct Psc
 
     if (collision_.interval() > 0 && timestep % collision_.interval() == 0) {
       mpi_printf(comm, "***** Performing collisions...\n");
+      spdlog::trace("Collisions...");
       prof_start(pr_collision);
       collision_(mprts_);
       prof_stop(pr_collision);
@@ -434,12 +445,14 @@ struct Psc
 
     // === particle injection
     prof_start(pr_inject_prts);
+    spdlog::trace("Injection...");
     inject_particles();
     prof_stop(pr_inject_prts);
 
     if (checks_.continuity_every_step > 0 &&
         timestep % checks_.continuity_every_step == 0) {
       mpi_printf(comm, "***** Checking continuity...\n");
+      spdlog::trace("Checking continuity before...");
       prof_start(pr_checks);
       checks_.continuity_before_particle_push(mprts_);
       prof_stop(pr_checks);
@@ -447,6 +460,7 @@ struct Psc
 
     // === particle propagation p^{n} -> p^{n+1}, x^{n+1/2} -> x^{n+3/2}
     mpi_printf(comm, "***** Pushing particles...\n");
+    spdlog::trace("Pushing particles...");
     prof_start(pr_push_prts);
     pushp_.push_mprts(mprts_, mflds_);
     prof_stop(pr_push_prts);
@@ -454,6 +468,7 @@ struct Psc
 
     // === field propagation B^{n+1/2} -> B^{n+1}
     mpi_printf(comm, "***** Pushing B...\n");
+    spdlog::trace("Pushing B (1)...");
     prof_start(pr_push_flds);
     pushf_.push_H(mflds_, .5, Dim{});
     prof_stop(pr_push_flds);
@@ -461,12 +476,14 @@ struct Psc
 
     mpi_printf(comm, "***** Bnd particles...\n");
     prof_start(pr_bndp);
+    spdlog::trace("Bnd particles...");
     bndp_(mprts_);
     prof_stop(pr_bndp);
 
     // === field propagation E^{n+1/2} -> E^{n+3/2}
     mpi_printf(comm, "***** Push fields E\n");
     prof_start(pr_bndf);
+    spdlog::trace("Bnd H, J...");
 #if 1
     bndf_.fill_ghosts_H(mflds_);
     bnd_.fill_ghosts(mflds_, HX, HX + 3);
@@ -478,11 +495,13 @@ struct Psc
     prof_stop(pr_bndf);
 
     prof_restart(pr_push_flds);
+    spdlog::trace("Pushing E...");
     pushf_.push_E(mflds_, 1., Dim{});
     prof_stop(pr_push_flds);
 
 #if 1
     prof_restart(pr_bndf);
+    spdlog::trace("Bnd E...");
     bndf_.fill_ghosts_E(mflds_);
     bnd_.fill_ghosts(mflds_, EX, EX + 3);
     prof_stop(pr_bndf);
@@ -492,11 +511,13 @@ struct Psc
     // === field propagation B^{n+1} -> B^{n+3/2}
     mpi_printf(comm, "***** Push fields B\n");
     prof_restart(pr_push_flds);
+    spdlog::trace("Pushing B( 2)...");
     pushf_.push_H(mflds_, .5, Dim{});
     prof_stop(pr_push_flds);
 
 #if 1
     prof_start(pr_bndf);
+    spdlog::trace("Bnd H...");
     bndf_.fill_ghosts_H(mflds_);
     bnd_.fill_ghosts(mflds_, HX, HX + 3);
     prof_stop(pr_bndf);
@@ -506,6 +527,7 @@ struct Psc
     if (checks_.continuity_every_step > 0 &&
         timestep % checks_.continuity_every_step == 0) {
       prof_restart(pr_checks);
+      spdlog::trace("Checking continuity after...");
       checks_.continuity_after_particle_push(mprts_, mflds_);
       prof_stop(pr_checks);
     }
@@ -515,6 +537,7 @@ struct Psc
     // but div B should be == 0 at any time...)
     if (p_.marder_interval > 0 && timestep % p_.marder_interval == 0) {
       mpi_printf(comm, "***** Performing Marder correction...\n");
+      spdlog::trace("Marder...");
       prof_start(pr_marder);
       marder_(mflds_, mprts_);
       prof_stop(pr_marder);
@@ -523,6 +546,7 @@ struct Psc
     if (checks_.gauss_every_step > 0 &&
         timestep % checks_.gauss_every_step == 0) {
       prof_restart(pr_checks);
+      spdlog::trace("Checking Gauss...");
       checks_.gauss(mprts_, mflds_);
       prof_stop(pr_checks);
     }

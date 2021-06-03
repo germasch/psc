@@ -26,7 +26,7 @@
 
 // FIXME select a hardcoded case, if not already specified
 #ifndef CASE
-#define CASE CASE_2D
+#define CASE CASE_3D
 #endif
 
 // ======================================================================
@@ -240,7 +240,7 @@ void setupParameters()
   // -- set some generic PSC parameters
   psc_params.nmax = 5001; // 10000001; // 5001;
   psc_params.cfl = 0.75;
-  psc_params.write_checkpoint_every_step = 1000;
+  psc_params.write_checkpoint_every_step = 3000;
   psc_params.stats_every = 1;
 
   // -- start from checkpoint:
@@ -597,7 +597,7 @@ void run()
   InjectFoil inject_target{inject_foil_params};
 
 #if CASE == CASE_2D_SMALL
-  g.inject_interval = 2;
+  g.inject_interval = 20;
 #else
   g.inject_interval = 20;
 #endif
@@ -695,6 +695,7 @@ void run()
 
 int main(int argc, char** argv)
 {
+  spdlog::set_level(spdlog::level::debug);
   psc_init(argc, argv);
 
   run();

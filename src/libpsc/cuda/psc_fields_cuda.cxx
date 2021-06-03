@@ -191,11 +191,26 @@ static void psc_mfields_cuda_copy_to_single(MfieldsBase& mflds_cuda,
                                             MfieldsBase& mflds_single, int mb,
                                             int me)
 {
+  static int pr_A, pr_B, pr_C;
+  if (!pr_A) {
+    pr_A = prof_register("conv s mirror", 1., 0, 0);
+    pr_B = prof_register("conv s copy ->H", 1., 0, 0);
+    pr_C = prof_register("conv s copy ->S", 1., 0, 0);
+  }
   auto& mf_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda);
   auto& mf_single = dynamic_cast<MfieldsSingle&>(mflds_single);
+  prof_start(pr_A);
   auto h_mf_cuda = hostMirror(mf_cuda);
+  prof_stop(pr_A);
 
+  prof_start(pr_B);
   copy(mf_cuda, h_mf_cuda);
+  prof_stop(pr_B);
+
+  prof_start(pr_C);
+  assert(h_mf_cuda.gt().shape() == mf_single.gt().shape());
+  mf_single.gt().view() = h_mf_cuda.gt();
+#if 0
   for (int p = 0; p < mf_cuda.n_patches(); p++) {
     auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
     auto flds_s = make_Fields3d<dim_xyz>(mf_single[p]);
@@ -210,6 +225,8 @@ static void psc_mfields_cuda_copy_to_single(MfieldsBase& mflds_cuda,
       }
     }
   }
+#endif
+  prof_stop(pr_C);
 }
 
 static void psc_mfields_state_cuda_copy_to_single(
@@ -217,23 +234,8 @@ static void psc_mfields_state_cuda_copy_to_single(
 {
   auto& mf_cuda = dynamic_cast<MfieldsStateCuda&>(mflds_cuda);
   auto& mf_single = dynamic_cast<MfieldsStateSingle&>(mflds_single);
-  auto h_mf_cuda = hostMirror(mf_cuda);
 
-  copy(mf_cuda, h_mf_cuda);
-  for (int p = 0; p < mf_cuda.n_patches(); p++) {
-    auto flds = make_Fields3d<dim_xyz>(h_mf_cuda[p]);
-    auto flds_s = make_Fields3d<dim_xyz>(mf_single[p]);
-
-    for (int m = mb; m < me; m++) {
-      for (int jz = flds.ib()[2]; jz < flds.ib()[2] + flds.shape(2); jz++) {
-        for (int jy = flds.ib()[1]; jy < flds.ib()[1] + flds.shape(1); jy++) {
-          for (int jx = flds.ib()[0]; jx < flds.ib()[0] + flds.shape(0); jx++) {
-            flds_s(m, jx, jy, jz) = flds(m, jx, jy, jz);
-          }
-        }
-      }
-    }
-  }
+  psc_mfields_cuda_copy_to_single(mf_cuda.mflds(), mf_single.mflds(), mb, me);
 }
 
 // ======================================================================

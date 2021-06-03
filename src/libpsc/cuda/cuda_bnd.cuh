@@ -200,14 +200,15 @@ struct CudaBnd
   void run(MfieldsCuda& mflds, int mb, int me, mrc_ddc_pattern2* patt2,
            std::unordered_map<int, Maps>& maps, T scatter)
   {
-    // static int pr_ddc_run, pr_ddc_sync1, pr_ddc_sync2;
-    // if (!pr_ddc_run) {
-    //   pr_ddc_run = prof_register("ddc_run", 1., 0, 0);
-    //   pr_ddc_sync1 = prof_register("ddc_sync1", 1., 0, 0);
-    //   pr_ddc_sync2 = prof_register("ddc_sync2", 1., 0, 0);
-    // }
+    static int pr_ddc_run, pr_ddc_sync1, pr_ddc_sync2, pr_ddc_map;
+    if (!pr_ddc_run) {
+      pr_ddc_run = prof_register("ddc_run", 1., 0, 0);
+      pr_ddc_sync1 = prof_register("ddc_sync1", 1., 0, 0);
+      pr_ddc_sync2 = prof_register("ddc_sync2", 1., 0, 0);
+      pr_ddc_map = prof_register("ddc_map", 1., 0, 0);
+    }
 
-#if 0
+#if 1
     prof_start(pr_ddc_sync1);
     MPI_Barrier(MPI_COMM_WORLD);
     prof_stop(pr_ddc_sync1);
@@ -216,16 +217,18 @@ struct CudaBnd
     int key = mb + 100 * me;
     auto map = maps.find(key);
     if (map == maps.cend()) {
+      prof_start(pr_ddc_map);
       auto pair =
         maps.emplace(std::make_pair(key, Maps{ddc_, patt2, mb, me, mflds}));
       map = pair.first;
+      prof_stop(pr_ddc_map);
     }
 
-    // prof_start(pr_ddc_run);
+    prof_start(pr_ddc_run);
     ddc_run(map->second, patt2, mb, me, mflds, scatter);
-    // prof_stop(pr_ddc_run);
+    prof_stop(pr_ddc_run);
 
-#if 0
+#if 1
     prof_start(pr_ddc_sync2);
     MPI_Barrier(MPI_COMM_WORLD);
     prof_stop(pr_ddc_sync2);
@@ -297,7 +300,7 @@ struct CudaBnd
     thrust::copy(h_flds.begin(), h_flds.end(), d_flds);
 #else
     auto d_flds = mflds.gt().data();
-    prof_barrier("ddc_run");
+    prof_barrier("barr ddc_run");
 
     // prof_start(pr_ddc1);
     postReceives(maps);
