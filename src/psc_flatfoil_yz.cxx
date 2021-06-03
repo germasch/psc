@@ -26,7 +26,7 @@
 
 // FIXME select a hardcoded case, if not already specified
 #ifndef CASE
-#define CASE CASE_2D
+#define CASE CASE_3D
 #endif
 
 // ======================================================================
@@ -238,9 +238,9 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 10000001; // 5001;
+  psc_params.nmax = 5001; // 10000001; // 5001;
   psc_params.cfl = 0.75;
-  psc_params.write_checkpoint_every_step = 1000;
+  psc_params.write_checkpoint_every_step = 3000;
   psc_params.stats_every = 1;
 
   // -- start from checkpoint:
@@ -476,8 +476,8 @@ void run()
   // -- Checks
   ChecksParams checks_params{};
 #if CASE == CASE_2D_SMALL
-  checks_params.continuity_every_step = 1;
-  checks_params.continuity_dump_always = true;
+  checks_params.continuity_every_step = 10;
+  checks_params.continuity_dump_always = false;
 #else
   checks_params.continuity_every_step = 0;
   checks_params.continuity_dump_always = false;
@@ -486,8 +486,8 @@ void run()
   checks_params.continuity_verbose = true;
 
 #if CASE == CASE_2D_SMALL
-  checks_params.gauss_every_step = 1;
-  checks_params.gauss_dump_always = true;
+  checks_params.gauss_every_step = 10;
+  checks_params.gauss_dump_always = false;
 #else
   checks_params.gauss_every_step = 100;
   checks_params.gauss_dump_always = false;
@@ -501,8 +501,8 @@ void run()
   double marder_diffusion = 0.9;
   int marder_loop = 3;
 #if CASE == CASE_2D_SMALL
-  bool marder_dump = true;
-  psc_params.marder_interval = 2;
+  bool marder_dump = false;
+  psc_params.marder_interval = 10;
 #else
   bool marder_dump = false;
   psc_params.marder_interval = 100;
@@ -521,11 +521,11 @@ void run()
   outf_item_params.pfield_interval = 100;
   outf_item_params.tfield_interval = -100;
 #elif CASE == CASE_2D_SMALL
-  outf_item_params.pfield_interval = 4;
-  outf_item_params.tfield_interval = 4;
+  outf_item_params.pfield_interval = -4;
+  outf_item_params.tfield_interval = -4;
 #else
-  outf_item_params.pfield_interval = 500;
-  outf_item_params.tfield_interval = 500;
+  outf_item_params.pfield_interval = -500;
+  outf_item_params.tfield_interval = -500;
 #endif
 #if CASE == CASE_2D_SMALL
   outf_item_params.tfield_average_every = 2;
@@ -597,7 +597,7 @@ void run()
   InjectFoil inject_target{inject_foil_params};
 
 #if CASE == CASE_2D_SMALL
-  g.inject_interval = 2;
+  g.inject_interval = 20;
 #else
   g.inject_interval = 20;
 #endif
