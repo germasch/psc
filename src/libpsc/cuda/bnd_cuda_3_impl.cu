@@ -54,21 +54,11 @@ void BndCuda3<MF>::add_ghosts(MfieldsCuda& mflds, int mb, int me)
 template <typename MF>
 void BndCuda3<MF>::fill_ghosts(MfieldsCuda& mflds, int mb, int me)
 {
-  static int pr_A, pr_B;
-  if (!pr_A) {
-    pr_A = prof_register("bnd fill reset", 1., 0, 0);
-    pr_B = prof_register("bnd fill", 1., 0, 0);
-  }
-
   if (psc_balance_generation_cnt != balance_generation_cnt_) {
-    prof_start(pr_A);
     reset(mflds.grid());
     balance_generation_cnt_ = psc_balance_generation_cnt;
-    prof_stop(pr_A);
   }
-  prof_start(pr_B);
   cbnd_->fill_ghosts(mflds, mb, me);
-  prof_stop(pr_B);
 }
 
 template <typename MF>

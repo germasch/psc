@@ -111,30 +111,17 @@ static void psc_mfields_cuda_copy_to_single(MfieldsBase& mflds_cuda,
                                             MfieldsBase& mflds_single, int mb,
                                             int me)
 {
-  static int pr_A, pr_B, pr_C;
-  if (!pr_A) {
-    pr_A = prof_register("conv s mirror", 1., 0, 0);
-    pr_B = prof_register("conv s copy ->H", 1., 0, 0);
-    pr_C = prof_register("conv s copy ->S", 1., 0, 0);
-  }
   auto& mf_cuda = dynamic_cast<MfieldsCuda&>(mflds_cuda);
   auto& mf_single = dynamic_cast<MfieldsSingle&>(mflds_single);
 
+  auto h_mf_cuda = hostMirror(mf_cuda);
+
   assert(mf_cuda.gt().shape() == mf_single.gt().shape());
 
-  prof_start(pr_A);
-  auto h_mf_cuda = hostMirror(mf_cuda);
-  prof_stop(pr_A);
-
-  prof_start(pr_B);
   copy(mf_cuda, h_mf_cuda);
-  prof_stop(pr_B);
 
-  prof_start(pr_C);
-  assert(h_mf_cuda.gt().shape() == mf_single.gt().shape());
   mf_single.gt().view(_all, _all, _all, _s(mb, me)) =
     h_mf_cuda.gt().view(_all, _all, _all, _s(mb, me));
-  prof_stop(pr_C);
 }
 
 static void psc_mfields_state_cuda_copy_to_single(
