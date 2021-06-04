@@ -24,11 +24,11 @@ std::size_t mem_bndp;
 #ifdef PSC_HAVE_RMM
 using device_mr_type = rmm::mr::device_memory_resource;
 using pool_mr_type = rmm::mr::pool_memory_resource<device_mr_type>;
-// using track_mr_type = rmm::mr::tracking_resource_adaptor<pool_mr_type>;
 using track_mr_type = rmm::mr::tracking_resource_adaptor<device_mr_type>;
-using log_mr_type = rmm::mr::logging_resource_adaptor<track_mr_type>;
+using log_mr_type = rmm::mr::logging_resource_adaptor<device_mr_type>;
 
-static std::unique_ptr<track_mr_type> track_mr;
+static track_mr_type* track_mr;
+static pool_mr_type* pool_mr;
 #endif
 
 void cuda_base_init(void)
@@ -42,13 +42,14 @@ void cuda_base_init(void)
 #ifdef PSC_HAVE_RMM
   device_mr_type* mr =
     rmm::mr::get_current_device_resource(); // Points to `cuda_memory_resource`
-  static rmm::mr::logging_resource_adaptor<device_mr_type> _log_mr{
-    mr, std::cout, true};
-  // static pool_mr_type pool_mr{&_log_mr};
-  track_mr.reset(new track_mr_type{&_log_mr});
+  static log_mr_type _log_mr{mr, std::cout, true};
+  static pool_mr_type pool_mr{&_log_mr}; //, 8000000000};
+  static track_mr_type track_mr{&pool_mr};
   //   static log_mr_type log_mr{track_mr.get(), std::cout, true};
   //   rmm::mr::set_current_device_resource(&log_mr);
-  rmm::mr::set_current_device_resource(track_mr.get());
+  rmm::mr::set_current_device_resource(&track_mr);
+  ::pool_mr = &pool_mr;
+  ::track_mr = &track_mr;
 #endif
 
   int deviceCount;
@@ -142,8 +143,19 @@ void cuda_base_init(void)
 std::size_t mem_cuda_allocated()
 {
 #ifdef PSC_HAVE_RMM
-  return track_mr->get_allocated_bytes();
+  if (track_mr) {
+    return track_mr->get_allocated_bytes();
+  } else {
+    return 0;
+  }
 #else
   return 0;
 #endif
+}
+
+void mem_pool_print()
+{
+  if (pool_mr) {
+    pool_mr->print();
+  }
 }
