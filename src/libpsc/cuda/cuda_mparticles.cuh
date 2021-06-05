@@ -136,9 +136,6 @@ public:
 
   __host__ __device__ iterator begin()
   {
-#ifndef __CUDA_ARCH__
-    MHERE;
-#endif
     return iterator({xi4.begin(), pxi4.begin()});
   }
 
