@@ -136,6 +136,9 @@ public:
 
   __host__ __device__ iterator begin()
   {
+#ifndef __CUDA_ARCH__
+    MHERE;
+#endif
     return iterator({xi4.begin(), pxi4.begin()});
   }
 
@@ -253,6 +256,7 @@ struct DMparticlesCuda;
 template <typename _BS>
 struct cuda_mparticles : cuda_mparticles_base<_BS, MparticlesCudaStorage>
 {
+  using base_type = cuda_mparticles_base<_BS, MparticlesCudaStorage>;
   using BS = _BS;
   using Particle = DParticleCuda;
   using real_t = Particle::real_t;
