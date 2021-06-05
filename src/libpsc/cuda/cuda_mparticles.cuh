@@ -276,7 +276,6 @@ struct cuda_mparticles : cuda_mparticles_base<_BS, MparticlesCudaStorage>
 
   std::vector<uint> get_offsets() const;
   std::vector<Particle> get_particles();
-  std::vector<Particle> get_particles(int p);
 
   void dump(const std::string& filename) const;
   void dump_by_patch(uint* n_prts_by_patch);
@@ -285,9 +284,6 @@ struct cuda_mparticles : cuda_mparticles_base<_BS, MparticlesCudaStorage>
   void inject_initial(const std::vector<Particle>& buf,
                       const std::vector<uint>& n_prts_by_patch);
   void setup_internals();
-
-private:
-  std::vector<Particle> get_particles(int beg, int end);
 
 public:
   void reorder();
