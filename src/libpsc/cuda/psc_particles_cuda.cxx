@@ -4,6 +4,8 @@
 #include "psc_particles_single.h"
 #include "psc_particles_double.h"
 
+#include "cuda_mparticles.cuh"
+
 #include <mrc_io.h>
 
 // ======================================================================
@@ -13,14 +15,19 @@ template <typename MparticlesCuda, typename MP>
 static void copy_from(MparticlesBase& mprts_base,
                       MparticlesBase& mprts_other_base)
 {
+  using BS = typename MparticlesCuda::BS;
+
   auto& mprts = dynamic_cast<MparticlesCuda&>(mprts_base);
   auto& mprts_other = dynamic_cast<MP&>(mprts_other_base);
   auto n_prts_by_patch = mprts_other.sizeByPatch();
   // mp.reserve_all(n_prts_by_patch); FIXME, would still be a good hint for the
   // injector
   mprts.clear();
+  MHERE;
 
   auto accessor = mprts_other.accessor();
+  cuda_mparticles<BS>& cmprts = *mprts.cmprts();
+
   auto inj = mprts.injector();
   for (int p = 0; p < mprts.n_patches(); p++) {
     auto injector = inj[p];
@@ -43,6 +50,7 @@ static void copy_to(MparticlesBase& mprts_base,
   mprts_other.reserve_all(n_prts_by_patch);
   mprts_other.clear();
 
+  MHERE;
   auto accessor =
     mprts.accessor(); // FIXME, should we use this in the first place?
   for (int p = 0; p < mprts.n_patches(); p++) {
