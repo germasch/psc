@@ -45,6 +45,13 @@ void reserve(S& vec, std::size_t n)
   thrust::copy(vec.begin(), vec.end(), new_vec.begin());
   vec = std::move(new_vec);
 }
+
+template <typename T>
+void reserve(thrust::host_vector<T>& vec, std::size_t n)
+{
+  vec.reserve(n);
+}
+
 } // namespace helper
 
 // ======================================================================
@@ -66,11 +73,7 @@ public:
   MparticlesCudaStorage_& operator=(const MparticlesCudaStorage_& other) =
     delete;
 
-  MparticlesCudaStorage_(uint n) : xi4(n), pxi4(n)
-  {
-    mem_add(xi4);
-    mem_add(pxi4);
-  }
+  MparticlesCudaStorage_(uint n) { resize(n); }
 
   MparticlesCudaStorage_(const S& xi4, const S& pxi4) : xi4{xi4}, pxi4{pxi4} {}
 
@@ -107,6 +110,8 @@ public:
   template <typename SO>
   MparticlesCudaStorage_& operator=(const MparticlesCudaStorage_<SO>& other)
   {
+    resize(other.size());
+
     mem_sub(xi4);
     xi4 = other.xi4;
     mem_add(xi4);
@@ -119,10 +124,8 @@ public:
 
   template <typename SO>
   __host__ MparticlesCudaStorage_(const SO& other)
-    : xi4{other.xi4}, pxi4{other.pxi4}
   {
-    mem_add(xi4);
-    mem_add(pxi4);
+    *this = other;
   }
 
   template <typename IT>
@@ -156,8 +159,10 @@ public:
       pxi4.reserve(1.1 * n);
 #else
       // work around thrust mem leak and exponential growth
-      helper::reserve(xi4, 1.1 * n);
-      helper::reserve(pxi4, 1.1 * n);
+      // helper::reserve(xi4, 1.1 * n);
+      // helper::reserve(pxi4, 1.1 * n);
+      helper::reserve(xi4, 10000000000ul / 4 / 16);
+      helper::reserve(pxi4, 10000000000ul / 4 / 16);
 #endif
     }
     xi4.resize(n);
