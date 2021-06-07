@@ -40,14 +40,19 @@ void cuda_base_init(void)
   first_time = false;
 
 #ifdef PSC_HAVE_RMM
+  rmm::logger().set_level(spdlog::level::trace);
+
   device_mr_type* mr =
     rmm::mr::get_current_device_resource(); // Points to `cuda_memory_resource`
   static log_mr_type _log_mr{mr, std::cout, true};
   static pool_mr_type pool_mr{&_log_mr, 15500000000};
   static track_mr_type track_mr{&pool_mr};
-  //   static log_mr_type log_mr{track_mr.get(), std::cout, true};
-  //   rmm::mr::set_current_device_resource(&log_mr);
+#if 1
+  static log_mr_type log_mr{&track_mr, std::cout, true};
+  rmm::mr::set_current_device_resource(&log_mr);
+#else
   rmm::mr::set_current_device_resource(&track_mr);
+#endif
   ::pool_mr = &pool_mr;
   ::track_mr = &track_mr;
 #endif
@@ -155,7 +160,7 @@ std::size_t mem_cuda_allocated()
 
 void mem_pool_print()
 {
-  if (pool_mr) {
-    pool_mr->print();
-  }
+  // if (pool_mr) {
+  //   pool_mr->print();
+  // }
 }
