@@ -160,7 +160,7 @@ std::size_t mem_cuda_allocated()
 
 void mem_pool_print()
 {
-  // if (pool_mr) {
-  //   pool_mr->print();
-  // }
+  if (pool_mr) {
+    pool_mr->print();
+  }
 }
