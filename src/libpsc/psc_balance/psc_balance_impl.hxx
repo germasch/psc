@@ -1017,7 +1017,7 @@ private:
     std::vector<MfieldsBase*> mfields_todo;
     mfields_todo.reserve(MfieldsBase::instances.size());
     for (auto mf : MfieldsBase::instances) {
-      if (typeid(mf) != typeid(Mfields*)) {
+      if (typeid(*mf) != typeid(Mfields)) {
         mprintf("todo %d\n", mf->_n_comps());
         mfields_todo.push_back(mf);
       } else {
