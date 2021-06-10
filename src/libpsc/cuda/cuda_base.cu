@@ -1,5 +1,6 @@
 
 #include "PscConfig.h"
+#include "cuda_base.cuh"
 
 #ifdef PSC_HAVE_RMM
 #include <rmm/mr/device/pool_memory_resource.hpp>
@@ -20,6 +21,7 @@ std::size_t mem_bnd;
 std::size_t mem_heating;
 std::size_t mem_collisions;
 std::size_t mem_bndp;
+std::size_t mem_rnd;
 
 #ifdef PSC_HAVE_RMM
 using device_mr_type = rmm::mr::device_memory_resource;
@@ -163,4 +165,10 @@ void mem_pool_print()
   if (pool_mr) {
     pool_mr->print();
   }
+}
+
+RngStateCuda& get_rng_state()
+{
+  static RngStateCuda rng_state;
+  return rng_state;
 }
