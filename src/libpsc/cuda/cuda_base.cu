@@ -47,7 +47,7 @@ void cuda_base_init(void)
   device_mr_type* mr =
     rmm::mr::get_current_device_resource(); // Points to `cuda_memory_resource`
   static log_mr_type _log_mr{mr, std::cout, true};
-  static pool_mr_type pool_mr{&_log_mr, 15500000000};
+  static pool_mr_type pool_mr{&_log_mr, 15000000000};
   static track_mr_type track_mr{&pool_mr};
 #if 1
   static log_mr_type log_mr{&track_mr, std::cout, true};
@@ -67,6 +67,8 @@ void cuda_base_init(void)
     printf("There is no device supporting CUDA\n");
     return;
   }
+
+  get_rng_state().resize(131072);
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);

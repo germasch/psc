@@ -152,12 +152,12 @@ public:
     // grow arrays by 20% only
     if (n > xi4.capacity()) {
 #if 0
-      xi4.reserve(1.1 * n);
-      pxi4.reserve(1.1 * n);
+      xi4.reserve(1.5 * n);
+      pxi4.reserve(1.5 * n);
 #else
       // work around thrust mem leak and exponential growth
-      helper::reserve(xi4, 1.1 * n);
-      helper::reserve(pxi4, 1.1 * n);
+      helper::reserve(xi4, 1.5 * n);
+      helper::reserve(pxi4, 1.5 * n);
 #endif
     }
     xi4.resize(n);
@@ -274,7 +274,19 @@ struct cuda_mparticles : cuda_mparticles_base<_BS, MparticlesCudaStorage>
   std::vector<uint> get_offsets() const;
   std::vector<Particle> get_particles();
 
-  void dump(const std::string& filename) const;
+  double mem_fraction() const
+  {
+    return double(this->storage.xi4.size()) / this->storage.xi4.capacity();
+  }
+
+  void dump(const std::string& filename) const
+  {
+    std::cout << "cmprts: " << this->storage.xi4.size() << "/"
+              << this->storage.xi4.capacity() << " ratio "
+              << double(this->storage.xi4.size()) / this->storage.xi4.capacity()
+              << "\n";
+  }
+
   void dump_by_patch(uint* n_prts_by_patch);
 
   // internal / testing use

@@ -58,7 +58,7 @@ void mem_stats_csv_header(std::ostream& of)
 {
   of << "step,n_patches,n_prts,fields,nfields,particles,collisions,"
         "randomize_sort,"
-        "sort_block,bnd,bndp,heating,rnd,llocated,total,unaccounted"
+        "sort_block,bnd,bndp,heating,rnd,allocated,total,unaccounted"
      << "\n";
 }
 
