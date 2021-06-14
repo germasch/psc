@@ -4,9 +4,8 @@
 
 #include <stdlib.h>
 
-void
-mrc_redist_init(struct mrc_redist *redist, struct mrc_domain *domain,
-		int slab_offs[3], int slab_dims[3], int nr_writers)
+void mrc_redist_init(struct mrc_redist* redist, struct mrc_domain* domain,
+                     int slab_offs[3], int slab_dims[3], int nr_writers)
 {
   redist->domain = domain;
   redist->comm = mrc_domain_comm(domain);
@@ -24,8 +23,9 @@ mrc_redist_init(struct mrc_redist *redist, struct mrc_domain *domain,
       redist->is_writer = 1;
     }
   }
-  
-  MPI_Comm_split(redist->comm, redist->is_writer, redist->rank, &redist->comm_writers);
+
+  MPI_Comm_split(redist->comm, redist->is_writer, redist->rank,
+                 &redist->comm_writers);
 
   int gdims[3];
   mrc_domain_get_global_dims(domain, gdims);
@@ -51,57 +51,60 @@ mrc_redist_init(struct mrc_redist *redist, struct mrc_domain *domain,
   redist->slow_indices_rmndr = total_slow_indices % nr_writers;
 }
 
-void
-mrc_redist_destroy(struct mrc_redist *redist)
+void mrc_redist_destroy(struct mrc_redist* redist)
 {
   free(redist->writer_ranks);
   MPI_Comm_free(&redist->comm_writers);
 }
 
-static void
-mrc_redist_writer_offs_dims(struct mrc_redist *redist, int writer,
-			    int *writer_offs, int *writer_dims)
+static void mrc_redist_writer_offs_dims(struct mrc_redist* redist, int writer,
+                                        int* writer_offs, int* writer_dims)
 {
   for (int d = 0; d < 3; d++) {
     writer_dims[d] = redist->slab_dims[d];
     writer_offs[d] = redist->slab_offs[d];
   }
-  writer_dims[redist->slow_dim] = redist->slow_indices_per_writer + (writer < redist->slow_indices_rmndr);
+  writer_dims[redist->slow_dim] =
+    redist->slow_indices_per_writer + (writer < redist->slow_indices_rmndr);
   if (writer < redist->slow_indices_rmndr) {
-    writer_offs[redist->slow_dim] += (redist->slow_indices_per_writer + 1) * writer;
+    writer_offs[redist->slow_dim] +=
+      (redist->slow_indices_per_writer + 1) * writer;
   } else {
-    writer_offs[redist->slow_dim] += redist->slow_indices_rmndr +
-      redist->slow_indices_per_writer * writer;
+    writer_offs[redist->slow_dim] +=
+      redist->slow_indices_rmndr + redist->slow_indices_per_writer * writer;
   }
 }
 
-#define BUFLOOP(ix, iy, iz, ilo, hi) \
-      for (int iz = ilo[2]; iz < ihi[2]; iz++) {\
-	for (int iy = ilo[1]; iy < ihi[1]; iy++) {\
-	  for (int ix = ilo[0]; ix < ihi[0]; ix++)
+#define BUFLOOP(ix, iy, iz, ilo, hi)                                           \
+  for (int iz = ilo[2]; iz < ihi[2]; iz++) {                                   \
+    for (int iy = ilo[1]; iy < ihi[1]; iy++) {                                 \
+      for (int ix = ilo[0]; ix < ihi[0]; ix++)
 
-#define BUFLOOP_END }}
+#define BUFLOOP_END                                                            \
+  }                                                                            \
+  }
 
 MPI_Datatype to_mpi_datatype(int data_type)
 {
   switch (data_type) {
-  case MRC_NT_FLOAT:  return MPI_FLOAT; break;
-  case MRC_NT_DOUBLE: return MPI_DOUBLE; break;
-  case MRC_NT_INT:    return MPI_INT; break;
-  default: assert(0);
+    case MRC_NT_FLOAT: return MPI_FLOAT; break;
+    case MRC_NT_DOUBLE: return MPI_DOUBLE; break;
+    case MRC_NT_INT: return MPI_INT; break;
+    default: assert(0);
   }
 }
 
 // ----------------------------------------------------------------------
 // mrc_redist_write_send_init
 
-static void
-mrc_redist_write_send_init(struct mrc_redist *redist, int size_of_type)
+static void mrc_redist_write_send_init(struct mrc_redist* redist,
+                                       int size_of_type)
 {
-  struct mrc_redist_write_send *send = &redist->write_send;
+  struct mrc_redist_write_send* send = &redist->write_send;
 
   int nr_patches;
-  struct mrc_patch *patches = mrc_domain_get_patches(redist->domain, &nr_patches);
+  struct mrc_patch* patches =
+    mrc_domain_get_patches(redist->domain, &nr_patches);
 
   // count number of writers we actually need to communicate with
   int n_peers = 0;
@@ -111,7 +114,7 @@ mrc_redist_write_send_init(struct mrc_redist *redist, int size_of_type)
     if (writer_rank == redist->rank) {
       continue;
     }
-    
+
     int writer_offs[3], writer_dims[3];
     mrc_redist_writer_offs_dims(redist, writer, writer_offs, writer_dims);
 
@@ -119,10 +122,10 @@ mrc_redist_write_send_init(struct mrc_redist *redist, int size_of_type)
     int n_blocks = 0;
     for (int p = 0; p < nr_patches; p++) {
       int ilo[3], ihi[3];
-      bool has_intersection = find_intersection(ilo, ihi, patches[p].off, patches[p].ldims,
-						writer_offs, writer_dims);
+      bool has_intersection = find_intersection(
+        ilo, ihi, patches[p].off, patches[p].ldims, writer_offs, writer_dims);
       if (!has_intersection) {
-	continue;
+        continue;
       }
       n_blocks++;
     }
@@ -141,14 +144,14 @@ mrc_redist_write_send_init(struct mrc_redist *redist, int size_of_type)
   send->disps = calloc(redist->size, sizeof(*send->disps));
   send->cnts = calloc(redist->size, sizeof(*send->cnts));
 
-  struct mrc_redist_peer *w = send->peers_begin;
+  struct mrc_redist_peer* w = send->peers_begin;
   for (int writer = 0; writer < redist->nr_writers; writer++) {
     // don't send to self
     int writer_rank = redist->writer_ranks[writer];
     if (writer_rank == redist->rank) {
       continue;
     }
-    
+
     int writer_offs[3], writer_dims[3];
     mrc_redist_writer_offs_dims(redist, writer, writer_offs, writer_dims);
 
@@ -156,10 +159,10 @@ mrc_redist_write_send_init(struct mrc_redist *redist, int size_of_type)
     int n_blocks = 0;
     for (int p = 0; p < nr_patches; p++) {
       int ilo[3], ihi[3];
-      bool has_intersection = find_intersection(ilo, ihi, patches[p].off, patches[p].ldims,
-						writer_offs, writer_dims);
+      bool has_intersection = find_intersection(
+        ilo, ihi, patches[p].off, patches[p].ldims, writer_offs, writer_dims);
       if (!has_intersection) {
-	continue;
+        continue;
       }
       n_blocks++;
     }
@@ -173,19 +176,19 @@ mrc_redist_write_send_init(struct mrc_redist *redist, int size_of_type)
     w->blocks_end = w->blocks_begin + n_blocks;
 
     w->buf_size = 0;
-    struct mrc_redist_block *b = w->blocks_begin;
+    struct mrc_redist_block* b = w->blocks_begin;
     for (int p = 0; p < nr_patches; p++) {
       int ilo[3], ihi[3];
-      bool has_intersection = find_intersection(ilo, ihi, patches[p].off, patches[p].ldims,
-						writer_offs, writer_dims);
+      bool has_intersection = find_intersection(
+        ilo, ihi, patches[p].off, patches[p].ldims, writer_offs, writer_dims);
       if (!has_intersection) {
-	continue;
+        continue;
       }
 
       b->p = p;
       for (int d = 0; d < 3; d++) {
-	b->ilo[d] = ilo[d];
-	b->ihi[d] = ihi[d];
+        b->ilo[d] = ilo[d];
+        b->ihi[d] = ihi[d];
       }
 
       b++;
@@ -193,7 +196,8 @@ mrc_redist_write_send_init(struct mrc_redist *redist, int size_of_type)
     }
 
     // allocate buf per writer
-    //mprintf("to writer %d buf_size %d n_blocks %d\n", writer, w->buf_size, w->n_blocks);
+    // mprintf("to writer %d buf_size %d n_blocks %d\n", writer, w->buf_size,
+    // w->n_blocks);
     send->cnts[w->rank] = w->buf_size;
     send->buf_size += w->buf_size;
     w++;
@@ -205,11 +209,12 @@ mrc_redist_write_send_init(struct mrc_redist *redist, int size_of_type)
     last += send->cnts[r];
   }
   assert(last == send->buf_size);
-  
+
   send->buf = malloc(send->buf_size * size_of_type);
   assert(send->buf);
   int off = 0;
-  for (struct mrc_redist_peer* w = send->peers_begin; w != send->peers_end; w++) {
+  for (struct mrc_redist_peer* w = send->peers_begin; w != send->peers_end;
+       w++) {
     assert(off == send->disps[w->rank]);
     w->off = off;
     off += w->buf_size;
@@ -226,12 +231,12 @@ mrc_redist_write_send_init(struct mrc_redist *redist, int size_of_type)
 // ----------------------------------------------------------------------
 // mrc_redist_write_send_destroy
 
-static void
-mrc_redist_write_send_destroy(struct mrc_redist *redist)
+static void mrc_redist_write_send_destroy(struct mrc_redist* redist)
 {
-  struct mrc_redist_write_send *send = &redist->write_send;
+  struct mrc_redist_write_send* send = &redist->write_send;
 
-  for (struct mrc_redist_peer *w = send->peers_begin; w != send->peers_end; w++) {
+  for (struct mrc_redist_peer* w = send->peers_begin; w != send->peers_end;
+       w++) {
     free(w->blocks_begin);
   }
   free(send->peers_begin);
@@ -244,56 +249,63 @@ mrc_redist_write_send_destroy(struct mrc_redist *redist)
 // ----------------------------------------------------------------------
 // mrc_redist_write_send_prep
 
-static void
-mrc_redist_write_send_prep(struct mrc_redist *redist, struct mrc_fld *m3, int m)
+static void mrc_redist_write_send_prep(struct mrc_redist* redist,
+                                       struct mrc_fld* m3, int m)
 {
   int nr_patches;
-  struct mrc_patch *patches = mrc_domain_get_patches(m3->_domain, &nr_patches);
+  struct mrc_patch* patches = mrc_domain_get_patches(m3->_domain, &nr_patches);
 
-  struct mrc_redist_write_send *send = &redist->write_send;
+  struct mrc_redist_write_send* send = &redist->write_send;
 
-  for (struct mrc_redist_peer *w = send->peers_begin; w != send->peers_end; w++) {
+  for (struct mrc_redist_peer* w = send->peers_begin; w != send->peers_end;
+       w++) {
     // fill buf per writer
-    void *buf = send->buf + w->off * m3->_nd->size_of_type;
-    for (struct mrc_redist_block *b = w->blocks_begin; b != w->blocks_end; b++) {
+    void* buf = send->buf + w->off * m3->_nd->size_of_type;
+    for (struct mrc_redist_block* b = w->blocks_begin; b != w->blocks_end;
+         b++) {
       int p = b->p;
-      int *off = patches[p].off;
+      int* off = patches[p].off;
       int *ilo = b->ilo, *ihi = b->ihi;
       struct mrc_patch_info info;
       mrc_domain_get_local_patch_info(m3->_domain, p, &info);
       assert(!m3->_aos);
       switch (mrc_fld_data_type(m3)) {
-      case MRC_NT_FLOAT:
-      {
-      	float *buf_ptr = (float *) buf;
-      	BUFLOOP(ix, iy, iz, ilo, ihi) {
-    	    *buf_ptr++ = MRC_S5(m3, ix-off[0],iy-off[1],iz-off[2], m, p);
-      	} BUFLOOP_END;
-	buf = buf_ptr;
-      	break;
-      }
-      case MRC_NT_DOUBLE:
-      {
-      	double *buf_ptr = (double *) buf;
-      	BUFLOOP(ix, iy, iz, ilo, ihi) {
-          *buf_ptr++ = MRC_D5(m3, ix-off[0],iy-off[1],iz-off[2], m, p);
-      	} BUFLOOP_END;
-	buf = buf_ptr;
-      	break;
-      }
-      case MRC_NT_INT:
-      {
-      	int *buf_ptr = (int *) buf;
-      	BUFLOOP(ix, iy, iz, ilo, ihi) {
-    	    *buf_ptr++ = MRC_I5(m3, ix-off[0],iy-off[1],iz-off[2], m, p);
-      	} BUFLOOP_END;
-	buf = buf_ptr;
-      	break;
-      }
-      default:
-      {
-      	assert(0);
-      }
+        case MRC_NT_FLOAT: {
+          float* buf_ptr = (float*)buf;
+          BUFLOOP(ix, iy, iz, ilo, ihi)
+          {
+            *buf_ptr++ =
+              MRC_S5(m3, ix - off[0], iy - off[1], iz - off[2], m, p);
+          }
+          BUFLOOP_END;
+          buf = buf_ptr;
+          break;
+        }
+        case MRC_NT_DOUBLE: {
+          double* buf_ptr = (double*)buf;
+          BUFLOOP(ix, iy, iz, ilo, ihi)
+          {
+            *buf_ptr++ =
+              MRC_D5(m3, ix - off[0], iy - off[1], iz - off[2], m, p);
+          }
+          BUFLOOP_END;
+          buf = buf_ptr;
+          break;
+        }
+        case MRC_NT_INT: {
+          int* buf_ptr = (int*)buf;
+          BUFLOOP(ix, iy, iz, ilo, ihi)
+          {
+            *buf_ptr++ =
+              MRC_I5(m3, ix - off[0], iy - off[1], iz - off[2], m, p);
+          }
+          BUFLOOP_END;
+          buf = buf_ptr;
+          break;
+        }
+        default: {
+          assert(0);
+        }
       }
     }
   }
@@ -302,10 +314,10 @@ mrc_redist_write_send_prep(struct mrc_redist *redist, struct mrc_fld *m3, int m)
 // ----------------------------------------------------------------------
 // mrc_redist_write_recv_init
 
-static void
-mrc_redist_write_recv_init(struct mrc_redist *redist, int size_of_type)
+static void mrc_redist_write_recv_init(struct mrc_redist* redist,
+                                       int size_of_type)
 {
-  struct mrc_redist_write_recv *recv = &redist->write_recv;
+  struct mrc_redist_write_recv* recv = &redist->write_recv;
 
   recv->disps = calloc(redist->size, sizeof(*recv->disps));
   recv->cnts = calloc(redist->size, sizeof(*recv->cnts));
@@ -314,11 +326,11 @@ mrc_redist_write_recv_init(struct mrc_redist *redist, int size_of_type)
 // ----------------------------------------------------------------------
 // mrc_redist_write_recv_init2
 
-static void
-mrc_redist_write_recv_init2(struct mrc_redist *redist, struct mrc_ndarray *nd,
-			    int size_of_type)
+static void mrc_redist_write_recv_init2(struct mrc_redist* redist,
+                                        struct mrc_ndarray* nd,
+                                        int size_of_type)
 {
-  struct mrc_redist_write_recv *recv = &redist->write_recv;
+  struct mrc_redist_write_recv* recv = &redist->write_recv;
 
   // find out who's sending, OPT: this way is not very scalable
   // could also be optimized by just looking at slow_dim
@@ -333,19 +345,22 @@ mrc_redist_write_recv_init2(struct mrc_redist *redist, struct mrc_ndarray *nd,
     mrc_domain_get_global_patch_info(redist->domain, gp, &info);
 
     int ilo[3], ihi[3];
-    int has_intersection = find_intersection(ilo, ihi, info.off, info.ldims,
-					     mrc_ndarray_offs(nd), mrc_ndarray_dims(nd));
+    int has_intersection =
+      find_intersection(ilo, ihi, info.off, info.ldims, mrc_ndarray_offs(nd),
+                        mrc_ndarray_dims(nd));
     if (!has_intersection) {
       continue;
     }
 
     recv->n_recv_patches++;
   }
-  //mprintf("n_recv_patches %d\n", recv->n_recv_patches);
+  // mprintf("n_recv_patches %d\n", recv->n_recv_patches);
 
-  recv->recv_patches = calloc(recv->n_recv_patches, sizeof(*recv->recv_patches));
+  recv->recv_patches =
+    calloc(recv->n_recv_patches, sizeof(*recv->recv_patches));
 
-  struct mrc_redist_block **recv_patches_by_rank = calloc(redist->size + 1, sizeof(*recv_patches_by_rank));
+  struct mrc_redist_block** recv_patches_by_rank =
+    calloc(redist->size + 1, sizeof(*recv_patches_by_rank));
 
   int cur_rank = -1;
   recv->n_recv_patches = 0;
@@ -354,8 +369,9 @@ mrc_redist_write_recv_init2(struct mrc_redist *redist, struct mrc_ndarray *nd,
     mrc_domain_get_global_patch_info(redist->domain, gp, &info);
 
     int ilo[3], ihi[3];
-    int has_intersection = find_intersection(ilo, ihi, info.off, info.ldims,
-					     mrc_ndarray_offs(nd), mrc_ndarray_dims(nd));
+    int has_intersection =
+      find_intersection(ilo, ihi, info.off, info.ldims, mrc_ndarray_offs(nd),
+                        mrc_ndarray_dims(nd));
     if (!has_intersection) {
       continue;
     }
@@ -363,11 +379,14 @@ mrc_redist_write_recv_init2(struct mrc_redist *redist, struct mrc_ndarray *nd,
     assert(info.rank >= cur_rank);
     while (cur_rank < info.rank) {
       cur_rank++;
-      recv_patches_by_rank[cur_rank] = &recv->recv_patches[recv->n_recv_patches];
-      //mprintf("rank %d patches start at %d\n", cur_rank, recv->n_recv_patches);
+      recv_patches_by_rank[cur_rank] =
+        &recv->recv_patches[recv->n_recv_patches];
+      // mprintf("rank %d patches start at %d\n", cur_rank,
+      // recv->n_recv_patches);
     }
 
-    struct mrc_redist_block *recv_patch = &recv->recv_patches[recv->n_recv_patches];
+    struct mrc_redist_block* recv_patch =
+      &recv->recv_patches[recv->n_recv_patches];
     for (int d = 0; d < 3; d++) {
       recv_patch->ilo[d] = ilo[d];
       recv_patch->ihi[d] = ihi[d];
@@ -378,35 +397,37 @@ mrc_redist_write_recv_init2(struct mrc_redist *redist, struct mrc_ndarray *nd,
   while (cur_rank < redist->size) {
     cur_rank++;
     recv_patches_by_rank[cur_rank] = &recv->recv_patches[recv->n_recv_patches];
-    //mprintf("rank %d patches start at %d\n", cur_rank, recv->n_recv_patches);
+    // mprintf("rank %d patches start at %d\n", cur_rank, recv->n_recv_patches);
   }
 
   int n_peers = 0;
   recv->buf_size = 0;
   for (int rank = 0; rank < redist->size; rank++) {
-    struct mrc_redist_block *begin = recv_patches_by_rank[rank];
-    struct mrc_redist_block *end   = recv_patches_by_rank[rank+1];
+    struct mrc_redist_block* begin = recv_patches_by_rank[rank];
+    struct mrc_redist_block* end = recv_patches_by_rank[rank + 1];
 
-    // don't communicate with same proc, and skip procs that have no intersection
+    // don't communicate with same proc, and skip procs that have no
+    // intersection
     if (rank == redist->rank || begin == end) {
       continue;
     }
 
-    //mprintf("peer rank %d # = %ld\n", rank, end - begin);
+    // mprintf("peer rank %d # = %ld\n", rank, end - begin);
     n_peers++;
   }
-  //mprintf("n_peers %d\n", n_peers);
+  // mprintf("n_peers %d\n", n_peers);
 
   recv->peers_begin = calloc(n_peers, sizeof(*recv->peers_begin));
   recv->peers_end = recv->peers_begin + n_peers;
   recv->reqs = calloc(n_peers, sizeof(*recv->reqs));
 
-  struct mrc_redist_peer *peer = recv->peers_begin;
+  struct mrc_redist_peer* peer = recv->peers_begin;
   for (int rank = 0; rank < redist->size; rank++) {
-    struct mrc_redist_block *begin = recv_patches_by_rank[rank];
-    struct mrc_redist_block *end   = recv_patches_by_rank[rank+1];
+    struct mrc_redist_block* begin = recv_patches_by_rank[rank];
+    struct mrc_redist_block* end = recv_patches_by_rank[rank + 1];
 
-    // don't communicate with same proc, and skip procs that have no intersection
+    // don't communicate with same proc, and skip procs that have no
+    // intersection
     if (rank == redist->rank || begin == end) {
       continue;
     }
@@ -417,11 +438,13 @@ mrc_redist_write_recv_init2(struct mrc_redist *redist, struct mrc_ndarray *nd,
 
     // allocate buffer
     peer->buf_size = 0;
-    for (struct mrc_redist_block *recv_patch = peer->blocks_begin; recv_patch < peer->blocks_end; recv_patch++) {
+    for (struct mrc_redist_block* recv_patch = peer->blocks_begin;
+         recv_patch < peer->blocks_end; recv_patch++) {
       int *ilo = recv_patch->ilo, *ihi = recv_patch->ihi;
-      peer->buf_size += (size_t) (ihi[0] - ilo[0]) * (ihi[1] - ilo[1]) * (ihi[2] - ilo[2]);
+      peer->buf_size +=
+        (size_t)(ihi[0] - ilo[0]) * (ihi[1] - ilo[1]) * (ihi[2] - ilo[2]);
     }
-    
+
     recv->buf_size += peer->buf_size;
     recv->cnts[peer->rank] = peer->buf_size;
     peer++;
@@ -435,12 +458,13 @@ mrc_redist_write_recv_init2(struct mrc_redist *redist, struct mrc_ndarray *nd,
     last += recv->cnts[r];
   }
   assert(last == recv->buf_size);
-  
+
   // alloc aggregate recv buffers
   recv->buf = malloc(recv->buf_size * size_of_type);
   assert(recv->buf);
   int off = 0;
-  for (struct mrc_redist_peer *peer = recv->peers_begin; peer != recv->peers_end; peer++) {
+  for (struct mrc_redist_peer* peer = recv->peers_begin;
+       peer != recv->peers_end; peer++) {
     peer->off = off;
     off += peer->buf_size;
   }
@@ -456,66 +480,65 @@ mrc_redist_write_recv_init2(struct mrc_redist *redist, struct mrc_ndarray *nd,
 // ----------------------------------------------------------------------
 // mrc_redist_write_recv_post
 
-static void
-mrc_redist_write_recv_post(struct mrc_redist *redist, struct mrc_ndarray *nd,
-			  struct mrc_fld *m3, int m)
+static void mrc_redist_write_recv_post(struct mrc_redist* redist,
+                                       struct mrc_ndarray* nd,
+                                       struct mrc_fld* m3, int m)
 {
-  struct mrc_redist_write_recv *recv = &redist->write_recv;
+  struct mrc_redist_write_recv* recv = &redist->write_recv;
 
   if (!redist->is_writer) {
     return;
   }
-  
-  for (struct mrc_redist_peer *peer = recv->peers_begin; peer < recv->peers_end; peer++) {
+
+  for (struct mrc_redist_peer* peer = recv->peers_begin; peer < recv->peers_end;
+       peer++) {
     // skip local patches
     if (peer->rank == redist->rank) {
       continue;
     }
 
     switch (mrc_fld_data_type(m3)) {
-    case MRC_NT_FLOAT: {
-      float *buf = recv->buf + peer->off * nd->size_of_type;
-      for (struct mrc_redist_block *recv_patch = peer->blocks_begin; recv_patch < peer->blocks_end; recv_patch++) {
-	int *ilo = recv_patch->ilo, *ihi = recv_patch->ihi;
-	BUFLOOP(ix, iy, iz, ilo, ihi) {
-	  MRC_S3(nd, ix,iy,iz) = *buf++;
-	} BUFLOOP_END;
+      case MRC_NT_FLOAT: {
+        float* buf = recv->buf + peer->off * nd->size_of_type;
+        for (struct mrc_redist_block* recv_patch = peer->blocks_begin;
+             recv_patch < peer->blocks_end; recv_patch++) {
+          int *ilo = recv_patch->ilo, *ihi = recv_patch->ihi;
+          BUFLOOP(ix, iy, iz, ilo, ihi) { MRC_S3(nd, ix, iy, iz) = *buf++; }
+          BUFLOOP_END;
+        }
+        break;
       }
-      break;
-    }
-    case MRC_NT_DOUBLE: {
-      double *buf = recv->buf + peer->off * nd->size_of_type;
-      for (struct mrc_redist_block *recv_patch = peer->blocks_begin; recv_patch < peer->blocks_end; recv_patch++) {
-	int *ilo = recv_patch->ilo, *ihi = recv_patch->ihi;
-	BUFLOOP(ix, iy, iz, ilo, ihi) {
-	  MRC_D3(nd, ix,iy,iz) = *buf++;
-	} BUFLOOP_END;
+      case MRC_NT_DOUBLE: {
+        double* buf = recv->buf + peer->off * nd->size_of_type;
+        for (struct mrc_redist_block* recv_patch = peer->blocks_begin;
+             recv_patch < peer->blocks_end; recv_patch++) {
+          int *ilo = recv_patch->ilo, *ihi = recv_patch->ihi;
+          BUFLOOP(ix, iy, iz, ilo, ihi) { MRC_D3(nd, ix, iy, iz) = *buf++; }
+          BUFLOOP_END;
+        }
+        break;
       }
-      break;
-    }
-    case MRC_NT_INT: {
-      int *buf = recv->buf + peer->off * nd->size_of_type;
-      for (struct mrc_redist_block *recv_patch = peer->blocks_begin; recv_patch < peer->blocks_end; recv_patch++) {
-	int *ilo = recv_patch->ilo, *ihi = recv_patch->ihi;
-	BUFLOOP(ix, iy, iz, ilo, ihi) {
-	  MRC_I3(nd, ix,iy,iz) = *buf++;
-	} BUFLOOP_END;
+      case MRC_NT_INT: {
+        int* buf = recv->buf + peer->off * nd->size_of_type;
+        for (struct mrc_redist_block* recv_patch = peer->blocks_begin;
+             recv_patch < peer->blocks_end; recv_patch++) {
+          int *ilo = recv_patch->ilo, *ihi = recv_patch->ihi;
+          BUFLOOP(ix, iy, iz, ilo, ihi) { MRC_I3(nd, ix, iy, iz) = *buf++; }
+          BUFLOOP_END;
+        }
+        break;
       }
-      break;
+      default: assert(0);
     }
-    default:
-      assert(0);
-    }    
   }
 }
 
 // ----------------------------------------------------------------------
 // mrc_redist_write_destroy
 
-static void
-mrc_redist_write_destroy(struct mrc_redist *redist)
+static void mrc_redist_write_destroy(struct mrc_redist* redist)
 {
-  struct mrc_redist_write_recv *recv = &redist->write_recv;
+  struct mrc_redist_write_recv* recv = &redist->write_recv;
 
   free(recv->reqs);
   free(recv->disps);
@@ -528,63 +551,65 @@ mrc_redist_write_destroy(struct mrc_redist *redist)
 // ----------------------------------------------------------------------
 // mrc_redist_write_comm_local
 
-static void
-mrc_redist_write_comm_local(struct mrc_redist *redist, struct mrc_ndarray *nd,
-			    struct mrc_fld *m3, int m)
+static void mrc_redist_write_comm_local(struct mrc_redist* redist,
+                                        struct mrc_ndarray* nd,
+                                        struct mrc_fld* m3, int m)
 {
-  struct mrc_redist_write_recv *recv = &redist->write_recv;
+  struct mrc_redist_write_recv* recv = &redist->write_recv;
 
   int nr_patches;
-  struct mrc_patch *patches = mrc_domain_get_patches(m3->_domain, &nr_patches);
+  struct mrc_patch* patches = mrc_domain_get_patches(m3->_domain, &nr_patches);
 
   for (int p = 0; p < nr_patches; p++) {
-    struct mrc_patch *patch = &patches[p];
+    struct mrc_patch* patch = &patches[p];
     int *off = patch->off, *ldims = patch->ldims;
 
     int ilo[3], ihi[3];
-    bool has_intersection =
-      find_intersection(ilo, ihi, off, ldims, mrc_ndarray_offs(nd), mrc_ndarray_dims(nd));
+    bool has_intersection = find_intersection(
+      ilo, ihi, off, ldims, mrc_ndarray_offs(nd), mrc_ndarray_dims(nd));
     if (!has_intersection) {
       continue;
     }
     switch (mrc_fld_data_type(m3)) {
-    case MRC_NT_FLOAT:
-    {
-      BUFLOOP(ix, iy, iz, ilo, ihi) {
-        MRC_S3(nd, ix,iy,iz) =
-          MRC_S5(m3, ix - off[0], iy - off[1], iz - off[2], m, p);
-      } BUFLOOP_END
-      break;
+      case MRC_NT_FLOAT: {
+        BUFLOOP(ix, iy, iz, ilo, ihi)
+        {
+          MRC_S3(nd, ix, iy, iz) =
+            MRC_S5(m3, ix - off[0], iy - off[1], iz - off[2], m, p);
+        }
+        BUFLOOP_END
+        break;
+      }
+      case MRC_NT_DOUBLE: {
+        BUFLOOP(ix, iy, iz, ilo, ihi)
+        {
+          MRC_D3(nd, ix, iy, iz) =
+            MRC_D5(m3, ix - off[0], iy - off[1], iz - off[2], m, p);
+        }
+        BUFLOOP_END
+        break;
+      }
+      case MRC_NT_INT: {
+        BUFLOOP(ix, iy, iz, ilo, ihi)
+        {
+          MRC_I3(nd, ix, iy, iz) =
+            MRC_I5(m3, ix - off[0], iy - off[1], iz - off[2], m, p);
+        }
+        BUFLOOP_END
+        break;
+      }
+      default: {
+        assert(0);
+      }
     }
-    case MRC_NT_DOUBLE:
-    {
-      BUFLOOP(ix, iy, iz, ilo, ihi) {
-        MRC_D3(nd, ix,iy,iz) =
-          MRC_D5(m3, ix - off[0], iy - off[1], iz - off[2], m, p);
-      } BUFLOOP_END
-      break;     
-    }
-    case MRC_NT_INT:
-    {
-      BUFLOOP(ix, iy, iz, ilo, ihi) {
-        MRC_I3(nd, ix,iy,iz) =
-          MRC_I5(m3, ix - off[0], iy - off[1], iz - off[2], m, p);
-      } BUFLOOP_END
-      break;
-    }
-    default:
-    {
-      	assert(0);
-    }
-    }    
   }
 }
 
 // ----------------------------------------------------------------------
 // mrc_redist_get_ndarray
 
-struct mrc_ndarray *
-mrc_redist_get_ndarray(struct mrc_redist *redist, struct mrc_fld *m3)
+struct mrc_ndarray* mrc_redist_get_ndarray(struct mrc_redist* redist,
+                                           struct mrc_fld* m3)
 {
   mrc_redist_write_send_init(redist, m3->_nd->size_of_type);
   mrc_redist_write_recv_init(redist, m3->_nd->size_of_type);
@@ -592,8 +617,8 @@ mrc_redist_get_ndarray(struct mrc_redist *redist, struct mrc_fld *m3)
   if (!redist->is_writer) {
     return NULL;
   }
-  
-  struct mrc_ndarray *nd = mrc_ndarray_create(redist->comm_writers);
+
+  struct mrc_ndarray* nd = mrc_ndarray_create(redist->comm_writers);
 
   int writer;
   MPI_Comm_rank(redist->comm_writers, &writer);
@@ -604,15 +629,15 @@ mrc_redist_get_ndarray(struct mrc_redist *redist, struct mrc_fld *m3)
 	  writer_off[0], writer_off[1], writer_off[2],
 	  writer_dims[0], writer_dims[1], writer_dims[2]);
 #endif
-  
+
   mrc_ndarray_set_param_int_array(nd, "dims", 3, writer_dims);
   mrc_ndarray_set_param_int_array(nd, "offs", 3, writer_off);
-  
+
   switch (mrc_fld_data_type(m3)) {
-  case MRC_NT_FLOAT: mrc_ndarray_set_type(nd, "float"); break;
-  case MRC_NT_DOUBLE: mrc_ndarray_set_type(nd, "double"); break;
-  case MRC_NT_INT: mrc_ndarray_set_type(nd, "int"); break;
-  default: assert(0);
+    case MRC_NT_FLOAT: mrc_ndarray_set_type(nd, "float"); break;
+    case MRC_NT_DOUBLE: mrc_ndarray_set_type(nd, "double"); break;
+    case MRC_NT_INT: mrc_ndarray_set_type(nd, "int"); break;
+    default: assert(0);
   }
   mrc_ndarray_setup(nd);
 
@@ -624,8 +649,7 @@ mrc_redist_get_ndarray(struct mrc_redist *redist, struct mrc_fld *m3)
 // ----------------------------------------------------------------------
 // mrc_redist_put_ndarray
 
-void
-mrc_redist_put_ndarray(struct mrc_redist *redist, struct mrc_ndarray *nd)
+void mrc_redist_put_ndarray(struct mrc_redist* redist, struct mrc_ndarray* nd)
 {
   mrc_redist_write_send_destroy(redist);
 
@@ -638,51 +662,56 @@ mrc_redist_put_ndarray(struct mrc_redist *redist, struct mrc_ndarray *nd)
 // ----------------------------------------------------------------------
 // mrc_redist_write_begin
 
-static void
-mrc_redist_write_begin(struct mrc_redist *redist, struct mrc_ndarray *nd,
-		       struct mrc_fld *m3, int m)
+static void mrc_redist_write_begin(struct mrc_redist* redist,
+                                   struct mrc_ndarray* nd, struct mrc_fld* m3,
+                                   int m)
 {
   mrc_redist_write_send_prep(redist, m3, m);
 
-  struct mrc_redist_write_recv *recv = &redist->write_recv;
-  struct mrc_redist_write_send *send = &redist->write_send;
+  struct mrc_redist_write_recv* recv = &redist->write_recv;
+  struct mrc_redist_write_send* send = &redist->write_send;
   MPI_Datatype mpi_dtype = to_mpi_datatype(mrc_fld_data_type(m3));
-  
+
   if (redist->is_writer) {
-    for (struct mrc_redist_peer *peer = recv->peers_begin; peer < recv->peers_end; peer++) {
-      //mprintf("recv_begin: Irecv cnt %ld from %d\n", peer->buf_size, peer->rank);
+    for (struct mrc_redist_peer* peer = recv->peers_begin;
+         peer < recv->peers_end; peer++) {
+      // mprintf("recv_begin: Irecv cnt %ld from %d\n", peer->buf_size,
+      // peer->rank);
       assert(peer->off == recv->disps[peer->rank]);
-      MPI_Irecv(recv->buf + recv->disps[peer->rank] * nd->size_of_type, peer->buf_size,
-		mpi_dtype, peer->rank, 0x1000, redist->comm,
-		&recv->reqs[peer - recv->peers_begin]);
+      MPI_Irecv(recv->buf + recv->disps[peer->rank] * nd->size_of_type,
+                peer->buf_size, mpi_dtype, peer->rank, 0x1000, redist->comm,
+                &recv->reqs[peer - recv->peers_begin]);
     }
   }
 
-  for (struct mrc_redist_peer *w = send->peers_begin; w != send->peers_end; w++) {
-    //mprintf("send_begin: Isend cnt %ld to %d\n", w->buf_size, w->rank);
-    MPI_Isend(send->buf + send->disps[w->rank] * m3->_nd->size_of_type, w->buf_size,
-	      mpi_dtype, w->rank, 0x1000, redist->comm,
-	      &send->reqs[w - send->peers_begin]);
+  for (struct mrc_redist_peer* w = send->peers_begin; w != send->peers_end;
+       w++) {
+    // mprintf("send_begin: Isend cnt %ld to %d\n", w->buf_size, w->rank);
+    MPI_Isend(send->buf + send->disps[w->rank] * m3->_nd->size_of_type,
+              w->buf_size, mpi_dtype, w->rank, 0x1000, redist->comm,
+              &send->reqs[w - send->peers_begin]);
   }
 }
 
 // ----------------------------------------------------------------------
 // mrc_redist_write_end
 
-static void
-mrc_redist_write_end(struct mrc_redist *redist, struct mrc_ndarray *nd,
-		     struct mrc_fld *m3, int m)
+static void mrc_redist_write_end(struct mrc_redist* redist,
+                                 struct mrc_ndarray* nd, struct mrc_fld* m3,
+                                 int m)
 {
-  struct mrc_redist_write_recv *recv = &redist->write_recv;
-  struct mrc_redist_write_send *send = &redist->write_send;
+  struct mrc_redist_write_recv* recv = &redist->write_recv;
+  struct mrc_redist_write_send* send = &redist->write_send;
 
   if (redist->is_writer) {
-    //mprintf("recv_end: Waitall cnt = %d\n", recv->peers_end - recv->peers_begin);
-    MPI_Waitall(recv->peers_end - recv->peers_begin, recv->reqs, MPI_STATUSES_IGNORE);
+    // mprintf("recv_end: Waitall cnt = %d\n", recv->peers_end -
+    // recv->peers_begin);
+    MPI_Waitall(recv->peers_end - recv->peers_begin, recv->reqs,
+                MPI_STATUSES_IGNORE);
   }
 
   int n_peers = send->peers_end - send->peers_begin;
-  //mprintf("send_end: Waitall cnt = %d\n", n_peers);
+  // mprintf("send_end: Waitall cnt = %d\n", n_peers);
   MPI_Waitall(n_peers, send->reqs, MPI_STATUSES_IGNORE);
 
   mrc_redist_write_recv_post(redist, nd, m3, m);
@@ -691,54 +720,58 @@ mrc_redist_write_end(struct mrc_redist *redist, struct mrc_ndarray *nd,
 // ----------------------------------------------------------------------
 // mrc_redist_write_begin2
 
-static void
-mrc_redist_write_begin2(struct mrc_redist *redist, struct mrc_ndarray *nd,
-			struct mrc_fld *m3, int m)
+static void mrc_redist_write_begin2(struct mrc_redist* redist,
+                                    struct mrc_ndarray* nd, struct mrc_fld* m3,
+                                    int m)
 {
   mrc_redist_write_send_prep(redist, m3, m);
 
-  struct mrc_redist_write_recv *recv = &redist->write_recv;
-  struct mrc_redist_write_send *send = &redist->write_send;
+  struct mrc_redist_write_recv* recv = &redist->write_recv;
+  struct mrc_redist_write_send* send = &redist->write_send;
   MPI_Datatype mpi_dtype = to_mpi_datatype(mrc_fld_data_type(m3));
 
-#if 0
+#if 1
   for (int r = 0; r < redist->size; r++) {
     MPI_Barrier(redist->comm);
     if (r == redist->rank) {
       mprintf("send disp/cnts:");
       for (int r = 0; r < redist->size; r++) {
-	printf(" (%d) %d/%d", r, send->disps[r], send->cnts[r]);
+        printf(" (%d) %d/%d", r, send->disps[r], send->cnts[r]);
       }
       printf("\n");
       mprintf("recv disp/cnts:");
       for (int r = 0; r < redist->size; r++) {
-	printf(" (%d) %d/%d", r, recv->disps[r], recv->cnts[r]);
+        printf(" (%d) %d/%d", r, recv->disps[r], recv->cnts[r]);
       }
       printf("\n");
     }
   }
 #endif
-  
+
   MPI_Barrier(redist->comm);
-  MPI_Alltoallv(send->buf, send->cnts, send->disps, mpi_dtype,
-  		recv->buf, recv->cnts, recv->disps, mpi_dtype, redist->comm);
+  assert(send->buf);
+  assert(send->cnts);
+  assert(send->disps);
+  assert(recv->cnts);
+  assert(recv->disps);
+  MPI_Alltoallv(send->buf, send->cnts, send->disps, mpi_dtype, recv->buf,
+                recv->cnts, recv->disps, mpi_dtype, redist->comm);
 }
 
 // ----------------------------------------------------------------------
 // mrc_redist_write_end2
 
-static void
-mrc_redist_write_end2(struct mrc_redist *redist, struct mrc_ndarray *nd,
-		      struct mrc_fld *m3, int m)
+static void mrc_redist_write_end2(struct mrc_redist* redist,
+                                  struct mrc_ndarray* nd, struct mrc_fld* m3,
+                                  int m)
 {
   mrc_redist_write_recv_post(redist, nd, m3, m);
 }
 
 // ----------------------------------------------------------------------
 
-void
-mrc_redist_run(struct mrc_redist *redist, struct mrc_ndarray *nd,
-	       struct mrc_fld *m3, int m)
+void mrc_redist_run(struct mrc_redist* redist, struct mrc_ndarray* nd,
+                    struct mrc_fld* m3, int m)
 {
   mrc_redist_write_begin2(redist, nd, m3, m);
 
@@ -748,6 +781,3 @@ mrc_redist_run(struct mrc_redist *redist, struct mrc_ndarray *nd,
 
   mrc_redist_write_end2(redist, nd, m3, m);
 }
-
-
-
