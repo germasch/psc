@@ -199,7 +199,7 @@ public:
     moments;
 };
 
-#ifdef xPSC_HAVE_ADIOS2
+#ifdef PSC_HAVE_ADIOS2
 
 #include "writer_adios2.hxx"
 template <typename MfieldsState, typename Mparticles, typename Dim>
