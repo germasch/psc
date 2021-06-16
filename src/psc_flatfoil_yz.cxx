@@ -10,7 +10,7 @@
 #include "../libpsc/psc_heating/psc_heating_impl.hxx"
 #include "heating_spot_foil.hxx"
 
-#ifdef USE_CUDA
+#ifdef xUSE_CUDA
 #include "cuda_bits.h"
 #else
 #define MEM_STATS()                                                            \
