@@ -257,7 +257,7 @@ void setupParameters()
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
 #else
-  g.mass_ratio = 16.;
+  g.mass_ratio = 25.;
 #endif
   g.lambda0 = 20.;
 
@@ -564,7 +564,7 @@ void run()
   heating_foil_params.rH = 1. * g.d_i;
 #else
   heating_foil_params.xc = 0. * g.d_i;
-  heating_foil_params.yc = 25. * g.d_i;
+  heating_foil_params.yc = 20. * g.d_i;
   heating_foil_params.rH = 12. * g.d_i;
 #endif
   heating_foil_params.T[MY_ELECTRON_HE] = g.target_Te_HE_heat;
