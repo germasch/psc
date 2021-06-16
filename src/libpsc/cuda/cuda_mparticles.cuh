@@ -281,7 +281,14 @@ struct cuda_mparticles : cuda_mparticles_base<_BS, MparticlesCudaStorage>
     return double(this->storage.xi4.size()) / this->storage.xi4.capacity();
   }
 
-  void dump(const std::string& filename) const;
+  void dump(const std::string& filename) const
+  {
+    std::cout << "cmprts: " << this->storage.xi4.size() << "/"
+              << this->storage.xi4.capacity() << " ratio "
+              << double(this->storage.xi4.size()) / this->storage.xi4.capacity()
+              << "\n";
+  }
+
   void dump_by_patch(uint* n_prts_by_patch);
 
   // internal / testing use

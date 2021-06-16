@@ -450,6 +450,7 @@ struct Psc
 #ifdef USE_CUDA
     mem_stats_csv(log_, timestep, grid().n_patches(), mprts_.size());
 #endif
+    mprts_.dump("");
 
     double mem_fraction = ::mem_fraction(mprts_);
     if (p_.balance_interval > 0 && (timestep % p_.balance_interval == 0 ||
