@@ -49,7 +49,7 @@ void cuda_base_init(void)
   static log_mr_type _log_mr{mr, std::cout, true};
   static pool_mr_type pool_mr{&_log_mr, 15000000000};
   static track_mr_type track_mr{&pool_mr};
-#if 1
+#if 0
   static log_mr_type log_mr{&track_mr, std::cout, true};
   rmm::mr::set_current_device_resource(&log_mr);
 #else
