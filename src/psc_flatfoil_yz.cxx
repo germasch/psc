@@ -294,8 +294,8 @@ Grid_t* setupGrid()
   // --- setup domain
 #if CASE == CASE_3D
   Grid_t::Real3 LL = {400., 400., 3. * 400.}; // domain size (in d_e)
-  Int3 gdims = {800, 800, 3 * 800};           // global number of grid points
-  Int3 np = {25, 25, 3 * 25};                 // division into patches
+  Int3 gdims = {384, 384, 3 * 384};           // global number of grid points
+  Int3 np = {12, 12, 3 * 12};                 // division into patches
 #elif CASE == CASE_2D
   Grid_t::Real3 LL = {1., 400., 3. * 400.}; // domain size (in d_e)
   Int3 gdims = {1, 800, 3 * 800};           // global number of grid points
