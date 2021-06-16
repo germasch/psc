@@ -257,7 +257,7 @@ void setupParameters()
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
 #else
-  g.mass_ratio = 25.;
+  g.mass_ratio = 100.;
 #endif
   g.lambda0 = 20.;
 
@@ -289,7 +289,7 @@ Grid_t* setupGrid()
 {
   // --- setup domain
 #if CASE == CASE_3D
-  Grid_t::Real3 LL = {400., 400., 3. * 400.}; // domain size (in d_e)
+  Grid_t::Real3 LL = {800., 800., 3. * 800.}; // domain size (in d_e)
   Int3 gdims = {768, 768, 3 * 768};           // global number of grid points
   Int3 np = {12, 12, 3 * 12};                 // division into patches
 #elif CASE == CASE_2D
