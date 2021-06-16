@@ -281,8 +281,6 @@ struct cuda_mparticles_randomize_sort
     if (dimGrid.x * THREADS_PER_BLOCK > rng_state_.size()) {
       rng_state_.resize(dimGrid.x * THREADS_PER_BLOCK);
     }
-    std::cout << "dimGrid " << dimGrid.x << " " << dimGrid.y << " " << dimGrid.z
-              << "\n";
 
     ::k_find_random_cell_indices_ids<BS, Block>
       <<<dimGrid, THREADS_PER_BLOCK>>>(cmprts, d_random_idx.data().get(),
