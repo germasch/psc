@@ -238,7 +238,7 @@ void setupParameters()
   // -- set some generic PSC parameters
   psc_params.nmax = 4001; // 10000001; // 5001;
   psc_params.cfl = 0.75;
-  psc_params.write_checkpoint_every_step = 10000;
+  psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
 
   // -- start from checkpoint:
@@ -522,13 +522,13 @@ void run()
   outf_item_params.pfield_interval = -4;
   outf_item_params.tfield_interval = -4;
 #else
-  outf_item_params.pfield_interval = 500;
-  outf_item_params.tfield_interval = 500;
+  outf_item_params.pfield_interval = 1000;
+  outf_item_params.tfield_interval = 1000;
 #endif
 #if CASE == CASE_2D_SMALL
   outf_item_params.tfield_average_every = 2;
 #else
-  outf_item_params.tfield_average_every = 50;
+  outf_item_params.tfield_average_every = 100;
 #endif
 
   outf_params.fields = outf_item_params;
