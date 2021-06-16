@@ -155,3 +155,10 @@ RngStateCuda& get_rng_state()
   static RngStateCuda rng_state;
   return rng_state;
 }
+
+void mem_pool_print()
+{
+  if (pool_mr) {
+    pool_mr->print();
+  }
+}
