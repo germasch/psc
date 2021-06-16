@@ -79,7 +79,6 @@ void cuda_mparticles<BS>::dump_by_patch(uint* n_prts_by_patch)
 // ----------------------------------------------------------------------
 // dump
 
-#if 0
 template <typename BS>
 void cuda_mparticles<BS>::dump(const std::string& filename) const
 {
@@ -109,7 +108,6 @@ void cuda_mparticles<BS>::dump(const std::string& filename) const
   }
   fclose(file);
 }
-#endif
 
 // ----------------------------------------------------------------------
 // swap_alt
