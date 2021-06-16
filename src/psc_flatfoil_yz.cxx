@@ -523,7 +523,7 @@ void run()
   outf_item_params.tfield_interval = -4;
 #else
   outf_item_params.pfield_interval = 1000;
-  outf_item_params.tfield_interval = 1000;
+  outf_item_params.tfield_interval = -1000;
 #endif
 #if CASE == CASE_2D_SMALL
   outf_item_params.tfield_average_every = 2;
