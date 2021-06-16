@@ -564,7 +564,7 @@ void run()
   heating_foil_params.rH = 1. * g.d_i;
 #else
   heating_foil_params.xc = 0. * g.d_i;
-  heating_foil_params.yc = 20. * g.d_i;
+  heating_foil_params.yc = 25. * g.d_i;
   heating_foil_params.rH = 12. * g.d_i;
 #endif
   heating_foil_params.T[MY_ELECTRON_HE] = g.target_Te_HE_heat;
