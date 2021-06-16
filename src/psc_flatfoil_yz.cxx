@@ -236,7 +236,7 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 1001; // 10000001; // 5001;
+  psc_params.nmax = 4001; // 10000001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 10000;
   psc_params.stats_every = 1;
