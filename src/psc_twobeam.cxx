@@ -43,15 +43,14 @@ struct PscFlatfoilParams
   double background_Te = .002;
   double background_Ti = .002;
 
-  double BB;
-  double lambda0;
-  double target_n;     // target density
-  double target_Te_HE; // target high energy electron temperature
-  double target_Te;    // target electron temperature
-  double target_Ti;    // target ion_temperatore
-  double target_Te_heat;
-  double target_Ti_heat;
-  double target_Te_HE_heat;
+  double BB = 0.01;
+  double BB_theta = 80. * 2. * M_PI / 360.;
+  double target_n = .01;   // target density
+  double target_Te = .002; // target electron temperature
+  double target_Ti = .002; // target ion_temperatore
+  double target_v = 0.1125;
+
+  double lambda0 = 20.; // mfp
 
   // The following parameters are calculated from the above / and other
   // information
@@ -129,17 +128,6 @@ void setupParameters()
   // on the command line, rather than requiring recompilation when change.
 
   // read_checkpoint_filename = "checkpoint_500.bp";
-
-  // -- Set some parameters specific to this case
-  g.BB = 0.;
-  g.lambda0 = 20.;
-
-  g.target_n = 2.5;
-  g.target_Te = 0.001;
-  g.target_Ti = 0.001;
-
-  g.target_Te_heat = 0.04;
-  g.target_Ti_heat = 0.0;
 }
 
 // ======================================================================
@@ -179,7 +167,7 @@ Grid_t* setupGrid()
 
   // -- setup normalization
   auto norm_params = Grid_t::NormalizationParams::dimensionless();
-  norm_params.nicell = 100;
+  norm_params.nicell = 5000;
 
   double dt = psc_params.cfl * courant_length(domain);
   Grid_t::Normalization norm{norm_params};
@@ -209,20 +197,24 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
   // -- set particle initial condition
   partitionAndSetupParticles(setup_particles, balance, grid_ptr, mprts,
                              [&](int kind, Double3 crd, psc_particle_npt& npt) {
+                               npt.n = g.target_n;
                                switch (kind) {
                                  case MY_ION:
-                                   npt.n = g.background_n;
-                                   npt.T[0] = g.background_Ti;
-                                   npt.T[1] = g.background_Ti;
-                                   npt.T[2] = g.background_Ti;
+                                   npt.T[0] = g.target_Ti;
+                                   npt.T[1] = g.target_Ti;
+                                   npt.T[2] = g.target_Ti;
                                    break;
                                  case MY_ELECTRON:
-                                   npt.n = g.background_n;
-                                   npt.T[0] = g.background_Te;
-                                   npt.T[1] = g.background_Te;
-                                   npt.T[2] = g.background_Te;
+                                   npt.T[0] = g.target_Te;
+                                   npt.T[1] = g.target_Te;
+                                   npt.T[2] = g.target_Te;
                                    break;
                                  default: assert(0);
+                               }
+                               if (crd[1] > 0.) {
+                                 npt.p[1] = -g.target_v;
+                               } else {
+                                 npt.p[1] = g.target_v;
                                }
                              });
 }
@@ -234,7 +226,8 @@ void initializeFields(MfieldsState& mflds)
 {
   setupFields(mflds, [&](int m, double crd[3]) {
     switch (m) {
-      case HY: return g.BB;
+      case HX: return g.BB * sin(g.BB_theta);
+      case HY: return g.BB * cos(g.BB_theta);
       default: return 0.;
     }
   });
@@ -280,8 +273,7 @@ void run()
 
   // -- Collision
   int collision_interval = 10;
-  double collision_nu =
-    3.76 * std::pow(g.target_Te_heat, 2.) / g.Zi / g.lambda0;
+  double collision_nu = 3.76 * std::pow(g.target_Te, 2.) / g.Zi / g.lambda0;
   Collision collision{grid, collision_interval, collision_nu};
 
   // -- Checks
@@ -314,7 +306,7 @@ void run()
   // -- output fields
   OutputFieldsItemParams outf_item_params{};
   OutputFieldsParams outf_params{};
-  outf_item_params.pfield_interval = 1000;
+  outf_item_params.pfield_interval = 100;
   outf_item_params.tfield_interval = -1000;
   outf_item_params.tfield_average_every = 100;
 
