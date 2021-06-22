@@ -234,7 +234,7 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 16001; // 10000001; // 5001;
+  psc_params.nmax = 2001; // 10000001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
@@ -287,7 +287,7 @@ Grid_t* setupGrid()
 {
   // --- setup domain
 #if CASE == CASE_3D
-  int fac = 2;
+  int fac = 1;
   Grid_t::Real3 LL = {1.5 * 800., 800., 3. * 800.}; // domain size (in d_e)
   Int3 gdims = {3 * 384 / 2 * fac, 384 * fac,
                 3 * 384 * fac}; // global number of grid points

@@ -25,7 +25,7 @@
 // FIXME
 #define CUDA_BND_S_OOB (10)
 
-#define DEBUG_PUSH
+//#define DEBUG_PUSH
 
 // ----------------------------------------------------------------------
 
@@ -66,7 +66,8 @@ struct CudaPushParticles
          ((xm[0] < ci0[0] || xm[0] > ci0[0] + BS::x::value))) ||
         xm[1] < ci0[1] || xm[1] > ci0[1] + BS::y::value || xm[2] < ci0[2] ||
         xm[2] > ci0[2] + BS::z::value) {
-      printf("xm %g %g (xi %g %g n %d)\n", xm[1], xm[2], prt.x[0], prt.x[1], n);
+      printf("xm %g %g %g (xi %g %g %g n %d ci %d %d %d)\n", xm[0], xm[1],
+             xm[2], prt.x[0], prt.x[1], prt.x[2], n, ci0[0], ci0[1], ci0[2]);
     }
 #endif
     InterpolateEM<FldCache, typename Config::Ip, dim> ip;

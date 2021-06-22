@@ -114,7 +114,7 @@ using OutputParticles = PscConfig::OutputParticles;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 16001; // 10000001; // 5001;
+  psc_params.nmax = 1001; // 10000001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
@@ -141,10 +141,9 @@ void setupParameters()
 Grid_t* setupGrid()
 {
   // --- setup domain
-  Grid_t::Real3 LL = {1., 128. * g.LLz,
-                      1.28 * /*16. **/ g.LLz}; // domain size (in d_e)
-  Int3 gdims = {1, 3200, 32}; // global number of grid points // 3200x400
-  Int3 np = {1, 100, 1};      // division into patches
+  Grid_t::Real3 LL = {1., 120 * g.LLz, 20 * g.LLz}; // domain size
+  Int3 gdims = {1, 3072, 512}; // global number of grid points
+  Int3 np = {1, 48, 8};        // division into patches
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
 
@@ -306,7 +305,7 @@ void run()
   // -- output fields
   OutputFieldsItemParams outf_item_params{};
   OutputFieldsParams outf_params{};
-  outf_item_params.pfield_interval = 100;
+  outf_item_params.pfield_interval = 1000;
   outf_item_params.tfield_interval = -1000;
   outf_item_params.tfield_average_every = 100;
 

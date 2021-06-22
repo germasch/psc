@@ -24,7 +24,7 @@ struct FldCache
       ((-(ci0[2] - 2) * (BLOCKSIZE_Y + 4) + -(ci0[1] - 2)) * (BLOCKSIZE_X + 4) +
        -(ci0[0] - 2));
 
-#if 1
+#if 0
     ci0_[0] = ci0[0];
     ci0_[1] = ci0[1];
     ci0_[2] = ci0[2];
@@ -40,7 +40,7 @@ struct FldCache
       tmp /= BLOCKSIZE_Y + 4;
       int jz = tmp % (BLOCKSIZE_Z + 4) - 2;
       for (int m = EX; m <= HZ; m++) {
-#if 1
+#if 0
         float val = _d_flds(m, jx + ci0[0], jy + ci0[1], jz + ci0[2]);
         // printf("C load %d %d %d: %g (%d)\n", jx+ci0[0], jy+ci0[1], jz+ci0[2],
         // val, m);
@@ -69,7 +69,7 @@ private: // it's supposed to be a (read-only) cache, after all
 private:
   __host__ __device__ int index(int m, int i, int j, int k) const
   {
-#if 1
+#if 0
     if (i < ci0_[0] - 2 || i >= ci0_[0] + BLOCKSIZE_X + 2 || j < ci0_[1] - 2 ||
         j >= ci0_[1] + BLOCKSIZE_Y + 2 || k < ci0_[2] - 2 ||
         k >= ci0_[2] + BLOCKSIZE_Z + 2) {
@@ -85,7 +85,7 @@ private:
 
   float data_[6 * (BLOCKSIZE_X + 4) * (BLOCKSIZE_Y + 4) * (BLOCKSIZE_Z + 4)];
   int off_;
-#if 1
+#if 0
   int ci0_[3];
 #endif
 };
