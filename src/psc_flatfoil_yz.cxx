@@ -236,7 +236,7 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 9001; // 10000001; // 5001;
+  psc_params.nmax = 16001; // 10000001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
@@ -247,13 +247,9 @@ void setupParameters()
   // instead of setting up grid, particles and state fields here,
   // they'll be read from a file
   // FIXME: This parameter would be a good candidate to be provided
-  // on the command line, rather than requiring recompilation when changed.
+  // on the command line, rather than requiring recompilation when change.
 
-  // read_checkpoint_filename =
-  //   "/gpfs/alpine/proj-shared/fus137/johnd/flatfoil-summit_6-23/kai-mem11/"
-  //   "checkpoint_8000.bp";
-  read_checkpoint_filename = "/gpfs/alpine/proj-shared/fus137/kaig1/flatfoil/"
-                             "20200528_b/1109287/checkpoint_8000.bp";
+  // read_checkpoint_filename = "checkpoint_500.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
@@ -294,8 +290,8 @@ Grid_t* setupGrid()
   // --- setup domain
 #if CASE == CASE_3D
   Grid_t::Real3 LL = {320., 160., 960.}; // domain size (in d_e)
-  Int3 gdims = {640, 320, 1920};         // global number of grid points
-  Int3 np = {20, 10, 60};                // division into patches
+  Int3 gdims = {640, 320, 1920};        // global number of grid points
+  Int3 np = {20, 10, 60};                 // division into patches
 #elif CASE == CASE_2D
   Grid_t::Real3 LL = {1., 400., 3. * 400.}; // domain size (in d_e)
   Int3 gdims = {1, 800, 3 * 800};           // global number of grid points
@@ -526,13 +522,13 @@ void run()
   outf_item_params.pfield_interval = -4;
   outf_item_params.tfield_interval = -4;
 #else
-  outf_item_params.pfield_interval = 500;
-  outf_item_params.tfield_interval = -500;
+  outf_item_params.pfield_interval = 1000;
+  outf_item_params.tfield_interval = -1000;
 #endif
 #if CASE == CASE_2D_SMALL
   outf_item_params.tfield_average_every = 2;
 #else
-  outf_item_params.tfield_average_every = 50;
+  outf_item_params.tfield_average_every = 100;
 #endif
 
   outf_params.fields = outf_item_params;
