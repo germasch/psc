@@ -32,8 +32,7 @@ void write_checkpoint(const Grid_t& grid, Mparticles& mprts,
     "checkpoint_" + std::to_string(grid.timestep()) + ".bp";
 
   auto io = kg::io::IOAdios2{};
-  auto writer =
-    io.open(filename, kg::io::Mode::Write, grid.comm(), "checkpoint");
+  auto writer = io.open(filename, kg::io::Mode::Write);
   writer.put("grid", grid);
   writer.put("mprts", mprts);
   writer.put("mflds", mflds);
