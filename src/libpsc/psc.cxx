@@ -86,6 +86,9 @@ void psc_init(int& argc, char**& argv)
   vpic_base_init(&argc, &argv);
 #else
   MPI_Init(&argc, &argv);
+  int provided;
+  MPI_Init_thread(MPI_THREAD_MULTIPLE, &argc, &argv, MPI_THREAD_MULTIPLE,
+                  &provided);
 #endif
   libmrc_params_init(argc, argv);
   mrc_set_flags(MRC_FLAG_SUPPRESS_UNPREFIXED_OPTION_WARNING);
