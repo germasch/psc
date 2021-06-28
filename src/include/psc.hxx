@@ -452,6 +452,7 @@ struct Psc
 #endif
 
     double mem_fraction = ::mem_fraction(mprts_);
+    mpi_printf(comm, "mem_fraction %g\n", mem_fraction);
     if (p_.balance_interval > 0 && (timestep % p_.balance_interval == 0 ||
                                     mem_fraction > p_.balance_mem_fraction)) {
       balance_(grid_, mprts_);

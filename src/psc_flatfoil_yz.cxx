@@ -236,10 +236,11 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 16001; // 10000001; // 5001;
+  psc_params.nmax = 30001; // 10000001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
+  psc_params.balance_mem_fraction = .98;
 
   // -- start from checkpoint:
   //
@@ -249,7 +250,9 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  // read_checkpoint_filename = "checkpoint_500.bp";
+  // read_checkpoint_filename =
+  //   "/gpfs/alpine/proj-shared/fus137/kaig1/flatfoil/20200528_b/1116101/"
+  //   "/checkpoint_6000.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
