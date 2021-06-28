@@ -22,7 +22,7 @@
 
 // FIXME select a hardcoded case, if not already specified
 #ifndef CASE
-#define CASE CASE_3D
+#define CASE CASE_2D
 #endif
 
 // ======================================================================
@@ -252,8 +252,9 @@ void setupParameters()
   // read_checkpoint_filename =
   //   "/gpfs/alpine/proj-shared/fus137/johnd/flatfoil-summit_6-23/kai-mem11/"
   //   "checkpoint_8000.bp";
-  read_checkpoint_filename = "/gpfs/alpine/proj-shared/fus137/kaig1/flatfoil/"
-                             "20200528_b/1109287/checkpoint_8000.bp";
+  // read_checkpoint_filename =
+  // "/gpfs/alpine/proj-shared/fus137/kaig1/flatfoil/"
+  //                            "20200528_b/1109287/checkpoint_8000.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
