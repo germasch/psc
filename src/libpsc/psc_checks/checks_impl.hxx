@@ -179,7 +179,7 @@ struct Checks_
     }
 
     if (gauss_dump_always || max_err >= eps) {
-      static WriterMRC writer;
+      static WriterADIOS2 writer;
       if (!writer) {
         writer.open("gauss");
       }

@@ -34,6 +34,8 @@ def FieldToComponent(species):
     map['jeh'] = { 'jx_ec': 0, 'jy_ec': 1, 'jz_ec' : 2,
                    'ex_ec': 3, 'ey_ec': 4, 'ez_ec' : 5,
                    'hx_fc': 6, 'hy_fc': 7, 'hz_fc' : 8 }
+    map['dive'] = { 'dive': 0 }
+    map['rho'] = { 'rho': 0 }
     
     map['all_1st'] = {}
     moments = ['rho', 'jx', 'jy', 'jz', 'px', 'py', 'pz', 'txx', 'tyy', 'tzz', 'txy', 'tyz', 'tzx']
