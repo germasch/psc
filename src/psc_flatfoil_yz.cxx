@@ -250,9 +250,9 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  // read_checkpoint_filename =
-  //   "/gpfs/alpine/proj-shared/fus137/kaig1/flatfoil/20200528_b/1116101/"
-  //   "/checkpoint_6000.bp";
+  read_checkpoint_filename =
+    "/gpfs/alpine/proj-shared/fus137/kaig1/flatfoil/20200528_b/1116101/"
+    "/checkpoint_6000.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
@@ -500,7 +500,7 @@ void run()
   checks_params.continuity_every_step = 10;
   checks_params.continuity_dump_always = false;
 #else
-  checks_params.continuity_every_step = 100;
+  checks_params.continuity_every_step = 1;
   checks_params.continuity_dump_always = false;
 #endif
   checks_params.continuity_threshold = 1e-4;
@@ -526,7 +526,7 @@ void run()
   psc_params.marder_interval = 10;
 #else
   bool marder_dump = false;
-  psc_params.marder_interval = 100;
+  psc_params.marder_interval = -100;
 #endif
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
