@@ -433,6 +433,7 @@ void run()
   if (!read_checkpoint_filename.empty()) {
     read_checkpoint(read_checkpoint_filename, grid, mprts, mflds);
     if (grid.kinds.size() == 2) {
+      abort();
       // we restarted from an old run that was using MY_ION = 0, MY_ELECTRON = 1
 
       // restore kinds to original order
@@ -458,6 +459,22 @@ void run()
       }
       mprts.put_as(mp);
     }
+
+    using Bnd = typename PscConfig::Bnd;
+    Bnd bnd{grid, grid.ibn};
+    bnd.fill_ghosts(mflds, EX, EX + 3);
+
+    ChecksParams checks_params{};
+    checks_params.gauss_every_step = 1;
+    checks_params.gauss_dump_always = true;
+    checks_params.gauss_threshold = 1e-3;
+    checks_params.gauss_verbose = true;
+
+    Checks checks{grid, MPI_COMM_WORLD, checks_params};
+    checks.gauss(mprts, mflds);
+    // write_checkpoint(grid, mprts, mflds);
+    // MPI_Finalize();
+    // exit(0);
   }
 
   // ----------------------------------------------------------------------
