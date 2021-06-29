@@ -467,7 +467,7 @@ void run()
 
     ChecksParams checks_params{};
     checks_params.gauss_every_step = 1;
-    checks_params.gauss_dump_always = true;
+    checks_params.gauss_dump_always = false;
     checks_params.gauss_threshold = 1e-3;
     checks_params.gauss_verbose = true;
 
