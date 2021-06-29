@@ -524,7 +524,7 @@ void run()
   outf_item_params.pfield_interval = 100;
   outf_item_params.tfield_interval = -100;
 #elif CASE == CASE_2D_SMALL
-  outf_item_params.pfield_interval = -4;
+  outf_item_params.pfield_interval = 4;
   outf_item_params.tfield_interval = -4;
 #else
   outf_item_params.pfield_interval = 1000;
