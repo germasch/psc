@@ -5,6 +5,7 @@
 #include "fields_item.hxx"
 #include "checks.hxx"
 #include "writer_mrc.hxx"
+#include "writer_adios2.hxx"
 #include "../libpsc/psc_output_fields/fields_item_fields.hxx"
 #include "../libpsc/psc_output_fields/psc_output_fields_item_moments_1st_nc.cxx"
 #include "../libpsc/psc_output_fields/psc_output_fields_item_moments_2nd_nc.cxx"
@@ -117,6 +118,7 @@ struct Checks_
       writer.write(divj_.gt(), grid, "div_j", {"div_j"});
       writer.write(d_rho.gt(), grid, "d_rho", {"d_rho"});
       writer.end_step();
+      MPI_Barrier(grid.comm);
     }
 
     assert(max_err < eps);

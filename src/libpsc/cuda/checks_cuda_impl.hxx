@@ -98,7 +98,7 @@ struct ChecksCuda
     }
 
     if (continuity_dump_always || max_err >= eps) {
-      static WriterMRC writer;
+      static WriterADIOS2 writer;
       if (!writer) {
         writer.open("continuity");
       }
@@ -107,6 +107,7 @@ struct ChecksCuda
       writer.write(d_rho, grid, "d_rho", {"d_rho"});
       writer.end_step();
     }
+    MPI_Barrier(MPI_COMM_WORLD);
 
     assert(max_err < eps);
   }
@@ -170,7 +171,7 @@ struct ChecksCuda
     }
 
     if (gauss_dump_always || max_err >= eps) {
-      static WriterMRC writer;
+      static WriterADIOS2 writer;
       if (!writer) {
         writer.open("gauss");
       }
@@ -180,6 +181,7 @@ struct ChecksCuda
       writer.end_step();
     }
 
+    MPI_Barrier(grid.comm());
     assert(max_err < eps);
   }
 
