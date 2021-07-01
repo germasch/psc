@@ -250,9 +250,9 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  read_checkpoint_filename =
-    "/gpfs/alpine/proj-shared/fus137/kaig1/flatfoil/20200528_b/1116101/"
-    "/checkpoint_6000.bp";
+  // read_checkpoint_filename =
+  //   "/gpfs/alpine/proj-shared/fus137/kaig1/flatfoil/20200528_b/1116101/"
+  //   "/checkpoint_6000.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
@@ -542,8 +542,8 @@ void run()
   outf_item_params.pfield_interval = 100;
   outf_item_params.tfield_interval = -100;
 #elif CASE == CASE_2D_SMALL
-  outf_item_params.pfield_interval = -4;
-  outf_item_params.tfield_interval = -4;
+  outf_item_params.pfield_interval = 100;
+  outf_item_params.tfield_interval = 100;
 #else
   outf_item_params.pfield_interval = 1000;
   outf_item_params.tfield_interval = -1000;

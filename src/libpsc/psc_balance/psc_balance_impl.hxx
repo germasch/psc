@@ -1052,7 +1052,7 @@ private:
     // mv particles back to gpu
     if (mp && typeid(*mp) != typeid(Mparticles)) {
 #ifdef USE_CUDA
-      new (mp) MparticlesCuda<BS444>{*new_grid};
+      new (mp) MparticlesCuda<BS144>{*new_grid};
       auto& mp_base = *mp;
 
       mpi_printf(old_grid->comm(), "***** Balance: particles to device\n");
