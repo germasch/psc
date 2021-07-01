@@ -25,7 +25,7 @@
 // FIXME
 #define CUDA_BND_S_OOB (10)
 
-//#define DEBUG_PUSH
+#define DEBUG_PUSH
 
 // ----------------------------------------------------------------------
 
