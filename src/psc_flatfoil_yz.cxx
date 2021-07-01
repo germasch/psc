@@ -22,7 +22,7 @@
 
 // FIXME select a hardcoded case, if not already specified
 #ifndef CASE
-#define CASE CASE_2D
+#define CASE CASE_3D
 #endif
 
 // ======================================================================
@@ -236,10 +236,11 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 10000001; // 5001;
+  psc_params.nmax = 30001; // 10000001; // 5001;
   psc_params.cfl = 0.75;
-  psc_params.write_checkpoint_every_step = 1000;
+  psc_params.write_checkpoint_every_step = 2000;
   psc_params.stats_every = 1;
+  psc_params.balance_mem_fraction = .98;
 
   // -- start from checkpoint:
   //
@@ -249,7 +250,9 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  // read_checkpoint_filename = "checkpoint_500.bp";
+  read_checkpoint_filename =
+    "/gpfs/alpine/proj-shared/fus137/kaig1/flatfoil/20200528_b/1116101/"
+    "/checkpoint_6000.bp";
 
   // -- Set some parameters specific to this case
   g.BB = 0.;
@@ -257,7 +260,7 @@ void setupParameters()
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
 #else
-  g.mass_ratio = 64.;
+  g.mass_ratio = 100.;
 #endif
   g.lambda0 = 20.;
 
@@ -289,13 +292,15 @@ Grid_t* setupGrid()
 {
   // --- setup domain
 #if CASE == CASE_3D
-  Grid_t::Real3 LL = {80., 80., 3. * 80.}; // domain size (in d_e)
-  Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
-  Int3 np = {5, 5, 3 * 5};                 // division into patches
+  int fac = 2;
+  Grid_t::Real3 LL = {1.5 * 800., 800., 3. * 800.}; // domain size (in d_e)
+  Int3 gdims = {3 * 384 / 2 * fac, 384 * fac,
+                3 * 384 * fac}; // global number of grid points
+  Int3 np = {3 * 12 / 2 * fac, 12 * fac, 3 * 12 * fac}; // division into patches
 #elif CASE == CASE_2D
-  Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
-  Int3 np = {1, 50, 3 * 50};                // division into patches
+  Grid_t::Real3 LL = {1., 400., 3. * 400.}; // domain size (in d_e)
+  Int3 gdims = {1, 800, 3 * 800};           // global number of grid points
+  Int3 np = {1, 25, 3 * 25};                // division into patches
 #elif CASE == CASE_2D_SMALL
   Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {1, 80, 3 * 80};           // global number of grid points
@@ -428,6 +433,7 @@ void run()
   if (!read_checkpoint_filename.empty()) {
     read_checkpoint(read_checkpoint_filename, grid, mprts, mflds);
     if (grid.kinds.size() == 2) {
+      abort();
       // we restarted from an old run that was using MY_ION = 0, MY_ELECTRON = 1
 
       // restore kinds to original order
@@ -453,14 +459,31 @@ void run()
       }
       mprts.put_as(mp);
     }
+
+    using Bnd = typename PscConfig::Bnd;
+    Bnd bnd{grid, grid.ibn};
+    bnd.fill_ghosts(mflds, EX, EX + 3);
+    bnd.fill_ghosts(mflds, HX, HX + 3);
+
+    ChecksParams checks_params{};
+    checks_params.gauss_every_step = 1;
+    checks_params.gauss_dump_always = false;
+    checks_params.gauss_threshold = 1e-3;
+    checks_params.gauss_verbose = true;
+
+    Checks checks{grid, MPI_COMM_WORLD, checks_params};
+    checks.gauss(mprts, mflds);
+    //    write_checkpoint(grid, mprts, mflds);
+    // MPI_Finalize();
+    // exit(0);
   }
 
   // ----------------------------------------------------------------------
   // Set up various objects needed to run this case
 
   // -- Balance
-  psc_params.balance_interval = 500;
-  Balance balance{psc_params.balance_interval, 3};
+  psc_params.balance_interval = 5000;
+  Balance balance{psc_params.balance_interval, 3, true};
 
   // -- Sort
   psc_params.sort_interval = 10;
@@ -474,23 +497,23 @@ void run()
   // -- Checks
   ChecksParams checks_params{};
 #if CASE == CASE_2D_SMALL
-  checks_params.continuity_every_step = 1;
-  checks_params.continuity_dump_always = true;
+  checks_params.continuity_every_step = 10;
+  checks_params.continuity_dump_always = false;
 #else
-  checks_params.continuity_every_step = 0;
+  checks_params.continuity_every_step = 1;
   checks_params.continuity_dump_always = false;
 #endif
   checks_params.continuity_threshold = 1e-4;
   checks_params.continuity_verbose = true;
 
 #if CASE == CASE_2D_SMALL
-  checks_params.gauss_every_step = 1;
-  checks_params.gauss_dump_always = true;
+  checks_params.gauss_every_step = 10;
+  checks_params.gauss_dump_always = false;
 #else
   checks_params.gauss_every_step = 100;
   checks_params.gauss_dump_always = false;
 #endif
-  checks_params.gauss_threshold = 1e-4;
+  checks_params.gauss_threshold = 1e-3;
   checks_params.gauss_verbose = true;
 
   Checks checks{grid, MPI_COMM_WORLD, checks_params};
@@ -499,11 +522,11 @@ void run()
   double marder_diffusion = 0.9;
   int marder_loop = 3;
 #if CASE == CASE_2D_SMALL
-  bool marder_dump = true;
-  psc_params.marder_interval = 2;
+  bool marder_dump = false;
+  psc_params.marder_interval = 10;
 #else
   bool marder_dump = false;
-  psc_params.marder_interval = 100;
+  psc_params.marder_interval = -100;
 #endif
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
@@ -519,16 +542,16 @@ void run()
   outf_item_params.pfield_interval = 100;
   outf_item_params.tfield_interval = -100;
 #elif CASE == CASE_2D_SMALL
-  outf_item_params.pfield_interval = 4;
-  outf_item_params.tfield_interval = 4;
+  outf_item_params.pfield_interval = -4;
+  outf_item_params.tfield_interval = -4;
 #else
-  outf_item_params.pfield_interval = 500;
-  outf_item_params.tfield_interval = 500;
+  outf_item_params.pfield_interval = 1000;
+  outf_item_params.tfield_interval = -1000;
 #endif
 #if CASE == CASE_2D_SMALL
   outf_item_params.tfield_average_every = 2;
 #else
-  outf_item_params.tfield_average_every = 50;
+  outf_item_params.tfield_average_every = 100;
 #endif
 
   outf_params.fields = outf_item_params;
@@ -595,7 +618,7 @@ void run()
   InjectFoil inject_target{inject_foil_params};
 
 #if CASE == CASE_2D_SMALL
-  g.inject_interval = 2;
+  g.inject_interval = 20;
 #else
   g.inject_interval = 20;
 #endif
