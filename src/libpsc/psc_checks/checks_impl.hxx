@@ -128,7 +128,7 @@ struct Checks_
       writer.write(divj_.gt(), grid, "div_j", {"div_j"});
       writer.write(d_rho.gt(), grid, "d_rho", {"d_rho"});
       writer.end_step();
-      MPI_Barrier(grid.comm);
+      MPI_Barrier(grid.comm());
     }
 
     assert(max_err < eps);
