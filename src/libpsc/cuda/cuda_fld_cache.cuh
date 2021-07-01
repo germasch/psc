@@ -1,7 +1,7 @@
 
 #pragma once
 
-// #define DEBUG_FLDCACHE
+#define DEBUG_FLDCACHE
 
 // ======================================================================
 // FldCache

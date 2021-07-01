@@ -1,7 +1,7 @@
 
 #pragma once
 
-// #define DEBUG_CURRMEM
+#define DEBUG_CURRMEM
 
 // ----------------------------------------------------------------------
 // SCurr
