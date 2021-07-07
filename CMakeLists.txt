@@ -73,7 +73,7 @@ endif()
 CPMAddPackage(
   NAME gtensor
   GITHUB_REPOSITORY wdmapp/gtensor
-  GIT_TAG main
+  GIT_TAG 41cf4fe26625f8d7ba2d0d3886a54ae6415a2017
   VERSION 0.0.0
 )
 
