@@ -993,8 +993,7 @@ private:
                  mf_old.n_comps());
 
       auto mf_new = Mfields{*new_grid, mf_old.n_comps(), mf_old.ibn()};
-
-      communicate_fields(&ctx, mf_old, mf_new);
+      ctx.communicate_fields(mf_old, mf_new);
       // FIXME, not possible anymore, could be recovered by some "= {}" empty
       // default behavior. delete mfields_old[n]; // delete as early as
       // possible
