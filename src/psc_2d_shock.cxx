@@ -17,7 +17,7 @@
 #define CASE_2D_SMALL 4
 
 // FIXME select a hardcoded case
-#define CASE CASE_2D
+#define CASE CASE_1D
 
 // ======================================================================
 // Particle kinds
@@ -146,7 +146,7 @@ public:
         npt.T[1] = Te;
         npt.T[2] = Te;
         break;
-      default: assert(0);
+        //      default: assert(0);
     }
   }
 };
@@ -242,8 +242,10 @@ void setupParameters()
   // read_checkpoint_filename = "checkpoint_500.bp";
 
   // -- Set some parameters specific to this case
-  g.BB_perp = 0.01 * 0.5;
-  g.BB_par = 0.01 * 0.866;
+  // g.BB_perp = 0.01 * 0.5;
+  // g.BB_par = 0.01 * 0.866;
+  g.BB_par = 0.0;
+  g.BB_perp = 0.01;
   g.Zi = 1.;
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
@@ -288,9 +290,9 @@ Grid_t* setupGrid()
   Int3 gdims = {1, 160, 3 * 160};         // global number of grid points
   Int3 np = {1, 5, 3 * 5};                // division into patches
 #elif CASE == CASE_1D
-  Grid_t::Real3 LL = {1., 13.3333, 18000.}; // domain size (in d_e)
-  Int3 gdims = {1, 32, 60000};              // global number of grid points
-  Int3 np = {1, 1, 1875};                   // division into patches
+  Grid_t::Real3 LL = {1., 13.3333, 1333.33}; // domain size (in d_e)
+  Int3 gdims = {1, 32, 3200};                // global number of grid points
+  Int3 np = {1, 1, 100};                     // division into patches
 #endif
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
@@ -466,8 +468,8 @@ void run()
   OutputFieldsItemParams outf_item_params{};
   OutputFieldsParams outf_params{};
 #if CASE == CASE_1D
-  outf_item_params.pfield_interval = 10000;
-  outf_item_params.tfield_interval = 10000;
+  outf_item_params.pfield_interval = 1000;
+  outf_item_params.tfield_interval = 1000;
 #elif CASE == CASE_2D_SMALL
   outf_item_params.pfield_interval = 10000;
   outf_item_params.tfield_interval = 10000;
