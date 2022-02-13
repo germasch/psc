@@ -452,6 +452,8 @@ struct Psc
     }
 
     // state is at: x^{n+1/2}, p^{n}, E^{n+1/2}, B^{n+1/2}
+    // have E^{n+1/2} [-1/2, 1/2]
+    //      B^{n+1/2} [0, 0]
     MPI_Comm comm = grid().comm();
     int timestep = grid().timestep();
 
@@ -493,18 +495,29 @@ struct Psc
     }
 
     // === particle propagation p^{n} -> p^{n+1}, x^{n+1/2} -> x^{n+3/2}
+    // have E^{n+1/2} [-1/2, 1/2]
+    //      B^{n+1/2} [0, 0]
+    // needs E, B [0, 0] for interpolation
     mpi_printf(comm, "***** Pushing particles...\n");
     prof_start(pr_push_prts);
     pushp_.push_mprts(mprts_, mflds_);
     prof_stop(pr_push_prts);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1/2}, j^{n+1}
+    // E^{n+1/2} [-1/2, 1/2]
+    // B^{n+1/2} [0, 0]
+    // j^{n+1}   [0, 0[ ghostpoints need adding
 
     // === field propagation B^{n+1/2} -> B^{n+1}
+    // generates B^{n+1}   [0, 0]
+    // needs     E^{n+1/2} [-1/2, +1/2]
     mpi_printf(comm, "***** Pushing B...\n");
     prof_start(pr_push_flds);
     pushf_.push_H(mflds_, .5, Dim{});
     prof_stop(pr_push_flds);
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+1/2}, B^{n+1}, j^{n+1}
+    // E^{n+1/2} [-1/2, 1/2]
+    // B^{n+1}   [0, 0]
+    // j^{n+1}   [0, 0[ ghostpoints need adding
 
     mpi_printf(comm, "***** Bnd particles...\n");
     prof_start(pr_bndp);
@@ -515,6 +528,8 @@ struct Psc
     mpi_printf(comm, "***** Push fields E\n");
     prof_start(pr_bndf);
 #if 1
+    // generates B^{n+1}[-1, 1]
+    // from      B^{n+1}[0, 0[
     bndf_.fill_ghosts_H(mflds_);
     bnd_.fill_ghosts(mflds_, HX, HX + 3);
 #endif
@@ -525,30 +540,41 @@ struct Psc
     prof_stop(pr_bndf);
 
     prof_restart(pr_push_flds);
+    // generates E^{n+3/2}[-1/2, 1/2]
+    // from      E^{n+1/2}[-1/2, 1/2]
+    //           j^{n+1}  [-1/2, 1/2]
+    //           B^{n+1}  [-1, 1]
     pushf_.push_E(mflds_, 1., Dim{});
     prof_stop(pr_push_flds);
 
-#if 1
+#ifdef ALL_GHOSTS
     prof_restart(pr_bndf);
     bndf_.fill_ghosts_E(mflds_);
     bnd_.fill_ghosts(mflds_, EX, EX + 3);
     prof_stop(pr_bndf);
 #endif
     // state is now: x^{n+3/2}, p^{n+1}, E^{n+3/2}, B^{n+1}
+    // E^{n+3/2} [-1/2, 1/2]
+    // B^{n+1}   [-1, 1]
 
     // === field propagation B^{n+1} -> B^{n+3/2}
+    // generates B^{n+3/2}[0, 0]
+    // needs     B^{n+1}  [0, 0]
+    //           E^{n+3/2}[-1/2, 1/2]
     mpi_printf(comm, "***** Push fields B\n");
     prof_restart(pr_push_flds);
     pushf_.push_H(mflds_, .5, Dim{});
     prof_stop(pr_push_flds);
 
-#if 1
+#ifdef ALL_GHOSTS
     prof_start(pr_bndf);
     bndf_.fill_ghosts_H(mflds_);
     bnd_.fill_ghosts(mflds_, HX, HX + 3);
     prof_stop(pr_bndf);
-    // state is now: x^{n+3/2}, p^{n+1}, E^{n+3/2}, B^{n+3/2}
 #endif
+    // state is now: x^{n+3/2}, p^{n+1}, E^{n+3/2}, B^{n+3/2}
+    // E^{n+3/2} [-1/2, 1/2]
+    // B^{n+3/2} [0, 0]
 
     if (checks_.continuity_every_step > 0 &&
         timestep % checks_.continuity_every_step == 0) {
@@ -559,6 +585,8 @@ struct Psc
 
     // E at t^{n+3/2}, particles at t^{n+3/2}
     // B at t^{n+3/2} (Note: that is not its natural time,
+    // E^{n+3/2} [-1/2, 1/2]
+    // B^{n+3/2} [0, 0]
     // but div B should be == 0 at any time...)
     if (p_.marder_interval > 0 && timestep % p_.marder_interval == 0) {
       mpi_printf(comm, "***** Performing Marder correction...\n");
