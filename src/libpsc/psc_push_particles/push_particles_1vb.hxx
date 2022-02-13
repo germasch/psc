@@ -40,7 +40,26 @@ struct PushParticlesVb
     for (int p = 0; p < mflds.n_patches(); p++) {
       auto flds = mflds[p];
       auto prts = accessor[p];
+#if 0
+      gt::gtensor<real_t, 4> _flds(flds.storage().shape());
+      _flds.view(_all) = std::numeric_limits<real_t>::quiet_NaN();
+      _flds.view(_all, _s(2, -1), _s(2, -1), EX) =
+        flds.storage().view(_all, _s(2, -1), _s(2, -1), EX);
+      _flds.view(_all, _s(2, -2), _s(2, -1), EY) =
+        flds.storage().view(_all, _s(2, -2), _s(2, -1), EY);
+      _flds.view(_all, _s(2, -1), _s(2, -2), EZ) =
+        flds.storage().view(_all, _s(2, -1), _s(2, -2), EZ);
+      _flds.view(_all, _s(2, -2), _s(2, -2), HX) =
+        flds.storage().view(_all, _s(2, -2), _s(2, -2), HX);
+      _flds.view(_all, _s(2, -1), _s(2, -2), HY) =
+        flds.storage().view(_all, _s(2, -1), _s(2, -2), HY);
+      _flds.view(_all, _s(2, -2), _s(2, -1), HZ) =
+        flds.storage().view(_all, _s(2, -2), _s(2, -1), HZ);
+      typename InterpolateEM_t::fields_t EM(_flds, flds.ib());
+#else
       typename InterpolateEM_t::fields_t EM(flds.storage(), flds.ib());
+#endif
+
       typename Current::fields_t J(flds);
 
       flds.storage().view(_all, _all, _all, _s(JXI, JXI + 3)) = real_t(0);
@@ -57,6 +76,14 @@ struct PushParticlesVb
         // FIELD INTERPOLATION
         Real3 E = {ip.ex(EM), ip.ey(EM), ip.ez(EM)};
         Real3 H = {ip.hx(EM), ip.hy(EM), ip.hz(EM)};
+#if 0
+        assert(std::isfinite(E[0]));
+        assert(std::isfinite(E[1]));
+        assert(std::isfinite(E[2]));
+        assert(std::isfinite(H[0]));
+        assert(std::isfinite(H[1]));
+        assert(std::isfinite(H[2]));
+#endif
 
         // x^(n+0.5), p^n -> x^(n+0.5), p^(n+1.0)
         real_t dq = dq_kind[prt.kind()];
