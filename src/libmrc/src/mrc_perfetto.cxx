@@ -10,47 +10,56 @@ PERFETTO_DEFINE_CATEGORIES(
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
+#define PERFETTO_IN_PROCESS_BACKEND
+
 static std::unique_ptr<perfetto::TracingSession> tracing_session;
 
 void perfetto_initialize()
 {
   perfetto::TracingInitArgs args;
+#ifdef PERFETTO_IN_PROCESS_BACKEND
   args.backends |= perfetto::kInProcessBackend;
+#else
   args.backends |= perfetto::kSystemBackend;
+#endif
 
   perfetto::Tracing::Initialize(args);
   perfetto::TrackEvent::Register();
 
-  perfetto::protos::gen::TrackEventConfig track_event_cfg;
+#ifdef PERFETTO_IN_PROCESS_BACKEND
+  // perfetto::protos::gen::TrackEventConfig track_event_cfg;
   //   track_event_cfg.add_disabled_categories("*");
   //   track_event_cfg.add_enabled_categories("gene");
 
-  // perfetto::TraceConfig cfg;
-  // cfg.add_buffers()->set_size_kb(1024); // Record up to 1 MiB.
-  // auto* ds_cfg = cfg.add_data_sources()->mutable_config();
-  // ds_cfg->set_name("track_event");
-  // // ds_cfg->set_track_event_config_raw(track_event_cfg.SerializeAsString());
+  perfetto::TraceConfig cfg;
+  cfg.add_buffers()->set_size_kb(1024); // Record up to 1 MiB.
+  auto* ds_cfg = cfg.add_data_sources()->mutable_config();
+  ds_cfg->set_name("track_event");
+  // ds_cfg->set_track_event_config_raw(track_event_cfg.SerializeAsString());
 
-  // tracing_session = perfetto::Tracing::NewTrace();
-  // tracing_session->Setup(cfg);
-  // tracing_session->StartBlocking();
+  tracing_session = perfetto::Tracing::NewTrace();
+  tracing_session->Setup(cfg);
+  tracing_session->StartBlocking();
+#endif
 }
 
 void perfetto_finalize()
 {
   perfetto::TrackEvent::Flush();
 
-  // tracing_session->StopBlocking();
-  // std::vector<char> trace_data(tracing_session->ReadTraceBlocking());
+#ifdef PERFETTO_IN_PROCESS_BACKEND
+  tracing_session->StopBlocking();
+  std::vector<char> trace_data(tracing_session->ReadTraceBlocking());
 
-  // // Write the trace into a file.
-  // int rank;
-  // MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  // std::ofstream output;
-  // output.open("atrace-" + std::to_string(rank) + ".perfetto",
-  //             std::ios::out | std::ios::binary);
-  // output.write(&trace_data[0], trace_data.size());
-  // output.close();
+  // Write the trace into a file.
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  std::ofstream output;
+  output.open("atrace-" + std::to_string(rank) + ".perfetto",
+              std::ios::out | std::ios::binary);
+  output.write(trace_data.data(), trace_data.size());
+  output.close();
+#endif
 }
 
 void perfetto_event_begin(const char* s)
