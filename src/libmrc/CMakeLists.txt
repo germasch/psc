@@ -65,7 +65,7 @@ endif()
 if (PSC_USE_PERFETTO)
   target_sources(mrc PRIVATE src/mrc_perfetto.cxx)
   target_link_libraries(mrc PRIVATE perfetto::perfetto)
-  target_compile_definitions(mrc PRIVATE HAVE_PERFETTO)
+  target_compile_definitions(mrc PUBLIC HAVE_PERFETTO)
 endif()
 
 configure_file (
