@@ -257,7 +257,7 @@ void setupParameters()
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
 #else
-  g.mass_ratio = 400.;
+  g.mass_ratio = 25.;
 #endif
   g.lambda0 = 20.;
 
@@ -293,9 +293,9 @@ Grid_t* setupGrid()
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
 #elif CASE == CASE_2D
-  Grid_t::Real3 LL = {1., 1600., 3. * 1600.}; // domain size (in d_e)
-  Int3 gdims = {1, 3200, 3 * 3200};           // global number of grid points
-  Int3 np = {1, 100, 3 * 100};                // division into patches
+  Grid_t::Real3 LL = {1., 400., 3. * 400.}; // domain size (in d_e)
+  Int3 gdims = {1, 800, 3 * 800};           // global number of grid points
+  Int3 np = {1, 100, 3 * 100};              // division into patches
 #elif CASE == CASE_2D_SMALL
   Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {1, 80, 3 * 80};           // global number of grid points
@@ -522,7 +522,7 @@ void run()
   outf_item_params.pfield_interval = -10;
   outf_item_params.tfield_interval = -4;
 #else
-  outf_item_params.pfield_interval = 8000;
+  outf_item_params.pfield_interval = 1000;
   outf_item_params.tfield_interval = -500;
 #endif
 #if CASE == CASE_2D_SMALL
