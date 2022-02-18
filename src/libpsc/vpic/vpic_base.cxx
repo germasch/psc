@@ -48,7 +48,7 @@ void vpic_base_init(int* pargc, char*** pargv)
     _boot_timestamp = uptime();
 #endif
   }
-  LOG_INFO("vpic_base_init() done\n");
+  //  LOG_INFO("vpic_base_init() done\n");
 }
 
 // ======================================================================
