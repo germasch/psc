@@ -14,6 +14,9 @@
 #ifdef HAVE_PERFETTO
 #include "mrc_perfetto.h"
 #endif
+#ifdef HAVE_PERFSTUBS
+#include "perfstubs_api/timer.h"
+#endif
 
 #define NR_EVENTS (0)
 
@@ -61,6 +64,9 @@ static inline void prof_start(int pr)
 #ifdef HAVE_PERFETTO
   perfetto_event_begin(prof_data[pr].name);
 #endif
+#ifdef HAVE_PERFSTUBS
+  PERFSTUBS_START_STRING(prof_data[pr].name);
+#endif
 }
 
 static inline void prof_restart(int pr)
@@ -78,6 +84,9 @@ static inline void prof_restart(int pr)
 #ifdef HAVE_PERFETTO
   perfetto_event_begin(prof_data[pr].name);
 #endif
+#ifdef HAVE_PERFSTUBS
+  PERFSTUBS_START_STRING(prof_data[pr].name);
+#endif
 }
 
 static inline void prof_stop(int pr)
@@ -94,6 +103,9 @@ static inline void prof_stop(int pr)
 #endif
 #ifdef HAVE_PERFETTO
   perfetto_event_end();
+#endif
+#ifdef HAVE_PERFSTUBS
+  PERFSTUBS_STOP_STRING(prof_data[pr].name);
 #endif
 }
 

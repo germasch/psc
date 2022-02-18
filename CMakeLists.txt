@@ -31,6 +31,7 @@ option(PSC_USE_NVTX "Build with NVTX support" OFF)
 option(PSC_USE_RMM "Build with RMM memory manager support" OFF)
 option(PSC_BOUNDS_CHECK "Turn on bounds-checking" OFF)
 option(PSC_USE_PERFETTO "Turn on perfetto-based tracing" OFF)
+option(PSC_USE_PERFSTUBS "Turn on perfstubs-based tracing" OFF)
 
 # CUDA
 if(USE_CUDA)
@@ -99,6 +100,7 @@ endif()
 
 # RMM
 if (PSC_USE_RMM)
+  #CPMAddPackage(gh:rapidsai/rmm@0.18.0)
   find_package(rmm 0.18.0 CONFIG REQUIRED)
   set(PSC_HAVE_RMM 1)
 endif()
@@ -110,6 +112,14 @@ if (PSC_USE_PERFETTO)
   add_library(perfetto::perfetto ALIAS perfetto)
   target_include_directories(perfetto PUBLIC ${perfetto_SOURCE_DIR}/sdk)
   target_link_libraries(perfetto PRIVATE Threads::Threads)
+endif()
+
+if (PSC_USE_PERFSTUBS)
+  set(PERFSTUBS_USE_STATIC OFF CACHE BOOL "")
+  set(PERFSTUBS_USE_TIMERS ON CACHE BOOL "")
+  add_subdirectory(perfstubs)
+  target_include_directories(perfstubs INTERFACE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/perfstubs>)
+  add_library(perfstubs::perfstubs ALIAS perfstubs)
 endif()
 
 function(GenerateHeaderConfig)

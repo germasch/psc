@@ -14,6 +14,9 @@ void
 prof_init(void)
 {
   prof_inited = 1;
+#ifdef HAVE_PERFSTUBS
+  PERFSTUBS_INITIALIZE();
+#endif
 }
 
 void
@@ -32,7 +35,7 @@ prof_print_file(FILE *f)
     if (!cnt || rtime == 0.)
       continue;
 
-    fprintf(f, "%-19s %7g %4d %7g", prof_data[pr].name, rtime/1e3, cnt, 
+    fprintf(f, "%-19s %7g %4d %7g", prof_data[pr].name, rtime/1e3, cnt,
 	   rtime / 1e3 / cnt);
     fprintf(f, " %12d", prof_data[pr].flops);
     fprintf(f, " %12g", (float) prof_data[pr].flops / (rtime/cnt));
@@ -110,7 +113,7 @@ prof_print_mpi(MPI_Comm comm)
 	continue;
       }
       times_avg[pr] /= size;
-      
+
       printf("%-19s %10.2f %10.2f %10.2f | %10.0f %10d %10.2f\n", prof_data[pr].name,
 	     times_avg[pr] / 1e3, times_min[pr] / 1e3, times_max[pr] / 1e3,
 	     pinfo->total_time / 1e6, pinfo->total_cnt, pinfo->total_time / pinfo->total_cnt / 1e3);

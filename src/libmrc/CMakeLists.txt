@@ -68,6 +68,13 @@ if (PSC_USE_PERFETTO)
   target_compile_definitions(mrc PUBLIC HAVE_PERFETTO)
 endif()
 
+if (PSC_USE_PERFSTUBS)
+#  target_sources(mrc PRIVATE src/mrc_perfetto.cxx)
+  target_link_libraries(mrc PUBLIC perfstubs::perfstubs)
+  target_compile_definitions(mrc PUBLIC HAVE_PERFSTUBS)
+endif()
+
+
 configure_file (
   "${PROJECT_SOURCE_DIR}/include/mrc_config.h.in"
   "${PROJECT_BINARY_DIR}/include/mrc_config.h"
