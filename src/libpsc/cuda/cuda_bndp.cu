@@ -15,7 +15,7 @@
 
 // clang-format off
 // layout of the spine
-//     lt             self             rb        # from left-top .. self .. right-bottom 
+//     lt             self             rb        # from left-top .. self .. right-bottom
 //     0   1   2   3   4   5   6   7   8   NEW
 // b0 |   |   |   |   |   |   |   |   |   |   |
 // b1 |   |   |   |   |   |   |   |   |   |   |
@@ -332,13 +332,25 @@ uint cuda_bndp<CudaMparticles, DIM>::convert_and_copy_to_dev(
 template <typename CudaMparticles, typename DIM>
 void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
 {
+  static int pr_A, pr_B, pr_C;
+  if (!pr_A) {
+    pr_A = prof_register("xchg_post_A", 1., 0, 0);
+    pr_B = prof_register("xchg_post_B", 1., 0, 0);
+    pr_C = prof_register("xchg_post_C", 1., 0, 0);
+  }
+
+  prof_start(pr_A);
   auto& cmprts = *_cmprts;
   auto& d_bidx = cmprts.by_block_.d_idx;
+  prof_stop(pr_A);
 
+  prof_start(pr_B);
   auto n_prts_send = d_bidx.size() - cmprts.n_prts;
   auto n_prts_recv = convert_and_copy_to_dev(&cmprts);
   cmprts.n_prts += n_prts_recv;
+  prof_stop(pr_B);
 
+  prof_start(pr_C);
   thrust::sequence(cmprts.by_block_.d_id.begin(), cmprts.by_block_.d_id.end());
 #ifdef PSC_HAVE_RMM
   thrust::stable_sort_by_key(rmm::exec_policy(), d_bidx.begin(), d_bidx.end(),
@@ -363,6 +375,7 @@ void cuda_bndp<CudaMparticles, DIM>::post(CudaMparticles* _cmprts)
                       search_begin + cmprts.n_blocks,
                       cmprts.by_block_.d_off.begin() + 1);
   // d_off[0] was set to zero during d_off initialization
+  prof_stop(pr_C);
 
   cmprts.need_reorder = true;
 }
