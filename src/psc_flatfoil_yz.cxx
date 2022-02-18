@@ -236,7 +236,7 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 101; // 5001;
+  psc_params.nmax = 30001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = -1000;
   psc_params.stats_every = 1;
@@ -477,7 +477,7 @@ void run()
   checks_params.continuity_every_step = -1;
   checks_params.continuity_dump_always = true;
 #else
-  checks_params.continuity_every_step = 0;
+  checks_params.continuity_every_step = 100;
   checks_params.continuity_dump_always = false;
 #endif
   checks_params.continuity_threshold = 1e-4;
@@ -503,7 +503,7 @@ void run()
   psc_params.marder_interval = -2;
 #else
   bool marder_dump = false;
-  psc_params.marder_interval = 100;
+  psc_params.marder_interval = 200;
 #endif
   Marder marder(grid, marder_diffusion, marder_loop, marder_dump);
 
@@ -522,7 +522,7 @@ void run()
   outf_item_params.pfield_interval = -10;
   outf_item_params.tfield_interval = -4;
 #else
-  outf_item_params.pfield_interval = -500;
+  outf_item_params.pfield_interval = 2000;
   outf_item_params.tfield_interval = -500;
 #endif
 #if CASE == CASE_2D_SMALL
