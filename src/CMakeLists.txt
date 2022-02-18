@@ -1,4 +1,8 @@
 
+if (PSC_USE_PERFETTO)
+  add_subdirectory(perfetto_mpi)
+endif()
+
 add_subdirectory(kg)
 add_subdirectory(libpsc)
 

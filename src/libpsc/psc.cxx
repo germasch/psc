@@ -62,7 +62,7 @@ _psc_read(struct psc *psc, struct mrc_io *io)
     mrc_io_read_double(io, psc, s, &psc->kinds_[k].m);
     mrc_io_read_string(io, psc, s, &psc->kinds_[k].name);
   }
-  
+
   psc->mrc_domain_ = mrc_io_read_ref(io, psc, "mrc_domain", mrc_domain);
   //psc_setup_domain(psc, psc->domain_, psc->bc_, psc->kinds_);
 #ifdef USE_FORTRAN
@@ -82,6 +82,10 @@ void vpic_base_init(int* pargc, char*** pargv);
 
 void psc_init(int& argc, char**& argv)
 {
+#ifdef HAVE_PERFETTO
+  perfetto_initialize();
+#endif
+
 #if 1
   vpic_base_init(&argc, &argv);
 #else

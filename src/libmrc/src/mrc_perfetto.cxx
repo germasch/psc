@@ -1,12 +1,10 @@
 
 #include "mrc_perfetto.h"
+#include "mrc_perfetto_trace.h"
 
 #include <perfetto.h>
 #include <mpi.h>
 #include <fstream>
-
-PERFETTO_DEFINE_CATEGORIES(
-  perfetto::Category("psc").SetDescription("Events from PSC"));
 
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 

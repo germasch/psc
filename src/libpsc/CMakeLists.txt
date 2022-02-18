@@ -22,6 +22,9 @@ target_gtensor_sources(psc PRIVATE
   vpic/vpic_base.cxx
   )
 target_include_directories(psc PUBLIC ../include)
+if (PSC_USE_PERFETTO)
+  target_link_libraries(psc PRIVATE perfetto_pmpi)
+endif()
 target_link_libraries(psc PUBLIC kg mrc)
 target_link_libraries(psc PUBLIC MPI::MPI_CXX)
 target_link_libraries(psc PUBLIC gtensor::gtensor)
@@ -34,32 +37,32 @@ if (USE_CUDA)
     cuda/psc_particles_cuda.cxx
     cuda/cuda_mparticles_base.cu
     cuda/cuda_mparticles.cu
-    
+
     cuda/psc_fields_cuda.cxx
-    
+
     cuda/cuda_push_mprts_yz.cu
-    
+
     cuda/push_fields_cuda_impl.cxx
     cuda/cuda_push_fields_yz.cu
 
     cuda/marder_cuda_impl.cxx
-    
+
     cuda/bnd_particles_cuda_impl.cu
     cuda/cuda_bndp.cu
     cuda/cuda_bndp_scan.cu
     cuda/cuda_bndp_spine.cu
-    
+
     cuda/cuda_bnd.cu
     cuda/bnd_cuda_3_impl.cu
-    
+
     cuda/psc_bnd_fields_cuda.cxx
-    
+
     cuda/cuda_moments_1st_nc.cu
-    
+
     cuda/collision_cuda_impl.cu
-    
+
     cuda/cuda_heating.cu
-    
+
     cuda/mem.cxx
     )
   target_include_directories(psc PUBLIC cuda)
