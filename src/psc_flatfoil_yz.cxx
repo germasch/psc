@@ -239,7 +239,7 @@ void setupParameters()
   psc_params.nmax = 30001; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = -1000;
-  psc_params.stats_every = 1;
+  psc_params.stats_every = 10;
 
   // -- start from checkpoint:
   //
@@ -257,7 +257,7 @@ void setupParameters()
 #if CASE == CASE_2D_SMALL
   g.mass_ratio = 100.;
 #else
-  g.mass_ratio = 25.;
+  g.mass_ratio = 100.;
 #endif
   g.lambda0 = 20.;
 
@@ -293,8 +293,8 @@ Grid_t* setupGrid()
   Int3 gdims = {160, 160, 3 * 160};        // global number of grid points
   Int3 np = {5, 5, 3 * 5};                 // division into patches
 #elif CASE == CASE_2D
-  Grid_t::Real3 LL = {1., 400., 3. * 400.}; // domain size (in d_e)
-  Int3 gdims = {1, 800, 3 * 800};           // global number of grid points
+  Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
+  Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
   Int3 np = {1, 100, 3 * 100};              // division into patches
 #elif CASE == CASE_2D_SMALL
   Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
@@ -522,7 +522,7 @@ void run()
   outf_item_params.pfield_interval = -10;
   outf_item_params.tfield_interval = -4;
 #else
-  outf_item_params.pfield_interval = 1000;
+  outf_item_params.pfield_interval = 2000;
   outf_item_params.tfield_interval = -500;
 #endif
 #if CASE == CASE_2D_SMALL
