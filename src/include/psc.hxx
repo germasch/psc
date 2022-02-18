@@ -295,7 +295,7 @@ struct Psc
       }
     }
 
-    // checkpointing_.final(grid(), mprts_, mflds_);
+    checkpointing_.final(grid(), mprts_, mflds_);
 
     // FIXME, merge with existing handling of wallclock time
     elapsed = MPI_Wtime() - elapsed;
