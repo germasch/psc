@@ -236,7 +236,7 @@ using Heating = typename HeatingSelector<Mparticles>::Heating;
 void setupParameters()
 {
   // -- set some generic PSC parameters
-  psc_params.nmax = 11; // 5001;
+  psc_params.nmax = 101; // 5001;
   psc_params.cfl = 0.75;
   psc_params.write_checkpoint_every_step = -1000;
   psc_params.stats_every = 1;
@@ -522,8 +522,8 @@ void run()
   outf_item_params.pfield_interval = -10;
   outf_item_params.tfield_interval = -4;
 #else
-  outf_item_params.pfield_interval = 500;
-  outf_item_params.tfield_interval = 500;
+  outf_item_params.pfield_interval = -500;
+  outf_item_params.tfield_interval = -500;
 #endif
 #if CASE == CASE_2D_SMALL
   outf_item_params.tfield_average_every = 2;
