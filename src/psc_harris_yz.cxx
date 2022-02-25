@@ -7,9 +7,6 @@
 #include "OutputFieldsDefault.h"
 #include "psc_config.hxx"
 
-#include "../libpsc/psc_heating/psc_heating_impl.hxx"
-#include "heating_spot_foil.hxx"
-
 #ifdef USE_CUDA
 #include "cuda_bits.h"
 #endif
@@ -56,10 +53,6 @@ struct PscFlatfoilParams
   double electron_HE_ratio;
 
   int inject_interval;
-
-  int heating_begin;
-  int heating_end;
-  int heating_interval;
 
   // The following parameters are calculated from the above / and other
   // information
@@ -202,7 +195,6 @@ using Checks = PscConfig::Checks;
 using Marder = PscConfig::Marder;
 using OutputParticles = PscConfig::OutputParticles;
 using Moment_n = typename Moment_n_Selector<Mparticles, Dim>::type;
-using Heating = typename HeatingSelector<Mparticles>::Heating;
 
 // ======================================================================
 // setupParameters
@@ -479,25 +471,6 @@ void run()
   // ----------------------------------------------------------------------
   // Set up objects specific to the flatfoil case
 
-  // -- Heating
-  HeatingSpotFoilParams heating_foil_params{};
-  heating_foil_params.zl = -1. * g.d_i;
-  heating_foil_params.zh = 1. * g.d_i;
-  heating_foil_params.xc = 0. * g.d_i;
-  heating_foil_params.yc = 2. * g.d_i;
-  heating_foil_params.rH = 1. * g.d_i;
-  heating_foil_params.T[MY_ELECTRON_HE] = g.target_Te_HE_heat;
-  heating_foil_params.T[MY_ELECTRON] = g.target_Te_heat;
-  heating_foil_params.T[MY_ION] = g.target_Ti_heat;
-  heating_foil_params.Mi = grid.kinds[MY_ION].m;
-  heating_foil_params.n_kinds = N_MY_KINDS;
-  HeatingSpotFoil<Dim> heating_spot{grid, heating_foil_params};
-
-  g.heating_interval = 20;
-  g.heating_begin = 0;
-  g.heating_end = 10000000;
-  auto& heating = *new Heating{grid, g.heating_interval, heating_spot};
-
   // -- Particle injection
   InjectFoilParams inject_foil_params;
   inject_foil_params.xl = -100000. * g.d_i;
@@ -570,15 +543,6 @@ void run()
           }
         });
       prof_stop(pr_inject);
-    }
-
-    // only heating between heating_tb and heating_te
-    if (timestep >= g.heating_begin && timestep < g.heating_end &&
-        g.heating_interval > 0 && timestep % g.heating_interval == 0) {
-      mpi_printf(comm, "***** Performing heating...\n");
-      prof_start(pr_heating);
-      heating(mprts);
-      prof_stop(pr_heating);
     }
   };
 
