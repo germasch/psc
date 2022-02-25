@@ -24,7 +24,6 @@
 // (so that Gauss's Law is satisfied).
 enum
 {
-  MY_ELECTRON_HE,
   MY_ELECTRON,
   MY_ION,
   N_MY_KINDS,
@@ -39,18 +38,10 @@ struct PscFlatfoilParams
   double Zi;
   double mass_ratio;
   double lambda0;
-  double target_n;     // target density
-  double target_Te_HE; // target high energy electron temperature
-  double target_Te;    // target electron temperature
-  double target_Ti;    // target ion_temperatore
-  double target_Te_heat;
-  double target_Ti_heat;
-  double target_Te_HE_heat;
 
   double background_n;
   double background_Te;
   double background_Ti;
-  double electron_HE_ratio;
 
   // The following parameters are calculated from the above / and other
   // information
@@ -136,17 +127,6 @@ void setupParameters()
   g.mass_ratio = 100.;
   g.lambda0 = 20.;
 
-  g.target_n = 2.5;
-  g.target_Te = 0.001;
-  g.target_Te_HE = 0.001;
-  g.target_Ti = 0.001;
-
-  g.electron_HE_ratio = 0.01;
-
-  g.target_Te_heat = 0.04;
-  g.target_Ti_heat = 0.0;
-  g.target_Te_HE_heat = 0.4;
-
   g.background_n = .002;
   g.background_Te = .001;
   g.background_Ti = .001;
@@ -178,7 +158,6 @@ Grid_t* setupGrid()
   // last population ("i") is neutralizing
   Grid_t::Kinds kinds(N_MY_KINDS);
   kinds[MY_ION] = {g.Zi, g.mass_ratio * g.Zi, "i"};
-  kinds[MY_ELECTRON_HE] = {-1., 1., "he_e"};
   kinds[MY_ELECTRON] = {-1., 1., "e"};
 
   g.d_i = sqrt(kinds[MY_ION].m / kinds[MY_ION].q);
@@ -225,12 +204,6 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    npt.T[0] = g.background_Ti;
                                    npt.T[1] = g.background_Ti;
                                    npt.T[2] = g.background_Ti;
-                                   break;
-                                 case MY_ELECTRON_HE:
-                                   npt.n = 0.;
-                                   npt.T[0] = g.background_Te;
-                                   npt.T[1] = g.background_Te;
-                                   npt.T[2] = g.background_Te;
                                    break;
                                  case MY_ELECTRON:
                                    npt.n = g.background_n;
@@ -282,33 +255,6 @@ void run()
   MfieldsState mflds(grid);
   if (!read_checkpoint_filename.empty()) {
     read_checkpoint(read_checkpoint_filename, grid, mprts, mflds);
-    if (grid.kinds.size() == 2) {
-      // we restarted from an old run that was using MY_ION = 0, MY_ELECTRON =
-      // 1
-
-      // restore kinds to original order
-      Grid_t::Kinds kinds(N_MY_KINDS);
-      kinds[MY_ION] = {g.Zi, g.mass_ratio * g.Zi, "i"};
-      kinds[MY_ELECTRON_HE] = {-1., 1., "he_e"};
-      kinds[MY_ELECTRON] = {-1., 1., "e"};
-      grid.kinds = kinds;
-
-      // fix up renumbered particle kind
-      auto& mp = mprts.template get_as<MparticlesSingle>();
-      for (int p = 0; p < mp.n_patches(); p++) {
-        auto prts = mp[p];
-        for (int n = 0; n < prts.size(); n++) {
-          if (prts[n].kind == 0) {
-            prts[n].kind = MY_ION;
-          } else if (prts[n].kind == 1) {
-            prts[n].kind = MY_ELECTRON;
-          } else {
-            assert(0);
-          }
-        }
-      }
-      mprts.put_as(mp);
-    }
   }
 
   // ----------------------------------------------------------------------
@@ -322,9 +268,8 @@ void run()
   psc_params.sort_interval = 10;
 
   // -- Collision
-  int collision_interval = 10;
-  double collision_nu =
-    3.76 * std::pow(g.target_Te_heat, 2.) / g.Zi / g.lambda0;
+  int collision_interval = -10;
+  double collision_nu = 0.;
   Collision collision{grid, collision_interval, collision_nu};
 
   // -- Checks
