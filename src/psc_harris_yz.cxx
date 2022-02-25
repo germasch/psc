@@ -30,9 +30,9 @@ enum
 };
 
 // ======================================================================
-// PscFlatfoilParams
+// PscHarrisParams
 
-struct PscFlatfoilParams
+struct PscHarrisParams
 {
   double BB;
   double Zi;
@@ -63,7 +63,7 @@ namespace
 // Parameters specific to this case. They don't really need to be collected in a
 // struct, but maybe it's nice that they are
 
-PscFlatfoilParams g;
+PscHarrisParams g;
 
 std::string read_checkpoint_filename;
 
@@ -322,7 +322,7 @@ void run()
   auto diagnostics = makeDiagnosticsDefault(outf, outp, oute);
 
   // ----------------------------------------------------------------------
-  // Set up objects specific to the flatfoil case
+  // Set up objects specific to the Harris case
 
   SetupParticles<Mparticles> setup_particles(grid);
   setup_particles.fractional_n_particles_per_cell = true;
