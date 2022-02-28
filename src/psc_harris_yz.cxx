@@ -1,5 +1,6 @@
 
 #include <psc.hxx>
+#include <psc_bits.h>
 #include <setup_fields.hxx>
 #include <setup_particles.hxx>
 
@@ -34,6 +35,10 @@ enum
 
 struct PscHarrisParams
 {
+  double Lx_di, Ly_di, Lz_di; // Size of box in d_i
+
+  double L_di; // Sheet thickness / ion inertial length
+
   double BB;
   double Zi;
   double mass_ratio;
@@ -43,10 +48,15 @@ struct PscHarrisParams
   double background_Te;
   double background_Ti;
 
+  double bg; // guide field as fraction of B0
+
   // The following parameters are calculated from the above / and other
   // information
 
   double d_i;
+  double b0; // B0
+  double L;  // sheet width in d_e
+  double TTi, TTe;
 };
 
 // ======================================================================
@@ -122,6 +132,12 @@ void setupParameters()
   // read_checkpoint_filename = "checkpoint_500.bp";
 
   // -- Set some parameters specific to this case
+  g.Lx_di = 1.;
+  g.Ly_di = 40.;
+  g.Lz_di = 10.;
+
+  g.L_di = .5;
+
   g.BB = 0.;
   g.Zi = 1.;
   g.mass_ratio = 100.;
@@ -130,6 +146,8 @@ void setupParameters()
   g.background_n = .002;
   g.background_Te = .001;
   g.background_Ti = .001;
+
+  g.bg = 0.;
 }
 
 // ======================================================================
@@ -142,20 +160,7 @@ void setupParameters()
 
 Grid_t* setupGrid()
 {
-  // --- setup domain
-  Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
-  Int3 gdims = {1, 80, 3 * 80};           // global number of grid points
-  Int3 np = {1, 5, 3 * 5};                // division into patches
-
-  Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
-
-  psc::grid::BC bc{{BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_PERIODIC},
-                   {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_PERIODIC},
-                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_PERIODIC},
-                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_PERIODIC}};
-
   // -- setup particle kinds
-  // last population ("i") is neutralizing
   Grid_t::Kinds kinds(N_MY_KINDS);
   kinds[MY_ION] = {g.Zi, g.mass_ratio * g.Zi, "i"};
   kinds[MY_ELECTRON] = {-1., 1., "e"};
@@ -166,6 +171,19 @@ Grid_t* setupGrid()
   mpi_printf(MPI_COMM_WORLD, "lambda_De (background) = %g\n",
              sqrt(g.background_Te));
 
+  // --- setup domain
+  Grid_t::Real3 LL = {g.Lx_di * g.d_i, g.Ly_di * g.d_i,
+                      g.Lz_di * g.d_i}; // domain size (in d_e)
+  Int3 gdims = {1, 512, 128};
+  Int3 np = {1, 4, 1};
+
+  Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
+
+  psc::grid::BC bc{{BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_PERIODIC},
+                   {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_PERIODIC},
+                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_PERIODIC},
+                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_PERIODIC}};
+
   // -- setup normalization
   auto norm_params = Grid_t::NormalizationParams::dimensionless();
   norm_params.nicell = 100;
@@ -174,6 +192,12 @@ Grid_t* setupGrid()
   Grid_t::Normalization norm{norm_params};
 
   mpi_printf(MPI_COMM_WORLD, "dt = %g\n", dt);
+
+  g.b0 = 1.; // FIXME
+  g.L = g.L_di * g.d_i;
+
+  g.TTe = .2;
+  g.TTi = .1;
 
   Int3 ibn = {2, 2, 2};
   if (Dim::InvarX::value) {
@@ -198,19 +222,50 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
   // -- set particle initial condition
   partitionAndSetupParticles(setup_particles, balance, grid_ptr, mprts,
                              [&](int kind, Double3 crd, psc_particle_npt& npt) {
+                               // struct psc_harris* harris =
+                               // to_psc_harris(psc);
+
+                               // double BB = harris->B0;
+                               // double LLL = harris->LLL;
+                               // double nnb = harris->nb;
+                               // double TTi = harris->Ti;
+                               // double TTe = harris->Te;
+
                                switch (kind) {
-                                 case MY_ION:
-                                   npt.n = g.background_n;
-                                   npt.T[0] = g.background_Ti;
-                                   npt.T[1] = g.background_Ti;
-                                   npt.T[2] = g.background_Ti;
+                                 case MY_ION: // ion drifting
+                                   npt.n = 1. / sqr(cosh(crd[2] / g.L));
+                                   npt.p[0] = 2. * g.TTi / g.b0 / g.L;
+                                   npt.T[0] = g.TTi;
+                                   npt.T[1] = g.TTi;
+                                   npt.T[2] = g.TTi;
+                                   npt.kind = MY_ION;
                                    break;
-                                 case MY_ELECTRON:
-                                   npt.n = g.background_n;
-                                   npt.T[0] = g.background_Te;
-                                   npt.T[1] = g.background_Te;
-                                   npt.T[2] = g.background_Te;
+                                 // case 1: // ion bg
+                                 //   npt->n = nnb;
+                                 //   npt->q = 1.;
+                                 //   npt->m = harris->mi_over_me;
+                                 //   npt->T[0] = TTi;
+                                 //   npt->T[1] = TTi;
+                                 //   npt->T[2] = TTi;
+                                 //   npt->kind = KIND_ION;
+                                 //   break;
+                                 case MY_ELECTRON: // electron drifting
+                                   npt.n = 1. / sqr(cosh(crd[2] / g.L));
+                                   npt.p[0] = -2. * g.TTe / g.b0 / g.L;
+                                   npt.T[0] = g.TTe;
+                                   npt.T[1] = g.TTe;
+                                   npt.T[2] = g.TTe;
+                                   npt.kind = MY_ELECTRON;
                                    break;
+                                 // case 3: // electron bg
+                                 //   npt->n = nnb;
+                                 //   npt->q = -1.;
+                                 //   npt->m = 1.;
+                                 //   npt->T[0] = TTe;
+                                 //   npt->T[1] = TTe;
+                                 //   npt->T[2] = TTe;
+                                 //   npt->kind = KIND_ELECTRON;
+                                 //   break;
                                  default: assert(0);
                                }
                              });
@@ -221,9 +276,29 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
 
 void initializeFields(MfieldsState& mflds)
 {
+  double b0 = g.b0; //, dbx = g.dbx, dbz = g.dbz;
+  double L = g.L;   //, Ly = g.Ly, Lz = g.Lz;//, Lpert = g.Lpert;
+  //  double cs = cos(g.theta), sn = sin(g.theta);
+
   setupFields(mflds, [&](int m, double crd[3]) {
+    double x = crd[1], z = crd[2];
+
     switch (m) {
-      case HY: return g.BB;
+      case HY:
+        return b0 *
+               tanh(z / L); // +
+                            //  dbx * cos(2. * M_PI * (x - .5 * Lx) / Lpert) *
+                            //    sin(M_PI * z / Lz);
+
+      case HX: return b0 * g.bg;
+
+      case HZ:
+        // return dbz * cos(M_PI * z / Lz) *
+        //        sin(2.0 * M_PI * (x - 0.5 * Lx) / Lpert);
+        return 0.;
+
+      case JYI: return 0.; // FIXME
+
       default: return 0.;
     }
   });
@@ -268,8 +343,8 @@ void run()
   psc_params.sort_interval = 10;
 
   // -- Collision
-  int collision_interval = -10;
-  double collision_nu = 0.;
+  int collision_interval = 0;
+  double collision_nu = 1e-10;
   Collision collision{grid, collision_interval, collision_nu};
 
   // -- Checks
@@ -311,7 +386,7 @@ void run()
 
   // -- output particles
   OutputParticlesParams outp_params{};
-  outp_params.every_step = -400;
+  outp_params.every_step = -4;
   outp_params.data_dir = ".";
   outp_params.basename = "prt";
   OutputParticles outp{grid, outp_params};
