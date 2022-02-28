@@ -100,15 +100,10 @@ public:
     }
 
     prof_start(pr_eval);
-    std::cout << "expr " << expr.shape() << gt::max(gt::eval(expr))
-              << std::endl;
     auto h_expr = gt::host_mirror(expr);
     gt::copy(gt::eval(expr), h_expr);
-    std::cout << "h_expr " << h_expr.shape() << gt::max(h_expr) << std::endl;
     Mfields<gt::expr_value_type<E>> h_mflds(grid, h_expr.shape(3), {});
     h_mflds.gt() = h_expr;
-    std::cout << "h_mflds " << h_mflds.gt().shape()
-              << gt::max(gt::eval(h_mflds.gt())) << std::endl;
     prof_stop(pr_eval);
 
     prof_start(pr_write);
