@@ -8,6 +8,7 @@
 #endif
 #include "fields_item.hxx"
 #include "psc_particles_double.h"
+#include <gtensor/reductions.h>
 
 #ifdef PSC_HAVE_ADIOS2
 
@@ -113,6 +114,7 @@ public:
       prof_start(pr_eval);
       auto&& item = get_item();
       auto&& pfd = item.gt();
+      std::cout << "pfd" << pfd.shape() << gt::max(gt::eval(pfd)) << std::endl;
       prof_stop(pr_eval);
 
       if (do_pfield) {
