@@ -49,6 +49,7 @@ struct PscHarrisParams
   double background_Ti;
 
   double bg; // guide field as fraction of B0
+  double dbz_b0;
 
   // The following parameters are calculated from the above / and other
   // information
@@ -57,6 +58,14 @@ struct PscHarrisParams
   double b0; // B0
   double L;  // sheet width in d_e
   double TTi, TTe;
+  double wpe_wce;
+
+  double wpe, wpi, wce, wci;
+  double Lx, Ly, Lz; // size of box
+  double Lpert_Lx;
+  double Lpert; // wavelength of perturbation
+  double dbx;   // Perturbation in Bz relative to Bo (Only change here)
+  double dbz;   // Set Bx perturbation so that div(B) = 0
 };
 
 // ======================================================================
@@ -146,8 +155,27 @@ void setupParameters()
   g.background_n = .002;
   g.background_Te = .001;
   g.background_Ti = .001;
+  g.wpe_wce = 2.;
 
   g.bg = 0.;
+  g.dbz_b0 = .03;
+  g.Lpert_Lx = 1.;
+  double c = 1.;                           // Speed of light
+  g.wci = 1. / (g.mass_ratio * g.wpe_wce); // Ion cyclotron frequency
+  g.wce = g.wci * g.mass_ratio;            // Electron cyclotron freqeuncy
+  g.wpe = g.wce * g.wpe_wce;               // electron plasma frequency
+
+  g.wpi = g.wpe / sqrt(g.mass_ratio); // ion plasma frequency
+  g.d_i = c / g.wpi;                  // ion inertial length
+  g.Lx = g.Lx_di * g.d_i;             // size of box in x dimension
+  g.Ly = g.Ly_di * g.d_i;             // size of box in y dimension
+  g.Lz = g.Lz_di * g.d_i;             // size of box in z dimension
+
+  g.Lpert = g.Lpert_Lx * g.Lx; // wavelength of perturbation
+  g.dbz =
+    g.dbz_b0 * g.b0; // Perturbation in Bz relative to Bo (Only change here)
+  g.dbx =
+    -g.dbz * g.Lpert / (2. * g.Lz); // Set Bx perturbation so that div(B) = 0
 }
 
 // ======================================================================
@@ -276,8 +304,8 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
 
 void initializeFields(MfieldsState& mflds)
 {
-  double b0 = g.b0; //, dbx = g.dbx, dbz = g.dbz;
-  double L = g.L;   //, Ly = g.Ly, Lz = g.Lz;//, Lpert = g.Lpert;
+  double b0 = g.b0, dbx = g.dbx, dbz = g.dbz;
+  double L = g.L, Lx = g.Lx, Ly = g.Ly, Lz = g.Lz, Lpert = g.Lpert;
   //  double cs = cos(g.theta), sn = sin(g.theta);
 
   setupFields(mflds, [&](int m, double crd[3]) {
@@ -285,16 +313,14 @@ void initializeFields(MfieldsState& mflds)
 
     switch (m) {
       case HY:
-        return b0 *
-               tanh(z / L); // +
-                            //  dbx * cos(2. * M_PI * (x - .5 * Lx) / Lpert) *
-                            //    sin(M_PI * z / Lz);
+        return b0 * tanh(z / L);
+        +dbx* cos(2. * M_PI * (x - .5 * Lx) / Lpert) * sin(M_PI * z / Lz);
 
       case HX: return b0 * g.bg;
 
       case HZ:
-        // return dbz * cos(M_PI * z / Lz) *
-        //        sin(2.0 * M_PI * (x - 0.5 * Lx) / Lpert);
+        return dbz * cos(M_PI * z / Lz) *
+               sin(2.0 * M_PI * (x - 0.5 * Lx) / Lpert);
         return 0.;
 
       case JYI: return 0.; // FIXME
