@@ -44,27 +44,29 @@ struct PscHarrisParams
   double mass_ratio;
   double lambda0;
 
-  double background_n;
-  double background_Te;
-  double background_Ti;
+  //double background_n;
+  //double background_Te;
+  //double background_Ti;
 
   double bg; // guide field as fraction of B0
+  double theta;
   double dbz_b0;
+  double Lpert_Ly;
 
   // The following parameters are calculated from the above / and other
   // information
 
   double d_i;
   double b0; // B0
+  //double n0;
   double L;  // sheet width in d_e
   double TTi, TTe;
   double wpe_wce;
 
   double wpe, wpi, wce, wci;
   double Lx, Ly, Lz; // size of box
-  double Lpert_Lx;
   double Lpert; // wavelength of perturbation
-  double dbx;   // Perturbation in Bz relative to Bo (Only change here)
+  double dby;   // Perturbation in Bz relative to Bo (Only change here)
   double dbz;   // Set Bx perturbation so that div(B) = 0
 };
 
@@ -141,40 +143,48 @@ void setupParameters()
   // read_checkpoint_filename = "checkpoint_500.bp";
 
   // -- Set some parameters specific to this case
+  
+  // PIC units, only used in this scope
+  //double eps0 = 1;
+  double me = 1;
+  double ec = 1;
+  double c = 1;                           // Speed of light
+
   g.Lx_di = 1.;
   g.Ly_di = 40.;
   g.Lz_di = 10.;
-
   g.L_di = .5;
+  g.Lpert_Ly = 1.;
 
   g.BB = 0.;
   g.Zi = 1.;
   g.mass_ratio = 100.;
   g.lambda0 = 20.;
+  g.bg = 0.;
+  g.theta = 0;
+  g.dbz_b0 = .03;
 
-  g.background_n = .002;
-  g.background_Te = .001;
-  g.background_Ti = .001;
+  g.TTe = .2;
+  g.TTi = .1;
   g.wpe_wce = 2.;
 
-  g.bg = 0.;
-  g.dbz_b0 = .03;
-  g.Lpert_Lx = 1.;
-  double c = 1.;                           // Speed of light
   g.wci = 1. / (g.mass_ratio * g.wpe_wce); // Ion cyclotron frequency
   g.wce = g.wci * g.mass_ratio;            // Electron cyclotron freqeuncy
   g.wpe = g.wce * g.wpe_wce;               // electron plasma frequency
-
   g.wpi = g.wpe / sqrt(g.mass_ratio); // ion plasma frequency
+
   g.d_i = c / g.wpi;                  // ion inertial length
+  g.L = g.L_di * g.d_i;
   g.Lx = g.Lx_di * g.d_i;             // size of box in x dimension
   g.Ly = g.Ly_di * g.d_i;             // size of box in y dimension
   g.Lz = g.Lz_di * g.d_i;             // size of box in z dimension
 
-  g.Lpert = g.Lpert_Lx * g.Lx; // wavelength of perturbation
+  g.b0 =  me * c * g.wce / ec; // Asymptotic magnetic field strength 
+  //g.n0 = me * eps0 * wpe * wpe / (ec * ec); // Peak electron (ion) density
+  g.Lpert = g.Lpert_Ly * g.Ly; // wavelength of perturbation
   g.dbz =
     g.dbz_b0 * g.b0; // Perturbation in Bz relative to Bo (Only change here)
-  g.dbx =
+  g.dby =
     -g.dbz * g.Lpert / (2. * g.Lz); // Set Bx perturbation so that div(B) = 0
 }
 
@@ -193,11 +203,9 @@ Grid_t* setupGrid()
   kinds[MY_ION] = {g.Zi, g.mass_ratio * g.Zi, "i"};
   kinds[MY_ELECTRON] = {-1., 1., "e"};
 
-  g.d_i = sqrt(kinds[MY_ION].m / kinds[MY_ION].q);
-
   mpi_printf(MPI_COMM_WORLD, "d_e = %g, d_i = %g\n", 1., g.d_i);
   mpi_printf(MPI_COMM_WORLD, "lambda_De (background) = %g\n",
-             sqrt(g.background_Te));
+             sqrt(g.TTe));
 
   // --- setup domain
   Grid_t::Real3 LL = {g.Lx_di * g.d_i, g.Ly_di * g.d_i,
@@ -221,11 +229,7 @@ Grid_t* setupGrid()
 
   mpi_printf(MPI_COMM_WORLD, "dt = %g\n", dt);
 
-  g.b0 = 1.; // FIXME
-  g.L = g.L_di * g.d_i;
 
-  g.TTe = .2;
-  g.TTi = .1;
 
   Int3 ibn = {2, 2, 2};
   if (Dim::InvarX::value) {
@@ -304,26 +308,26 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
 
 void initializeFields(MfieldsState& mflds)
 {
-  double b0 = g.b0, dbx = g.dbx, dbz = g.dbz;
-  double L = g.L, Lx = g.Lx, Ly = g.Ly, Lz = g.Lz, Lpert = g.Lpert;
-  //  double cs = cos(g.theta), sn = sin(g.theta);
+  double b0 = g.b0, dby = g.dby, dbz = g.dbz;
+  double L = g.L, Ly = g.Ly, Lz = g.Lz, Lpert = g.Lpert;
+  double cs = cos(g.theta), sn = sin(g.theta);
 
   setupFields(mflds, [&](int m, double crd[3]) {
-    double x = crd[1], z = crd[2];
+    double y = crd[1], z = crd[2];
 
     switch (m) {
+      case HX: return -sn * b0 * tanh(z / L) + b0 * g.bg;
+      
       case HY:
-        return b0 * tanh(z / L);
-        +dbx* cos(2. * M_PI * (x - .5 * Lx) / Lpert) * sin(M_PI * z / Lz);
-
-      case HX: return b0 * g.bg;
+        return cs * b0 * tanh(z / L) +
+               dby * cos(2. * M_PI * (y - .5 * Ly) / Lpert) * 
+                 sin(M_PI * z / Lz);
 
       case HZ:
         return dbz * cos(M_PI * z / Lz) *
-               sin(2.0 * M_PI * (x - 0.5 * Lx) / Lpert);
-        return 0.;
+               sin(2.0 * M_PI * (y - 0.5 * Ly) / Lpert);
 
-      case JYI: return 0.; // FIXME
+      case JXI: return 0.; // FIXME
 
       default: return 0.;
     }
