@@ -11,7 +11,7 @@
 #ifdef USE_CUDA
 #include "cuda_bits.h"
 #endif
-
+#define PRINT(c) {std::cout << "JOHN " << c << std::endl;}
 // ======================================================================
 // Particle kinds
 //
@@ -154,22 +154,22 @@ void setupParameters()
 
   g.Lx_di = 1.;
   g.Ly_di = 40.;
-  g.Lz_di = 10.;
+  g.Lz_di = 20.;
   g.L_di = .5;
   g.Lpert_Ly = 1.;
 
   g.BB = 0.;
   g.Zi = 1.;
-  g.mass_ratio = 100.;
+  g.mass_ratio = 16.;
   g.Ti_Te = 5.;
   g.lambda0 = 20.;
   g.bg = 0.;
   g.theta = 0;
   g.dbz_b0 = .03;
 
+  g.wpe_wce = 2.;
   g.TTe = me * sqr(c) / (2. * eps0 * sqr(g.wpe_wce) * (1. + g.Ti_Te));
   g.TTi = g.TTe * g.Ti_Te;
-  g.wpe_wce = 2.;
 
   g.wci = 1. / (g.mass_ratio * g.wpe_wce); // Ion cyclotron frequency
   g.wce = g.wci * g.mass_ratio;            // Electron cyclotron freqeuncy
@@ -213,8 +213,10 @@ Grid_t* setupGrid()
   // --- setup domain
   Grid_t::Real3 LL = {g.Lx_di * g.d_i, g.Ly_di * g.d_i,
                       g.Lz_di * g.d_i}; // domain size (in d_e)
-  Int3 gdims = {1, 512, 128};
-  Int3 np = {1, 4, 1};
+  //Int3 gdims = {1, 512, 128};
+  //Int3 np = {1, 4, 1};
+  Int3 gdims = {1, 640, 320};
+  Int3 np = {1, 20, 10};
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
 
@@ -225,7 +227,7 @@ Grid_t* setupGrid()
 
   // -- setup normalization
   auto norm_params = Grid_t::NormalizationParams::dimensionless();
-  norm_params.nicell = 100;
+  norm_params.nicell = 10000;
 
   double dt = psc_params.cfl * courant_length(domain);
   Grid_t::Normalization norm{norm_params};
