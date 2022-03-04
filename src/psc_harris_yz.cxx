@@ -11,7 +11,10 @@
 #ifdef USE_CUDA
 #include "cuda_bits.h"
 #endif
-#define PRINT(c) {std::cout << "JOHN " << c << std::endl;}
+#define PRINT(c)                                                               \
+  {                                                                            \
+    std::cout << "JOHN " << c << std::endl;                                    \
+  }
 // ======================================================================
 // Particle kinds
 //
@@ -45,9 +48,9 @@ struct PscHarrisParams
   double Ti_Te;
   double lambda0;
 
-  //double background_n;
-  //double background_Te;
-  //double background_Ti;
+  // double background_n;
+  // double background_Te;
+  // double background_Ti;
 
   double bg; // guide field as fraction of B0
   double theta;
@@ -59,16 +62,16 @@ struct PscHarrisParams
 
   double d_i;
   double b0; // B0
-  //double n0;
-  double L;  // sheet width in d_e
+  // double n0;
+  double L; // sheet width in d_e
   double TTi, TTe;
   double wpe_wce;
 
   double wpe, wpi, wce, wci;
   double Lx, Ly, Lz; // size of box
-  double Lpert; // wavelength of perturbation
-  double dby;   // Perturbation in Bz relative to Bo (Only change here)
-  double dbz;   // Set Bx perturbation so that div(B) = 0
+  double Lpert;      // wavelength of perturbation
+  double dby;        // Perturbation in Bz relative to Bo (Only change here)
+  double dbz;        // Set Bx perturbation so that div(B) = 0
 };
 
 // ======================================================================
@@ -144,12 +147,12 @@ void setupParameters()
   // read_checkpoint_filename = "checkpoint_500.bp";
 
   // -- Set some parameters specific to this case
-  
+
   // PIC units, only used in this scope
-  //double eps0 = 1;
+  // double eps0 = 1;
   double me = 1;
   double ec = 1;
-  double c = 1;                           // Speed of light
+  double c = 1; // Speed of light
   double eps0 = 1;
 
   g.Lx_di = 1.;
@@ -174,16 +177,16 @@ void setupParameters()
   g.wci = 1. / (g.mass_ratio * g.wpe_wce); // Ion cyclotron frequency
   g.wce = g.wci * g.mass_ratio;            // Electron cyclotron freqeuncy
   g.wpe = g.wce * g.wpe_wce;               // electron plasma frequency
-  g.wpi = g.wpe / sqrt(g.mass_ratio); // ion plasma frequency
+  g.wpi = g.wpe / sqrt(g.mass_ratio);      // ion plasma frequency
 
-  g.d_i = c / g.wpi;                  // ion inertial length
+  g.d_i = c / g.wpi; // ion inertial length
   g.L = g.L_di * g.d_i;
-  g.Lx = g.Lx_di * g.d_i;             // size of box in x dimension
-  g.Ly = g.Ly_di * g.d_i;             // size of box in y dimension
-  g.Lz = g.Lz_di * g.d_i;             // size of box in z dimension
+  g.Lx = g.Lx_di * g.d_i; // size of box in x dimension
+  g.Ly = g.Ly_di * g.d_i; // size of box in y dimension
+  g.Lz = g.Lz_di * g.d_i; // size of box in z dimension
 
-  g.b0 =  me * c * g.wce / ec; // Asymptotic magnetic field strength 
-  //g.n0 = me * eps0 * wpe * wpe / (ec * ec); // Peak electron (ion) density
+  g.b0 = me * c * g.wce / ec; // Asymptotic magnetic field strength
+  // g.n0 = me * eps0 * wpe * wpe / (ec * ec); // Peak electron (ion) density
   g.Lpert = g.Lpert_Ly * g.Ly; // wavelength of perturbation
   g.dbz =
     g.dbz_b0 * g.b0; // Perturbation in Bz relative to Bo (Only change here)
@@ -207,14 +210,13 @@ Grid_t* setupGrid()
   kinds[MY_ELECTRON] = {-1., 1., "e"};
 
   mpi_printf(MPI_COMM_WORLD, "d_e = %g, d_i = %g\n", 1., g.d_i);
-  mpi_printf(MPI_COMM_WORLD, "lambda_De (background) = %g\n",
-             sqrt(g.TTe));
+  mpi_printf(MPI_COMM_WORLD, "lambda_De (background) = %g\n", sqrt(g.TTe));
 
   // --- setup domain
   Grid_t::Real3 LL = {g.Lx_di * g.d_i, g.Ly_di * g.d_i,
                       g.Lz_di * g.d_i}; // domain size (in d_e)
-  //Int3 gdims = {1, 512, 128};
-  //Int3 np = {1, 4, 1};
+  // Int3 gdims = {1, 512, 128};
+  // Int3 np = {1, 4, 1};
   Int3 gdims = {1, 640, 320};
   Int3 np = {1, 20, 10};
 
@@ -233,8 +235,6 @@ Grid_t* setupGrid()
   Grid_t::Normalization norm{norm_params};
 
   mpi_printf(MPI_COMM_WORLD, "dt = %g\n", dt);
-
-
 
   Int3 ibn = {2, 2, 2};
   if (Dim::InvarX::value) {
@@ -322,10 +322,10 @@ void initializeFields(MfieldsState& mflds)
 
     switch (m) {
       case HX: return -sn * b0 * tanh(z / L) + b0 * g.bg;
-      
+
       case HY:
         return cs * b0 * tanh(z / L) +
-               dby * cos(2. * M_PI * (y - .5 * Ly) / Lpert) * 
+               dby * cos(2. * M_PI * (y - .5 * Ly) / Lpert) *
                  sin(M_PI * z / Lz);
 
       case HZ:
