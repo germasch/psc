@@ -42,6 +42,7 @@ struct PscHarrisParams
   double BB;
   double Zi;
   double mass_ratio;
+  double Ti_Te;
   double lambda0;
 
   //double background_n;
@@ -149,6 +150,7 @@ void setupParameters()
   double me = 1;
   double ec = 1;
   double c = 1;                           // Speed of light
+  double eps0 = 1;
 
   g.Lx_di = 1.;
   g.Ly_di = 40.;
@@ -159,13 +161,14 @@ void setupParameters()
   g.BB = 0.;
   g.Zi = 1.;
   g.mass_ratio = 100.;
+  g.Ti_Te = 5.;
   g.lambda0 = 20.;
   g.bg = 0.;
   g.theta = 0;
   g.dbz_b0 = .03;
 
-  g.TTe = .2;
-  g.TTi = .1;
+  g.TTe = me * sqr(c) / (2. * eps0 * sqr(g.wpe_wce) * (1. + g.Ti_Te));
+  g.TTi = g.TTe * g.Ti_Te;
   g.wpe_wce = 2.;
 
   g.wci = 1. / (g.mass_ratio * g.wpe_wce); // Ion cyclotron frequency
