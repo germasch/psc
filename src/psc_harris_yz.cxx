@@ -269,7 +269,7 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                switch (kind) {
                                  case MY_ION: // ion drifting
                                    npt.n = 1. / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] = 2. * g.TTi / g.b0 / g.L;
+                                   npt.p[0] = -2. * g.TTi / g.b0 / g.L;
                                    npt.T[0] = g.TTi;
                                    npt.T[1] = g.TTi;
                                    npt.T[2] = g.TTi;
@@ -277,7 +277,7 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    break;
                                   case MY_ION_BG: // ion bg
                                    npt.n = g.nb_n0 / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] = 2. * g.Tib_Ti * g.TTi / g.b0 / g.L;
+                                   npt.p[0] = 0.;//2. * g.Tib_Ti * g.TTi / g.b0 / g.L;
                                    npt.T[0] = g.Tib_Ti * g.TTi;
                                    npt.T[1] = g.Tib_Ti *  g.TTi;
                                    npt.T[2] = g.Tib_Ti *  g.TTi;
@@ -285,7 +285,7 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    break;
                                  case MY_ELECTRON: // electron drifting
                                    npt.n = 1. / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] = -2. * g.TTe / g.b0 / g.L;
+                                   npt.p[0] = 2. * g.TTe / g.b0 / g.L;
                                    npt.T[0] = g.TTe;
                                    npt.T[1] = g.TTe;
                                    npt.T[2] = g.TTe;
@@ -293,7 +293,7 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    break;
                                   case MY_ELECTRON_BG: // electron bg
                                    npt.n = g.nb_n0 / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] = -2. * g.Teb_Te * g.TTe / g.b0 / g.L;
+                                   npt.p[0] = 0.;//-2. * g.Teb_Te * g.TTe / g.b0 / g.L;
                                    npt.T[0] = g.Teb_Te * g.TTe;
                                    npt.T[1] = g.Teb_Te * g.TTe;
                                    npt.T[2] = g.Teb_Te * g.TTe;
