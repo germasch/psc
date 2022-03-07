@@ -11,7 +11,10 @@
 #ifdef USE_CUDA
 #include "cuda_bits.h"
 #endif
-
+#define PRINT(c)                                                               \
+  {                                                                            \
+    std::cout << "JOHN " << c << std::endl;                                    \
+  }
 // ======================================================================
 // Particle kinds
 //
@@ -27,6 +30,8 @@ enum
 {
   MY_ELECTRON,
   MY_ION,
+  MY_ELECTRON_BG,
+  MY_ION_BG,
   N_MY_KINDS,
 };
 
@@ -42,21 +47,34 @@ struct PscHarrisParams
   double BB;
   double Zi;
   double mass_ratio;
+  double Ti_Te;
+  double Tib_Ti, Teb_Te;
   double lambda0;
-
-  double background_n;
-  double background_Te;
-  double background_Ti;
+  double nb_n0; //background density 
+  // double background_n;
+  // double background_Te;
+  // double background_Ti;
 
   double bg; // guide field as fraction of B0
+  double theta;
+  double dbz_b0;
+  double Lpert_Ly;
 
   // The following parameters are calculated from the above / and other
   // information
 
   double d_i;
   double b0; // B0
-  double L;  // sheet width in d_e
+  // double n0;
+  double L; // sheet width in d_e
   double TTi, TTe;
+  double wpe_wce;
+
+  double wpe, wpi, wce, wci;
+  double Lx, Ly, Lz; // size of box
+  double Lpert;      // wavelength of perturbation
+  double dby;        // Perturbation in Bz relative to Bo (Only change here)
+  double dbz;        // Set Bx perturbation so that div(B) = 0
 };
 
 // ======================================================================
@@ -132,22 +150,54 @@ void setupParameters()
   // read_checkpoint_filename = "checkpoint_500.bp";
 
   // -- Set some parameters specific to this case
+
+  // PIC units, only used in this scope
+  // double eps0 = 1;
+  double me = 1;
+  double ec = 1;
+  double c = 1; // Speed of light
+  double eps0 = 1;
+
   g.Lx_di = 1.;
   g.Ly_di = 40.;
-  g.Lz_di = 10.;
-
+  g.Lz_di = 20.;
   g.L_di = .5;
+  g.Lpert_Ly = 1.;
 
   g.BB = 0.;
   g.Zi = 1.;
-  g.mass_ratio = 100.;
+  g.mass_ratio = 16.;
+  g.Ti_Te = 5.;
+  g.Tib_Ti = 0.333;
+  g.Teb_Te = 0.333;
   g.lambda0 = 20.;
-
-  g.background_n = .002;
-  g.background_Te = .001;
-  g.background_Ti = .001;
-
+  g.nb_n0 = 0.05;
   g.bg = 0.;
+  g.theta = 0;
+  g.dbz_b0 = .03;
+
+  g.wpe_wce = 2.;
+  g.TTe = me * sqr(c) / (2. * eps0 * sqr(g.wpe_wce) * (1. + g.Ti_Te));
+  g.TTi = g.TTe * g.Ti_Te;
+
+  g.wci = 1. / (g.mass_ratio * g.wpe_wce); // Ion cyclotron frequency
+  g.wce = g.wci * g.mass_ratio;            // Electron cyclotron freqeuncy
+  g.wpe = g.wce * g.wpe_wce;               // electron plasma frequency
+  g.wpi = g.wpe / sqrt(g.mass_ratio);      // ion plasma frequency
+
+  g.d_i = c / g.wpi; // ion inertial length
+  g.L = g.L_di * g.d_i;
+  g.Lx = g.Lx_di * g.d_i; // size of box in x dimension
+  g.Ly = g.Ly_di * g.d_i; // size of box in y dimension
+  g.Lz = g.Lz_di * g.d_i; // size of box in z dimension
+
+  g.b0 = me * c * g.wce / ec; // Asymptotic magnetic field strength
+  // g.n0 = me * eps0 * wpe * wpe / (ec * ec); // Peak electron (ion) density
+  g.Lpert = g.Lpert_Ly * g.Ly; // wavelength of perturbation
+  g.dbz =
+    g.dbz_b0 * g.b0; // Perturbation in Bz relative to Bo (Only change here)
+  g.dby =
+    -g.dbz * g.Lpert / (2. * g.Lz); // Set Bx perturbation so that div(B) = 0
 }
 
 // ======================================================================
@@ -164,40 +214,34 @@ Grid_t* setupGrid()
   Grid_t::Kinds kinds(N_MY_KINDS);
   kinds[MY_ION] = {g.Zi, g.mass_ratio * g.Zi, "i"};
   kinds[MY_ELECTRON] = {-1., 1., "e"};
-
-  g.d_i = sqrt(kinds[MY_ION].m / kinds[MY_ION].q);
+  kinds[MY_ION_BG] = {g.Zi, g.mass_ratio * g.Zi, "i_bg"};
+  kinds[MY_ELECTRON_BG] = {-1., 1., "e_bg"};
 
   mpi_printf(MPI_COMM_WORLD, "d_e = %g, d_i = %g\n", 1., g.d_i);
-  mpi_printf(MPI_COMM_WORLD, "lambda_De (background) = %g\n",
-             sqrt(g.background_Te));
+  mpi_printf(MPI_COMM_WORLD, "lambda_De (background) = %g\n", sqrt(g.TTe));
 
   // --- setup domain
   Grid_t::Real3 LL = {g.Lx_di * g.d_i, g.Ly_di * g.d_i,
                       g.Lz_di * g.d_i}; // domain size (in d_e)
-  Int3 gdims = {1, 512, 128};
-  Int3 np = {1, 4, 1};
+  
+  Int3 gdims = {1, 640, 320};
+  Int3 np = {1, 20, 10};
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
 
-  psc::grid::BC bc{{BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_PERIODIC},
-                   {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_PERIODIC},
-                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_PERIODIC},
-                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_PERIODIC}};
+  psc::grid::BC bc{{BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL},
+                   {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL},
+                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_REFLECTING},
+                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_REFLECTING}};
 
   // -- setup normalization
   auto norm_params = Grid_t::NormalizationParams::dimensionless();
-  norm_params.nicell = 100;
+  norm_params.nicell = 10000;
 
   double dt = psc_params.cfl * courant_length(domain);
   Grid_t::Normalization norm{norm_params};
 
   mpi_printf(MPI_COMM_WORLD, "dt = %g\n", dt);
-
-  g.b0 = 1.; // FIXME
-  g.L = g.L_di * g.d_i;
-
-  g.TTe = .2;
-  g.TTi = .1;
 
   Int3 ibn = {2, 2, 2};
   if (Dim::InvarX::value) {
@@ -222,50 +266,39 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
   // -- set particle initial condition
   partitionAndSetupParticles(setup_particles, balance, grid_ptr, mprts,
                              [&](int kind, Double3 crd, psc_particle_npt& npt) {
-                               // struct psc_harris* harris =
-                               // to_psc_harris(psc);
-
-                               // double BB = harris->B0;
-                               // double LLL = harris->LLL;
-                               // double nnb = harris->nb;
-                               // double TTi = harris->Ti;
-                               // double TTe = harris->Te;
-
                                switch (kind) {
                                  case MY_ION: // ion drifting
                                    npt.n = 1. / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] = 2. * g.TTi / g.b0 / g.L;
+                                   npt.p[0] = -2. * g.TTi / g.b0 / g.L;
                                    npt.T[0] = g.TTi;
                                    npt.T[1] = g.TTi;
                                    npt.T[2] = g.TTi;
                                    npt.kind = MY_ION;
                                    break;
-                                 // case 1: // ion bg
-                                 //   npt->n = nnb;
-                                 //   npt->q = 1.;
-                                 //   npt->m = harris->mi_over_me;
-                                 //   npt->T[0] = TTi;
-                                 //   npt->T[1] = TTi;
-                                 //   npt->T[2] = TTi;
-                                 //   npt->kind = KIND_ION;
-                                 //   break;
+                                  case MY_ION_BG: // ion bg
+                                   npt.n = g.nb_n0 / sqr(cosh(crd[2] / g.L));
+                                   npt.p[0] = 0.;//2. * g.Tib_Ti * g.TTi / g.b0 / g.L;
+                                   npt.T[0] = g.Tib_Ti * g.TTi;
+                                   npt.T[1] = g.Tib_Ti *  g.TTi;
+                                   npt.T[2] = g.Tib_Ti *  g.TTi;
+                                   npt.kind = MY_ION_BG;
+                                   break;
                                  case MY_ELECTRON: // electron drifting
                                    npt.n = 1. / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] = -2. * g.TTe / g.b0 / g.L;
+                                   npt.p[0] = 2. * g.TTe / g.b0 / g.L;
                                    npt.T[0] = g.TTe;
                                    npt.T[1] = g.TTe;
                                    npt.T[2] = g.TTe;
                                    npt.kind = MY_ELECTRON;
                                    break;
-                                 // case 3: // electron bg
-                                 //   npt->n = nnb;
-                                 //   npt->q = -1.;
-                                 //   npt->m = 1.;
-                                 //   npt->T[0] = TTe;
-                                 //   npt->T[1] = TTe;
-                                 //   npt->T[2] = TTe;
-                                 //   npt->kind = KIND_ELECTRON;
-                                 //   break;
+                                  case MY_ELECTRON_BG: // electron bg
+                                   npt.n = g.nb_n0 / sqr(cosh(crd[2] / g.L));
+                                   npt.p[0] = 0.;//-2. * g.Teb_Te * g.TTe / g.b0 / g.L;
+                                   npt.T[0] = g.Teb_Te * g.TTe;
+                                   npt.T[1] = g.Teb_Te * g.TTe;
+                                   npt.T[2] = g.Teb_Te * g.TTe;
+                                   npt.kind = MY_ELECTRON_BG;
+                                   break;
                                  default: assert(0);
                                }
                              });
@@ -276,28 +309,26 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
 
 void initializeFields(MfieldsState& mflds)
 {
-  double b0 = g.b0; //, dbx = g.dbx, dbz = g.dbz;
-  double L = g.L;   //, Ly = g.Ly, Lz = g.Lz;//, Lpert = g.Lpert;
-  //  double cs = cos(g.theta), sn = sin(g.theta);
+  double b0 = g.b0, dby = g.dby, dbz = g.dbz;
+  double L = g.L, Ly = g.Ly, Lz = g.Lz, Lpert = g.Lpert;
+  double cs = cos(g.theta), sn = sin(g.theta);
 
   setupFields(mflds, [&](int m, double crd[3]) {
-    double x = crd[1], z = crd[2];
+    double y = crd[1], z = crd[2];
 
     switch (m) {
-      case HY:
-        return b0 *
-               tanh(z / L); // +
-                            //  dbx * cos(2. * M_PI * (x - .5 * Lx) / Lpert) *
-                            //    sin(M_PI * z / Lz);
+      case HX: return -sn * b0 * tanh(z / L) + b0 * g.bg;
 
-      case HX: return b0 * g.bg;
+      case HY:
+        return cs * b0 * tanh(z / L) +
+               dby * cos(2. * M_PI * (y - .5 * Ly) / Lpert) *
+                 sin(M_PI * z / Lz);
 
       case HZ:
-        // return dbz * cos(M_PI * z / Lz) *
-        //        sin(2.0 * M_PI * (x - 0.5 * Lx) / Lpert);
-        return 0.;
+        return dbz * cos(M_PI * z / Lz) *
+               sin(2.0 * M_PI * (y - 0.5 * Ly) / Lpert);
 
-      case JYI: return 0.; // FIXME
+      case JXI: return 0.; // FIXME
 
       default: return 0.;
     }
