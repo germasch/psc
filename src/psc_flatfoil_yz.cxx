@@ -22,7 +22,7 @@
 
 // FIXME select a hardcoded case, if not already specified
 #ifndef CASE
-#define CASE CASE_3D
+#define CASE CASE_2D
 #endif
 
 // ======================================================================
@@ -293,9 +293,9 @@ Grid_t* setupGrid()
   Int3 gdims = {800, 800, 3 * 800};           // global number of grid points
   Int3 np = {25, 25, 3 * 25};                 // division into patches
 #elif CASE == CASE_2D
-  Grid_t::Real3 LL = {1., 800., 3. * 800.}; // domain size (in d_e)
-  Int3 gdims = {1, 1600, 3 * 1600};         // global number of grid points
-  Int3 np = {1, 50, 3 * 50};                // division into patches
+  Grid_t::Real3 LL = {1., 400., 3. * 400.}; // domain size (in d_e)
+  Int3 gdims = {1, 800, 3 * 800};           // global number of grid points
+  Int3 np = {1, 25, 3 * 25};                // division into patches
 #elif CASE == CASE_2D_SMALL
   Grid_t::Real3 LL = {1., 80., 3. * 80.}; // domain size (in d_e)
   Int3 gdims = {1, 80, 3 * 80};           // global number of grid points
@@ -488,7 +488,7 @@ void run()
   checks_params.gauss_dump_always = true;
 #else
   checks_params.gauss_every_step = 100;
-  checks_params.gauss_dump_always = false;
+  checks_params.gauss_dump_always = true;
 #endif
   checks_params.gauss_threshold = 2e-4;
   checks_params.gauss_verbose = true;

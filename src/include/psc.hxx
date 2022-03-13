@@ -413,6 +413,7 @@ struct Psc
 
     checks_.continuity_after_particle_push(mprts_, mflds_);
 
+    checks_.gauss(mprts_, mflds_);
     // E at t^{n+3/2}, particles at t^{n+3/2}
     // B at t^{n+3/2} (Note: that is not it's natural time,
     // but div B should be == 0 at any time...)
@@ -589,6 +590,13 @@ struct Psc
     // E^{n+3/2} [-1/2, 1/2]
     // B^{n+3/2} [0, 0]
     // but div B should be == 0 at any time...)
+    if (checks_.gauss_every_step > 0 &&
+        timestep % checks_.gauss_every_step == 0) {
+      prof_restart(pr_checks);
+      checks_.gauss(mprts_, mflds_);
+      prof_stop(pr_checks);
+    }
+
     if (p_.marder_interval > 0 && timestep % p_.marder_interval == 0) {
       mpi_printf(comm, "***** Performing Marder correction...\n");
       prof_start(pr_marder);
