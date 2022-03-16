@@ -435,7 +435,7 @@ void run()
 
   SetupParticles<Mparticles> setup_particles(grid);
   setup_particles.fractional_n_particles_per_cell = true;
-  setup_particles.neutralizing_population = MY_ION;
+  setup_particles.neutralizing_population = MY_ION_BG;
 
   // ----------------------------------------------------------------------
   // setup initial conditions
