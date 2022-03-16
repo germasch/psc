@@ -50,7 +50,7 @@ struct PscHarrisParams
   double Ti_Te;
   double Tib_Ti, Teb_Te;
   double lambda0;
-  double nb_n0; //background density 
+  double nb_n0; // background density
   // double background_n;
   // double background_Te;
   // double background_Ti;
@@ -223,16 +223,17 @@ Grid_t* setupGrid()
   // --- setup domain
   Grid_t::Real3 LL = {g.Lx_di * g.d_i, g.Ly_di * g.d_i,
                       g.Lz_di * g.d_i}; // domain size (in d_e)
-  
+
   Int3 gdims = {1, 640, 320};
   Int3 np = {1, 20, 10};
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
 
-  psc::grid::BC bc{{BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL},
-                   {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL},
-                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_REFLECTING},
-                   {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_REFLECTING}};
+  psc::grid::BC bc{
+    {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL},
+    {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL},
+    {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_REFLECTING},
+    {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_REFLECTING}};
 
   // -- setup normalization
   auto norm_params = Grid_t::NormalizationParams::dimensionless();
@@ -275,12 +276,13 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    npt.T[2] = g.TTi;
                                    npt.kind = MY_ION;
                                    break;
-                                  case MY_ION_BG: // ion bg
+                                 case MY_ION_BG: // ion bg
                                    npt.n = g.nb_n0 / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] = 0.;//2. * g.Tib_Ti * g.TTi / g.b0 / g.L;
+                                   npt.p[0] =
+                                     0.; // 2. * g.Tib_Ti * g.TTi / g.b0 / g.L;
                                    npt.T[0] = g.Tib_Ti * g.TTi;
-                                   npt.T[1] = g.Tib_Ti *  g.TTi;
-                                   npt.T[2] = g.Tib_Ti *  g.TTi;
+                                   npt.T[1] = g.Tib_Ti * g.TTi;
+                                   npt.T[2] = g.Tib_Ti * g.TTi;
                                    npt.kind = MY_ION_BG;
                                    break;
                                  case MY_ELECTRON: // electron drifting
@@ -291,9 +293,10 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    npt.T[2] = g.TTe;
                                    npt.kind = MY_ELECTRON;
                                    break;
-                                  case MY_ELECTRON_BG: // electron bg
+                                 case MY_ELECTRON_BG: // electron bg
                                    npt.n = g.nb_n0 / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] = 0.;//-2. * g.Teb_Te * g.TTe / g.b0 / g.L;
+                                   npt.p[0] =
+                                     0.; //-2. * g.Teb_Te * g.TTe / g.b0 / g.L;
                                    npt.T[0] = g.Teb_Te * g.TTe;
                                    npt.T[1] = g.Teb_Te * g.TTe;
                                    npt.T[2] = g.Teb_Te * g.TTe;
