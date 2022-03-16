@@ -873,7 +873,7 @@ void run()
 
   // -- output fields
   OutputFieldsParams outf_params;
-  double output_field_interval = 1.;
+  double output_field_interval = .1;
   outf_params.fields.pfield_interval =
     int((output_field_interval / (phys.wci * grid.dt)));
   outf_params.fields.tfield_interval =
