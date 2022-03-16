@@ -166,7 +166,7 @@ void setupParameters()
 
   g.BB = 0.;
   g.Zi = 1.;
-  g.mass_ratio = 16.;
+  g.mass_ratio = 25.;
   g.Ti_Te = 5.;
   g.Tib_Ti = 0.333;
   g.Teb_Te = 0.333;
@@ -224,8 +224,8 @@ Grid_t* setupGrid()
   Grid_t::Real3 LL = {g.Lx_di * g.d_i, g.Ly_di * g.d_i,
                       g.Lz_di * g.d_i}; // domain size (in d_e)
 
-  Int3 gdims = {1, 640, 320};
-  Int3 np = {1, 20, 10};
+  Int3 gdims = {1, 512, 128};
+  Int3 np = {1, 4, 1};
 
   Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
 
@@ -237,7 +237,7 @@ Grid_t* setupGrid()
 
   // -- setup normalization
   auto norm_params = Grid_t::NormalizationParams::dimensionless();
-  norm_params.nicell = 10000;
+  norm_params.nicell = 10;
 
   double dt = psc_params.cfl * courant_length(domain);
   Grid_t::Normalization norm{norm_params};
