@@ -160,7 +160,7 @@ void setupParameters()
 
   g.Lx_di = 1.;
   g.Ly_di = 40.;
-  g.Lz_di = 20.;
+  g.Lz_di = 10.;
   g.L_di = .5;
   g.Lpert_Ly = 1.;
 
@@ -227,7 +227,7 @@ Grid_t* setupGrid()
   Int3 gdims = {1, 512, 128};
   Int3 np = {1, 4, 1};
 
-  Grid_t::Domain domain{gdims, LL, -.5 * LL, np};
+  Grid_t::Domain domain{gdims, LL, {0, 0, -.5 * LL[2]}, np};
 
   psc::grid::BC bc{
     {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL},
@@ -237,8 +237,9 @@ Grid_t* setupGrid()
 
   // -- setup normalization
   auto norm_params = Grid_t::NormalizationParams::dimensionless();
-  norm_params.nicell = 10;
+  norm_params.nicell = 100;
 
+  mprintf("dx %g %g %g\n", domain.dx[0], domain.dx[1], domain.dx[2]);
   double dt = psc_params.cfl * courant_length(domain);
   Grid_t::Normalization norm{norm_params};
 
@@ -277,9 +278,8 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    npt.kind = MY_ION;
                                    break;
                                  case MY_ION_BG: // ion bg
-                                   npt.n = g.nb_n0 / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] =
-                                     0.; // 2. * g.Tib_Ti * g.TTi / g.b0 / g.L;
+                                   npt.n = g.nb_n0;
+                                   npt.p[0] = 0.;
                                    npt.T[0] = g.Tib_Ti * g.TTi;
                                    npt.T[1] = g.Tib_Ti * g.TTi;
                                    npt.T[2] = g.Tib_Ti * g.TTi;
@@ -294,9 +294,8 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    npt.kind = MY_ELECTRON;
                                    break;
                                  case MY_ELECTRON_BG: // electron bg
-                                   npt.n = g.nb_n0 / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] =
-                                     0.; //-2. * g.Teb_Te * g.TTe / g.b0 / g.L;
+                                   npt.n = g.nb_n0;
+                                   npt.p[0] = 0.;
                                    npt.T[0] = g.Teb_Te * g.TTe;
                                    npt.T[1] = g.Teb_Te * g.TTe;
                                    npt.T[2] = g.Teb_Te * g.TTe;
@@ -316,6 +315,7 @@ void initializeFields(MfieldsState& mflds)
   double L = g.L, Ly = g.Ly, Lz = g.Lz, Lpert = g.Lpert;
   double cs = cos(g.theta), sn = sin(g.theta);
 
+  mprintf("L %g\n", L);
   setupFields(mflds, [&](int m, double crd[3]) {
     double y = crd[1], z = crd[2];
 
@@ -388,7 +388,7 @@ void run()
   checks_params.continuity_threshold = 1e-4;
   checks_params.continuity_verbose = true;
 
-  checks_params.gauss_every_step = 100;
+  checks_params.gauss_every_step = -100;
   checks_params.gauss_dump_always = false;
   checks_params.gauss_threshold = 1e-4;
   checks_params.gauss_verbose = true;
@@ -410,7 +410,7 @@ void run()
   // -- output fields
   OutputFieldsItemParams outf_item_params{};
   OutputFieldsParams outf_params{};
-  outf_item_params.pfield_interval = 4;
+  outf_item_params.pfield_interval = 100;
   outf_item_params.tfield_interval = -4;
   outf_item_params.tfield_average_every = 50;
 

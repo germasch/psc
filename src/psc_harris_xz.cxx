@@ -173,7 +173,7 @@ void setupHarrisParams()
 
   g.Lpert_Lx = 1.;
   g.dbz_b0 = .03;
-  g.nppc = 10;
+  g.nppc = 100;
   g.open_bc_x = false;
   g.driven_bc_z = false;
 }
@@ -740,6 +740,7 @@ void initializeFields(MfieldsState& mflds)
   double L = phys.L, Lx = phys.Lx, Lz = phys.Lz, Lpert = phys.Lpert;
   double cs = cos(g.theta), sn = sin(g.theta);
 
+  mprintf("L %g\n", L);
   setupFields(mflds, [&](int m, double crd[3]) {
     double x = crd[0], z = crd[2];
 
@@ -874,8 +875,8 @@ void run()
   // -- output fields
   OutputFieldsParams outf_params;
   double output_field_interval = .1;
-  outf_params.fields.pfield_interval =
-    int((output_field_interval / (phys.wci * grid.dt)));
+  outf_params.fields.pfield_interval = 100;
+  //    int((output_field_interval / (phys.wci * grid.dt)));
   outf_params.fields.tfield_interval =
     int((output_field_interval / (phys.wci * grid.dt)));
   OutputFields<MfieldsState, Mparticles, dim_xz> outf{grid, outf_params};
