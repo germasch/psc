@@ -135,7 +135,7 @@ void setupParameters()
 {
   // -- set some generic PSC parameters
   psc_params.nmax = 10000001; // 5001;
-  psc_params.cfl = 0.75;
+  psc_params.cfl = 0.99;
   psc_params.write_checkpoint_every_step = 1000;
   psc_params.stats_every = 1;
 
@@ -241,6 +241,8 @@ Grid_t* setupGrid()
 
   mprintf("dx %g %g %g\n", domain.dx[0], domain.dx[1], domain.dx[2]);
   double dt = psc_params.cfl * courant_length(domain);
+  mprintf("dt %g cfl %g\n", dt, psc_params.cfl);
+
   Grid_t::Normalization norm{norm_params};
 
   mpi_printf(MPI_COMM_WORLD, "dt = %g\n", dt);

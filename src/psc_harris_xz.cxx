@@ -355,9 +355,11 @@ Grid_t* setupGrid()
   // determine the time step
   double dg = courant_length(domain);
   double dt = psc_params.cfl * dg / phys.c; // courant limited time step
+  mprintf("dt %g cfl %g\n", dt, psc_params.cfl);
   if (phys.wpe * dt > g.wpedt_max) {
     dt =
       g.wpedt_max / phys.wpe; // override timestep if plasma frequency limited
+    MHERE;
   }
 
   assert(phys.c == 1. && phys.eps0 == 1.);
