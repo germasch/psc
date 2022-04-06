@@ -30,8 +30,8 @@ enum
 {
   MY_ELECTRON,
   MY_ION,
-  MY_ELECTRON_BG,
-  MY_ION_BG,
+  // MY_ELECTRON_BG,
+  // MY_ION_BG,
   N_MY_KINDS,
 };
 
@@ -214,8 +214,8 @@ Grid_t* setupGrid()
   Grid_t::Kinds kinds(N_MY_KINDS);
   kinds[MY_ION] = {g.Zi, g.mass_ratio * g.Zi, "i"};
   kinds[MY_ELECTRON] = {-1., 1., "e"};
-  kinds[MY_ION_BG] = {g.Zi, g.mass_ratio * g.Zi, "i_bg"};
-  kinds[MY_ELECTRON_BG] = {-1., 1., "e_bg"};
+  // kinds[MY_ION_BG] = {g.Zi, g.mass_ratio * g.Zi, "i_bg"};
+  // kinds[MY_ELECTRON_BG] = {-1., 1., "e_bg"};
 
   mpi_printf(MPI_COMM_WORLD, "d_e = %g, d_i = %g\n", 1., g.d_i);
   mpi_printf(MPI_COMM_WORLD, "lambda_De (background) = %g\n", sqrt(g.TTe));
@@ -271,23 +271,7 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
   partitionAndSetupParticles(setup_particles, balance, grid_ptr, mprts,
                              [&](int kind, Double3 crd, psc_particle_npt& npt) {
                                switch (kind) {
-                                 case MY_ION: // ion drifting
-                                   npt.n = 1. / sqr(cosh(crd[2] / g.L));
-                                   npt.p[0] = -2. * g.TTi / g.b0 / g.L;
-                                   npt.T[0] = g.TTi;
-                                   npt.T[1] = g.TTi;
-                                   npt.T[2] = g.TTi;
-                                   npt.kind = MY_ION;
-                                   break;
-                                 case MY_ION_BG: // ion bg
-                                   npt.n = g.nb_n0;
-                                   npt.p[0] = 0.;
-                                   npt.T[0] = g.Tib_Ti * g.TTi;
-                                   npt.T[1] = g.Tib_Ti * g.TTi;
-                                   npt.T[2] = g.Tib_Ti * g.TTi;
-                                   npt.kind = MY_ION_BG;
-                                   break;
-                                 case MY_ELECTRON: // electron drifting
+                                 case 0: // electron drifting
                                    npt.n = 1. / sqr(cosh(crd[2] / g.L));
                                    npt.p[0] = 2. * g.TTe / g.b0 / g.L;
                                    npt.T[0] = g.TTe;
@@ -295,13 +279,29 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    npt.T[2] = g.TTe;
                                    npt.kind = MY_ELECTRON;
                                    break;
-                                 case MY_ELECTRON_BG: // electron bg
+                                 case 1: // ion drifting
+                                   npt.n = 1. / sqr(cosh(crd[2] / g.L));
+                                   npt.p[0] = -2. * g.TTi / g.b0 / g.L;
+                                   npt.T[0] = g.TTi;
+                                   npt.T[1] = g.TTi;
+                                   npt.T[2] = g.TTi;
+                                   npt.kind = MY_ION;
+                                   break;
+                                 case 2: // electron bg
                                    npt.n = g.nb_n0;
                                    npt.p[0] = 0.;
                                    npt.T[0] = g.Teb_Te * g.TTe;
                                    npt.T[1] = g.Teb_Te * g.TTe;
                                    npt.T[2] = g.Teb_Te * g.TTe;
-                                   npt.kind = MY_ELECTRON_BG;
+                                   npt.kind = MY_ELECTRON;
+                                   break;
+                                 case 3: // ion bg
+                                   npt.n = g.nb_n0;
+                                   npt.p[0] = 0.;
+                                   npt.T[0] = g.Tib_Ti * g.TTi;
+                                   npt.T[1] = g.Tib_Ti * g.TTi;
+                                   npt.T[2] = g.Tib_Ti * g.TTi;
+                                   npt.kind = MY_ION;
                                    break;
                                  default: assert(0);
                                }
@@ -435,9 +435,9 @@ void run()
   // ----------------------------------------------------------------------
   // Set up objects specific to the Harris case
 
-  SetupParticles<Mparticles> setup_particles(grid);
+  SetupParticles<Mparticles> setup_particles(grid, 4);
   setup_particles.fractional_n_particles_per_cell = true;
-  setup_particles.neutralizing_population = MY_ION_BG;
+  setup_particles.neutralizing_population = 4 - 1;
 
   // ----------------------------------------------------------------------
   // setup initial conditions
