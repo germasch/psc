@@ -879,8 +879,8 @@ void run()
   double output_field_interval = .1;
   outf_params.fields.pfield_interval = 100;
   //    int((output_field_interval / (phys.wci * grid.dt)));
-  outf_params.fields.tfield_interval =
-    int((output_field_interval / (phys.wci * grid.dt)));
+  outf_params.fields.tfield_interval = -1;
+  //    int((output_field_interval / (phys.wci * grid.dt)));
   OutputFields<MfieldsState, Mparticles, dim_xz> outf{grid, outf_params};
 
   OutputParticlesParams outp_params{};
