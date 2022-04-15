@@ -57,8 +57,8 @@ struct PscHarrisParams
 
   double bg; // guide field as fraction of B0
   double theta;
-  double dbz_b0;
-  double Lpert_Ly;
+  double dby_b0;
+  double Lpert_Lz;
 
   // The following parameters are calculated from the above / and other
   // information
@@ -159,10 +159,10 @@ void setupParameters()
   double eps0 = 1;
 
   g.Lx_di = 1.;
-  g.Ly_di = 40.;
-  g.Lz_di = 10.;
+  g.Ly_di = 10.;
+  g.Lz_di = 40.;
   g.L_di = .5;
-  g.Lpert_Ly = 1.;
+  g.Lpert_Lz = 1.;
 
   g.BB = 0.;
   g.Zi = 1.;
@@ -174,7 +174,7 @@ void setupParameters()
   g.nb_n0 = 0.05;
   g.bg = 0.;
   g.theta = 0;
-  g.dbz_b0 = .03;
+  g.dby_b0 = .03;
 
   g.wpe_wce = 2.;
   g.TTe = me * sqr(c) / (2. * eps0 * sqr(g.wpe_wce) * (1. + g.Ti_Te));
@@ -193,11 +193,11 @@ void setupParameters()
 
   g.b0 = me * c * g.wce / ec; // Asymptotic magnetic field strength
   // g.n0 = me * eps0 * wpe * wpe / (ec * ec); // Peak electron (ion) density
-  g.Lpert = g.Lpert_Ly * g.Ly; // wavelength of perturbation
-  g.dbz =
-    g.dbz_b0 * g.b0; // Perturbation in Bz relative to Bo (Only change here)
+  g.Lpert = g.Lpert_Lz * g.Lz; // wavelength of perturbation
   g.dby =
-    -g.dbz * g.Lpert / (2. * g.Lz); // Set Bx perturbation so that div(B) = 0
+    g.dby_b0 * g.b0; // Perturbation in Bz relative to Bo (Only change here)
+  g.dbz =
+    -g.dby * g.Lpert / (2. * g.Ly); // Set Bx perturbation so that div(B) = 0
 }
 
 // ======================================================================
@@ -224,14 +224,14 @@ Grid_t* setupGrid()
   Grid_t::Real3 LL = {g.Lx_di * g.d_i, g.Ly_di * g.d_i,
                       g.Lz_di * g.d_i}; // domain size (in d_e)
 
-  Int3 gdims = {1, 512, 128};
-  Int3 np = {1, 4, 1};
+  Int3 gdims = {1, 128, 512};
+  Int3 np = {1, 1, 4};
 
-  Grid_t::Domain domain{gdims, LL, {0, 0, -.5 * LL[2]}, np};
+  Grid_t::Domain domain{gdims, LL, {0, -.5 * LL[1], 0}, np};
 
   psc::grid::BC bc{
-    {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL},
-    {BND_FLD_PERIODIC, BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL},
+    {BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL, BND_FLD_PERIODIC},
+    {BND_FLD_PERIODIC, BND_FLD_CONDUCTING_WALL, BND_FLD_PERIODIC},
     {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_REFLECTING},
     {BND_PRT_PERIODIC, BND_PRT_PERIODIC, BND_PRT_REFLECTING}};
 
@@ -272,7 +272,7 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                              [&](int kind, Double3 crd, psc_particle_npt& npt) {
                                switch (kind) {
                                  case 0: // electron drifting
-                                   npt.n = 1. / sqr(cosh(crd[2] / g.L));
+                                   npt.n = 1. / sqr(cosh(crd[1] / g.L));
                                    npt.p[0] = 2. * g.TTe / g.b0 / g.L;
                                    npt.T[0] = g.TTe;
                                    npt.T[1] = g.TTe;
@@ -280,7 +280,7 @@ void initializeParticles(SetupParticles<Mparticles>& setup_particles,
                                    npt.kind = MY_ELECTRON;
                                    break;
                                  case 1: // ion drifting
-                                   npt.n = 1. / sqr(cosh(crd[2] / g.L));
+                                   npt.n = 1. / sqr(cosh(crd[1] / g.L));
                                    npt.p[0] = -2. * g.TTi / g.b0 / g.L;
                                    npt.T[0] = g.TTi;
                                    npt.T[1] = g.TTi;
@@ -322,16 +322,16 @@ void initializeFields(MfieldsState& mflds)
     double y = crd[1], z = crd[2];
 
     switch (m) {
-      case HX: return -sn * b0 * tanh(z / L) + b0 * g.bg;
+      case HX: return -sn * b0 * tanh(y / L) + b0 * g.bg;
 
       case HY:
-        return cs * b0 * tanh(z / L) +
-               dby * cos(2. * M_PI * (y - .5 * Ly) / Lpert) *
-                 sin(M_PI * z / Lz);
+        return dby * cos(M_PI * y / Ly) *
+               sin(2.0 * M_PI * (z - 0.5 * Lz) / Lpert);
 
       case HZ:
-        return dbz * cos(M_PI * z / Lz) *
-               sin(2.0 * M_PI * (y - 0.5 * Ly) / Lpert);
+        return cs * b0 * tanh(y / L) +
+               dbz * cos(2. * M_PI * (z - .5 * Lz) / Lpert) *
+                 sin(M_PI * y / Ly);
 
       case JXI: return 0.; // FIXME
 
