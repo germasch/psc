@@ -10,7 +10,7 @@ template <typename MF>
 BndCuda3<MF>::BndCuda3(const Grid_t& grid, const int ibn[3])
 {
   if (!cbnd_) {
-    cbnd_ = new CudaBnd{grid, Int3::fromPointer(ibn)};
+    cbnd_ = new CudaBnd<MF>{grid, Int3::fromPointer(ibn)};
     balance_generation_cnt_ = psc_balance_generation_cnt;
   }
 }
@@ -32,17 +32,7 @@ void BndCuda3<MF>::reset(const Grid_t& grid)
 {
   // FIXME, not really a pretty way of doing this
   delete cbnd_;
-  cbnd_ = new CudaBnd{grid, grid.ibn};
-}
-
-static MfieldsCuda& remove_state(MfieldsCuda& mflds)
-{
-  return mflds;
-}
-
-static MfieldsCuda& remove_state(MfieldsStateCuda& mflds)
-{
-  return mflds.mflds();
+  cbnd_ = new CudaBnd<MF>{grid, grid.ibn};
 }
 
 // ----------------------------------------------------------------------
@@ -55,7 +45,7 @@ void BndCuda3<MF>::add_ghosts(Mfields& mflds, int mb, int me)
     reset(mflds.grid());
     balance_generation_cnt_ = psc_balance_generation_cnt;
   }
-  cbnd_->add_ghosts(remove_state(mflds), mb, me);
+  cbnd_->add_ghosts(mflds, mb, me);
 }
 
 // ----------------------------------------------------------------------
@@ -68,7 +58,7 @@ void BndCuda3<MF>::fill_ghosts(Mfields& mflds, int mb, int me)
     reset(mflds.grid());
     balance_generation_cnt_ = psc_balance_generation_cnt;
   }
-  cbnd_->fill_ghosts(remove_state(mflds), mb, me);
+  cbnd_->fill_ghosts(mflds, mb, me);
 }
 
 template <typename MF>
@@ -80,7 +70,7 @@ void BndCuda3<MF>::clear()
 template <typename MF>
 int BndCuda3<MF>::balance_generation_cnt_;
 template <typename MF>
-CudaBnd* BndCuda3<MF>::cbnd_;
+CudaBnd<MF>* BndCuda3<MF>::cbnd_;
 
 template struct BndCuda3<MfieldsCuda>;
 template struct BndCuda3<MfieldsStateCuda>;

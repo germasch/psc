@@ -28,6 +28,6 @@ struct BndCuda3 : BndBase
   static void clear();
 
 private:
-  static CudaBnd* cbnd_;
+  static CudaBnd<MF>* cbnd_;
   static int balance_generation_cnt_;
 };

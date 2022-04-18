@@ -40,9 +40,10 @@ __global__ static void k_scatter_add(const real_t* buf, const uint* map,
 // ======================================================================
 // CudaBnd
 
+template <typename MF>
 struct CudaBnd
 {
-  using Mfields = MfieldsCuda;
+  using Mfields = MF;
   using real_t = typename Mfields::real_t;
 
   // ======================================================================
@@ -139,8 +140,7 @@ struct CudaBnd
 
   struct Maps
   {
-    Maps(mrc_ddc* ddc, mrc_ddc_pattern2* patt2, int mb, int me,
-         MfieldsCuda& mflds)
+    Maps(mrc_ddc* ddc, mrc_ddc_pattern2* patt2, int mb, int me, Mfields& mflds)
       : patt{patt2}, mb{mb}, me{me}
     {
       setup_remote_maps(send, recv, ddc, patt2, mb, me, mflds);
@@ -185,7 +185,7 @@ struct CudaBnd
   // run
 
   template <typename T>
-  void run(MfieldsCuda& mflds, int mb, int me, mrc_ddc_pattern2* patt2,
+  void run(Mfields& mflds, int mb, int me, mrc_ddc_pattern2* patt2,
            std::unordered_map<int, Maps>& maps, T scatter)
   {
     // static int pr_ddc_run, pr_ddc_sync1, pr_ddc_sync2;
@@ -223,7 +223,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // add_ghosts
 
-  void add_ghosts(MfieldsCuda& mflds, int mb, int me)
+  void add_ghosts(Mfields& mflds, int mb, int me)
   {
     mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
 
@@ -233,7 +233,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // fill_ghosts
 
-  void fill_ghosts(MfieldsCuda& mflds, int mb, int me)
+  void fill_ghosts(Mfields& mflds, int mb, int me)
   {
     // FIXME
     // I don't think we need as many points, and only stencil star
@@ -248,7 +248,7 @@ struct CudaBnd
 
   template <typename S>
   void ddc_run(Maps& maps, mrc_ddc_pattern2* patt2, int mb, int me,
-               MfieldsCuda& mflds, S scatter)
+               Mfields& mflds, S scatter)
   {
     // static int pr_ddc0, pr_ddc1, pr_ddc2, pr_ddc3, pr_ddc4, pr_ddc5;
     // static int pr_ddc6, pr_ddc7, pr_ddc8, pr_ddc9, pr_ddc10;
@@ -395,7 +395,7 @@ struct CudaBnd
   static void setup_remote_maps(thrust::host_vector<uint>& map_send,
                                 thrust::host_vector<uint>& map_recv,
                                 mrc_ddc* ddc, struct mrc_ddc_pattern2* patt2,
-                                int mb, int me, MfieldsCuda& mflds)
+                                int mb, int me, Mfields& mflds)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc);
     struct mrc_ddc_rank_info* ri = patt2->ri;
@@ -430,7 +430,7 @@ struct CudaBnd
   static void setup_local_maps(thrust::host_vector<uint>& map_send,
                                thrust::host_vector<uint>& map_recv,
                                mrc_ddc* ddc, struct mrc_ddc_pattern2* patt2,
-                               int mb, int me, MfieldsCuda& mflds)
+                               int mb, int me, Mfields& mflds)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc);
     struct mrc_ddc_rank_info* ri = patt2->ri;
@@ -464,8 +464,7 @@ struct CudaBnd
   }
 
   static void map_setup(thrust::host_vector<uint>& map, uint off, int mb,
-                        int me, int p, int ilo[3], int ihi[3],
-                        MfieldsCuda& mflds)
+                        int me, int p, int ilo[3], int ihi[3], Mfields& mflds)
   {
     auto cur = &map[off];
     Int3 ib = -mflds.ibn();
