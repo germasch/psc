@@ -13,6 +13,150 @@
 #include <thrust/scatter.h>
 #include <thrust/sort.h>
 
+// ======================================================================
+// Maps
+
+template <typename R>
+struct Maps
+{
+  using real_t = R;
+
+  template <typename GT>
+  Maps(mrc_ddc* ddc, mrc_ddc_pattern2* patt2, int mb, int me, Int3 ib,
+       const GT& gt)
+    : patt{patt2}, mb{mb}, me{me}
+  {
+    setup_remote_maps(send, recv, ddc, patt2, mb, me, ib, gt);
+    setup_local_maps(local_send, local_recv, ddc, patt2, mb, me, ib, gt);
+    send_buf.resize(send.size());
+    recv_buf.resize(recv.size());
+
+    d_send = send;
+    mem_bnd += allocated_bytes(d_send);
+    d_recv = recv;
+    mem_bnd += allocated_bytes(d_recv);
+    d_local_send = local_send;
+    mem_bnd += allocated_bytes(d_local_send);
+    d_local_recv = local_recv;
+    mem_bnd += allocated_bytes(d_local_recv);
+  }
+
+  Maps(const Maps&) = delete;
+  Maps(Maps&&) = default;
+
+  ~Maps()
+  {
+    mem_bnd -= allocated_bytes(d_send);
+    mem_bnd -= allocated_bytes(d_recv);
+    mem_bnd -= allocated_bytes(d_local_send);
+    mem_bnd -= allocated_bytes(d_local_recv);
+  }
+
+  // ----------------------------------------------------------------------
+  // setup_remote_maps
+
+  template <typename GT>
+  static void setup_remote_maps(thrust::host_vector<uint>& map_send,
+                                thrust::host_vector<uint>& map_recv,
+                                mrc_ddc* ddc, struct mrc_ddc_pattern2* patt2,
+                                int mb, int me, Int3 ib, const GT& gt)
+  {
+    struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc);
+    struct mrc_ddc_rank_info* ri = patt2->ri;
+
+    map_send.resize(patt2->n_send * (me - mb));
+    map_recv.resize(patt2->n_recv * (me - mb));
+
+    uint off_send = 0, off_recv = 0;
+    for (int r = 0; r < sub->mpi_size; r++) {
+      if (r == sub->mpi_rank) {
+        continue;
+      }
+
+      for (int i = 0; i < ri[r].n_send_entries; i++) {
+        struct mrc_ddc_sendrecv_entry* se = &ri[r].send_entry[i];
+        map_setup(map_send, off_send, mb, me, se->patch, se->ilo, se->ihi, ib,
+                  gt);
+        off_send += se->len * (me - mb);
+      }
+      for (int i = 0; i < ri[r].n_recv_entries; i++) {
+        struct mrc_ddc_sendrecv_entry* re = &ri[r].recv_entry[i];
+        map_setup(map_recv, off_recv, mb, me, re->patch, re->ilo, re->ihi, ib,
+                  gt);
+        off_recv += re->len * (me - mb);
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------
+  // setup_local_maps
+
+  template <typename GT>
+  static void setup_local_maps(thrust::host_vector<uint>& map_send,
+                               thrust::host_vector<uint>& map_recv,
+                               mrc_ddc* ddc, struct mrc_ddc_pattern2* patt2,
+                               int mb, int me, Int3 ib, const GT& gt)
+  {
+    struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc);
+    struct mrc_ddc_rank_info* ri = patt2->ri;
+
+    uint buf_size = 0;
+    for (int i = 0; i < ri[sub->mpi_rank].n_send_entries; i++) {
+      struct mrc_ddc_sendrecv_entry* se = &ri[sub->mpi_rank].send_entry[i];
+      if (se->ilo[0] == se->ihi[0] || se->ilo[1] == se->ihi[1] ||
+          se->ilo[2] == se->ihi[2]) { // FIXME, we shouldn't even create these
+        continue;
+      }
+      buf_size += se->len * (me - mb);
+    }
+
+    map_send.resize(buf_size);
+    map_recv.resize(buf_size);
+
+    uint off = 0;
+    for (int i = 0; i < ri[sub->mpi_rank].n_send_entries; i++) {
+      struct mrc_ddc_sendrecv_entry* se = &ri[sub->mpi_rank].send_entry[i];
+      struct mrc_ddc_sendrecv_entry* re = &ri[sub->mpi_rank].recv_entry[i];
+      if (se->ilo[0] == se->ihi[0] || se->ilo[1] == se->ihi[1] ||
+          se->ilo[2] == se->ihi[2]) { // FIXME, we shouldn't even create these
+        continue;
+      }
+      uint size = se->len * (me - mb);
+      map_setup(map_send, off, mb, me, se->patch, se->ilo, se->ihi, ib, gt);
+      map_setup(map_recv, off, mb, me, re->patch, re->ilo, re->ihi, ib, gt);
+      off += size;
+    }
+  }
+
+  template <typename GT>
+  static void map_setup(thrust::host_vector<uint>& map, uint off, int mb,
+                        int me, int p, int ilo[3], int ihi[3], Int3 ib,
+                        const GT& gt)
+  {
+    auto cur = &map[off];
+    for (int m = mb; m < me; m++) {
+      for (int iz = ilo[2]; iz < ihi[2]; iz++) {
+        for (int iy = ilo[1]; iy < ihi[1]; iy++) {
+          for (int ix = ilo[0]; ix < ihi[0]; ix++) {
+            *cur++ = &gt(ix - ib[0], iy - ib[1], iz - ib[2], m, p) - gt.data();
+          }
+        }
+      }
+    }
+  }
+
+  thrust::host_vector<uint> send, recv;
+  thrust::host_vector<uint> local_send, local_recv;
+  thrust::host_vector<real_t> send_buf;
+  thrust::host_vector<real_t> recv_buf;
+
+  psc::device_vector<uint> d_recv, d_send;
+  psc::device_vector<uint> d_local_recv, d_local_send;
+
+  mrc_ddc_pattern2* patt;
+  int mb, me;
+};
+
 extern std::size_t mem_bnd;
 
 #define mrc_ddc_multi(ddc) mrc_to_subobj(ddc, struct mrc_ddc_multi)
@@ -135,154 +279,12 @@ struct CudaBnd
 
   ~CudaBnd() { mrc_ddc_destroy(ddc_); }
 
-  // ======================================================================
-  // Maps
-
-  struct Maps
-  {
-    template <typename GT>
-    Maps(mrc_ddc* ddc, mrc_ddc_pattern2* patt2, int mb, int me, Int3 ib,
-         const GT& gt)
-      : patt{patt2}, mb{mb}, me{me}
-    {
-      setup_remote_maps(send, recv, ddc, patt2, mb, me, ib, gt);
-      setup_local_maps(local_send, local_recv, ddc, patt2, mb, me, ib, gt);
-      send_buf.resize(send.size());
-      recv_buf.resize(recv.size());
-
-      d_send = send;
-      mem_bnd += allocated_bytes(d_send);
-      d_recv = recv;
-      mem_bnd += allocated_bytes(d_recv);
-      d_local_send = local_send;
-      mem_bnd += allocated_bytes(d_local_send);
-      d_local_recv = local_recv;
-      mem_bnd += allocated_bytes(d_local_recv);
-    }
-
-    Maps(const Maps&) = delete;
-    Maps(Maps&&) = default;
-
-    ~Maps()
-    {
-      mem_bnd -= allocated_bytes(d_send);
-      mem_bnd -= allocated_bytes(d_recv);
-      mem_bnd -= allocated_bytes(d_local_send);
-      mem_bnd -= allocated_bytes(d_local_recv);
-    }
-
-    // ----------------------------------------------------------------------
-    // setup_remote_maps
-
-    template <typename GT>
-    static void setup_remote_maps(thrust::host_vector<uint>& map_send,
-                                  thrust::host_vector<uint>& map_recv,
-                                  mrc_ddc* ddc, struct mrc_ddc_pattern2* patt2,
-                                  int mb, int me, Int3 ib, const GT& gt)
-    {
-      struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc);
-      struct mrc_ddc_rank_info* ri = patt2->ri;
-
-      map_send.resize(patt2->n_send * (me - mb));
-      map_recv.resize(patt2->n_recv * (me - mb));
-
-      uint off_send = 0, off_recv = 0;
-      for (int r = 0; r < sub->mpi_size; r++) {
-        if (r == sub->mpi_rank) {
-          continue;
-        }
-
-        for (int i = 0; i < ri[r].n_send_entries; i++) {
-          struct mrc_ddc_sendrecv_entry* se = &ri[r].send_entry[i];
-          map_setup(map_send, off_send, mb, me, se->patch, se->ilo, se->ihi, ib,
-                    gt);
-          off_send += se->len * (me - mb);
-        }
-        for (int i = 0; i < ri[r].n_recv_entries; i++) {
-          struct mrc_ddc_sendrecv_entry* re = &ri[r].recv_entry[i];
-          map_setup(map_recv, off_recv, mb, me, re->patch, re->ilo, re->ihi, ib,
-                    gt);
-          off_recv += re->len * (me - mb);
-        }
-      }
-    }
-
-    // ----------------------------------------------------------------------
-    // setup_local_maps
-
-    template <typename GT>
-    static void setup_local_maps(thrust::host_vector<uint>& map_send,
-                                 thrust::host_vector<uint>& map_recv,
-                                 mrc_ddc* ddc, struct mrc_ddc_pattern2* patt2,
-                                 int mb, int me, Int3 ib, const GT& gt)
-    {
-      struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc);
-      struct mrc_ddc_rank_info* ri = patt2->ri;
-
-      uint buf_size = 0;
-      for (int i = 0; i < ri[sub->mpi_rank].n_send_entries; i++) {
-        struct mrc_ddc_sendrecv_entry* se = &ri[sub->mpi_rank].send_entry[i];
-        if (se->ilo[0] == se->ihi[0] || se->ilo[1] == se->ihi[1] ||
-            se->ilo[2] == se->ihi[2]) { // FIXME, we shouldn't even create these
-          continue;
-        }
-        buf_size += se->len * (me - mb);
-      }
-
-      map_send.resize(buf_size);
-      map_recv.resize(buf_size);
-
-      uint off = 0;
-      for (int i = 0; i < ri[sub->mpi_rank].n_send_entries; i++) {
-        struct mrc_ddc_sendrecv_entry* se = &ri[sub->mpi_rank].send_entry[i];
-        struct mrc_ddc_sendrecv_entry* re = &ri[sub->mpi_rank].recv_entry[i];
-        if (se->ilo[0] == se->ihi[0] || se->ilo[1] == se->ihi[1] ||
-            se->ilo[2] == se->ihi[2]) { // FIXME, we shouldn't even create these
-          continue;
-        }
-        uint size = se->len * (me - mb);
-        map_setup(map_send, off, mb, me, se->patch, se->ilo, se->ihi, ib, gt);
-        map_setup(map_recv, off, mb, me, re->patch, re->ilo, re->ihi, ib, gt);
-        off += size;
-      }
-    }
-
-    template <typename GT>
-    static void map_setup(thrust::host_vector<uint>& map, uint off, int mb,
-                          int me, int p, int ilo[3], int ihi[3], Int3 ib,
-                          const GT& gt)
-    {
-      auto cur = &map[off];
-      for (int m = mb; m < me; m++) {
-        for (int iz = ilo[2]; iz < ihi[2]; iz++) {
-          for (int iy = ilo[1]; iy < ihi[1]; iy++) {
-            for (int ix = ilo[0]; ix < ihi[0]; ix++) {
-              *cur++ =
-                &gt(ix - ib[0], iy - ib[1], iz - ib[2], m, p) - gt.data();
-            }
-          }
-        }
-      }
-    }
-
-    thrust::host_vector<uint> send, recv;
-    thrust::host_vector<uint> local_send, local_recv;
-    thrust::host_vector<real_t> send_buf;
-    thrust::host_vector<real_t> recv_buf;
-
-    psc::device_vector<uint> d_recv, d_send;
-    psc::device_vector<uint> d_local_recv, d_local_send;
-
-    mrc_ddc_pattern2* patt;
-    int mb, me;
-  };
-
   // ----------------------------------------------------------------------
   // run
 
   template <typename T>
   void run(Mfields& mflds, int mb, int me, mrc_ddc_pattern2* patt2,
-           std::unordered_map<int, Maps>& maps, T scatter)
+           std::unordered_map<int, Maps<real_t>>& maps, T scatter)
   {
     // static int pr_ddc_run, pr_ddc_sync1, pr_ddc_sync2;
     // if (!pr_ddc_run) {
@@ -301,7 +303,7 @@ struct CudaBnd
     auto map = maps.find(key);
     if (map == maps.cend()) {
       auto pair = maps.emplace(std::make_pair(
-        key, Maps{ddc_, patt2, mb, me, -mflds.ibn(), mflds.gt()}));
+        key, Maps<real_t>{ddc_, patt2, mb, me, -mflds.ibn(), mflds.gt()}));
       map = pair.first;
     }
 
@@ -343,7 +345,7 @@ struct CudaBnd
   // ddc_run
 
   template <typename S>
-  void ddc_run(Maps& maps, mrc_ddc_pattern2* patt2, int mb, int me,
+  void ddc_run(Maps<real_t>& maps, mrc_ddc_pattern2* patt2, int mb, int me,
                Mfields& mflds, S scatter)
   {
     // static int pr_ddc0, pr_ddc1, pr_ddc2, pr_ddc3, pr_ddc4, pr_ddc5;
@@ -442,7 +444,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // postReceives
 
-  void postReceives(Maps& maps)
+  void postReceives(Maps<real_t>& maps)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -465,7 +467,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // postSends
 
-  void postSends(Maps& maps)
+  void postSends(Maps<real_t>& maps)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -493,6 +495,6 @@ struct CudaBnd
 
 private:
   mrc_ddc* ddc_;
-  std::unordered_map<int, Maps> maps_add_;
-  std::unordered_map<int, Maps> maps_fill_;
+  std::unordered_map<int, Maps<real_t>> maps_add_;
+  std::unordered_map<int, Maps<real_t>> maps_fill_;
 };
