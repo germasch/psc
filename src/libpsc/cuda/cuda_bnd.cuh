@@ -197,13 +197,12 @@ struct CudaBnd
 
   struct ScatterAdd
   {
-    void operator()(const thrust::host_vector<uint>& map,
+    void operator()(const gt::gtensor<uint, 1>& map,
                     const thrust::host_vector<real_t>& buf,
                     thrust::host_vector<real_t>& h_flds)
     {
-      auto p = buf.begin();
-      for (auto cur : map) {
-        h_flds[cur] += *p++;
+      for (size_t i = 0; i < map.size(); i++) {
+        h_flds[map[i]] += buf[i];
       }
     }
 
@@ -224,11 +223,11 @@ struct CudaBnd
 
   struct Scatter
   {
-    void operator()(const thrust::host_vector<uint>& map,
+    void operator()(const gt::gtensor<uint, 1>& map,
                     const thrust::host_vector<real_t>& buf,
                     thrust::host_vector<real_t>& h_flds)
     {
-      thrust::scatter(buf.begin(), buf.end(), map.begin(), h_flds.begin());
+      thrust::scatter(buf.begin(), buf.end(), map.data(), h_flds.begin());
     }
 
     void operator()(const gt::gtensor_device<uint, 1>& map,
