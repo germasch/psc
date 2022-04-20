@@ -198,7 +198,7 @@ struct CudaBnd
   struct ScatterAdd
   {
     void operator()(const gt::gtensor<uint, 1>& map,
-                    const thrust::host_vector<real_t>& buf,
+                    const gt::gtensor<real_t, 1>& buf,
                     thrust::host_vector<real_t>& h_flds)
     {
       for (size_t i = 0; i < map.size(); i++) {
@@ -207,10 +207,10 @@ struct CudaBnd
     }
 
     void operator()(const gt::gtensor_device<uint, 1>& map,
-                    const psc::device_vector<real_t>& buf,
+                    const gt::gtensor_device<real_t, 1>& buf,
                     thrust::device_ptr<real_t> d_flds)
     {
-      if (buf.empty())
+      if (buf.size() == 0)
         return;
 
       const int THREADS_PER_BLOCK = 256;
@@ -224,18 +224,19 @@ struct CudaBnd
   struct Scatter
   {
     void operator()(const gt::gtensor<uint, 1>& map,
-                    const thrust::host_vector<real_t>& buf,
+                    const gt::gtensor<real_t, 1>& buf,
                     thrust::host_vector<real_t>& h_flds)
     {
-      thrust::scatter(buf.begin(), buf.end(), map.data(), h_flds.begin());
+      thrust::scatter(buf.data(), buf.data() + buf.size(), map.data(),
+                      h_flds.begin());
     }
 
     void operator()(const gt::gtensor_device<uint, 1>& map,
-                    const psc::device_vector<real_t>& buf,
+                    const gt::gtensor_device<real_t, 1>& buf,
                     thrust::device_ptr<real_t> d_flds)
     {
 #if 1
-      thrust::scatter(buf.begin(), buf.end(), map.data(), d_flds);
+      thrust::scatter(buf.data(), buf.data() + buf.size(), map.data(), d_flds);
 #else
       if (buf.empty())
         return;
@@ -394,15 +395,16 @@ struct CudaBnd
     // prof_stop(pr_ddc1);
 
     {
-      psc::device_vector<real_t> d_send_buf(send_buf.size());
+      gt::gtensor_device<real_t, 1> d_send_buf(send_buf.size());
       // prof_start(pr_ddc2);
       thrust::gather(maps.d_send.data(),
                      maps.d_send.data() + maps.d_send.size(), d_flds,
-                     d_send_buf.begin());
+                     d_send_buf.data());
       // prof_stop(pr_ddc2);
 
       // prof_start(pr_ddc3);
-      thrust::copy(d_send_buf.begin(), d_send_buf.end(), send_buf.data());
+      thrust::copy(d_send_buf.data(), d_send_buf.data() + d_send_buf.size(),
+                   send_buf.data());
       // prof_stop(pr_ddc3);
     }
 
@@ -412,11 +414,11 @@ struct CudaBnd
 
     // local part
     {
-      psc::device_vector<real_t> d_local_buf(maps.d_local_send.size());
+      gt::gtensor_device<real_t, 1> d_local_buf(maps.d_local_send.size());
       // prof_start(pr_ddc5);
       thrust::gather(maps.d_local_send.data(),
                      maps.d_local_send.data() + maps.d_local_send.size(),
-                     d_flds, d_local_buf.begin());
+                     d_flds, d_local_buf.data());
       // prof_stop(pr_ddc5);
 
       // prof_start(pr_ddc6);
@@ -425,7 +427,7 @@ struct CudaBnd
     }
 
     {
-      psc::device_vector<real_t> d_recv_buf(recv_buf.size());
+      gt::gtensor_device<real_t, 1> d_recv_buf(recv_buf.size());
       // prof_start(pr_ddc7);
       MPI_Waitall(maps.patt->recv_cnt, maps.patt->recv_req,
                   MPI_STATUSES_IGNORE);
