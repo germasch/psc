@@ -387,15 +387,16 @@ struct CudaBnd
     auto d_flds = mflds.gt().data();
     prof_barrier("ddc_run");
 
-    gt::gtensor<real_t, 1> recv_buf(maps.d_recv.size());
-    gt::gtensor<real_t, 1> send_buf(maps.d_send.size());
+    gt::gtensor<real_t, 1, space_type> d_send_buf(maps.d_send.size());
+    gt::gtensor<real_t, 1, space_type> d_recv_buf(maps.d_recv.size());
+    auto h_send_buf = gt::host_mirror(d_send_buf);
+    auto h_recv_buf = gt::host_mirror(d_recv_buf);
 
     // prof_start(pr_ddc1);
-    postReceives(maps, recv_buf);
+    postReceives(maps, h_recv_buf);
     // prof_stop(pr_ddc1);
 
     {
-      gt::gtensor_device<real_t, 1> d_send_buf(send_buf.size());
       // prof_start(pr_ddc2);
       thrust::gather(maps.d_send.data(),
                      maps.d_send.data() + maps.d_send.size(), d_flds,
@@ -403,18 +404,17 @@ struct CudaBnd
       // prof_stop(pr_ddc2);
 
       // prof_start(pr_ddc3);
-      thrust::copy(d_send_buf.data(), d_send_buf.data() + d_send_buf.size(),
-                   send_buf.data());
+      gt::copy(d_send_buf, h_send_buf);
       // prof_stop(pr_ddc3);
-    }
 
-    // prof_start(pr_ddc4);
-    postSends(maps, send_buf);
-    // prof_stop(pr_ddc4);
+      // prof_start(pr_ddc4);
+      postSends(maps, h_send_buf);
+      // prof_stop(pr_ddc4);
+    }
 
     // local part
     {
-      gt::gtensor_device<real_t, 1> d_local_buf(maps.d_local_send.size());
+      gt::gtensor<real_t, 1, space_type> d_local_buf(maps.d_local_send.size());
       // prof_start(pr_ddc5);
       thrust::gather(maps.d_local_send.data(),
                      maps.d_local_send.data() + maps.d_local_send.size(),
@@ -427,15 +427,13 @@ struct CudaBnd
     }
 
     {
-      gt::gtensor_device<real_t, 1> d_recv_buf(recv_buf.size());
       // prof_start(pr_ddc7);
       MPI_Waitall(maps.patt->recv_cnt, maps.patt->recv_req,
                   MPI_STATUSES_IGNORE);
       // prof_stop(pr_ddc7);
 
       // prof_start(pr_ddc8);
-      thrust::copy(recv_buf.data(), recv_buf.data() + recv_buf.size(),
-                   d_recv_buf.data());
+      gt::copy(h_recv_buf, d_recv_buf);
       // prof_stop(pr_ddc8);
 
       // prof_start(pr_ddc9);
