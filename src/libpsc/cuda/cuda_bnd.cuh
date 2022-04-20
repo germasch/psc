@@ -387,8 +387,8 @@ struct CudaBnd
     auto d_flds = mflds.gt().data();
     prof_barrier("ddc_run");
 
-    thrust::host_vector<real_t> recv_buf(maps.d_recv.size());
-    thrust::host_vector<real_t> send_buf(maps.d_send.size());
+    gt::gtensor<real_t, 1> recv_buf(maps.d_recv.size());
+    gt::gtensor<real_t, 1> send_buf(maps.d_send.size());
 
     // prof_start(pr_ddc1);
     postReceives(maps, recv_buf);
@@ -403,7 +403,7 @@ struct CudaBnd
       // prof_stop(pr_ddc2);
 
       // prof_start(pr_ddc3);
-      thrust::copy(d_send_buf.begin(), d_send_buf.end(), send_buf.begin());
+      thrust::copy(d_send_buf.begin(), d_send_buf.end(), send_buf.data());
       // prof_stop(pr_ddc3);
     }
 
@@ -433,7 +433,8 @@ struct CudaBnd
       // prof_stop(pr_ddc7);
 
       // prof_start(pr_ddc8);
-      thrust::copy(recv_buf.begin(), recv_buf.end(), d_recv_buf.begin());
+      thrust::copy(recv_buf.data(), recv_buf.data() + recv_buf.size(),
+                   d_recv_buf.data());
       // prof_stop(pr_ddc8);
 
       // prof_start(pr_ddc9);
@@ -450,8 +451,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // postReceives
 
-  void postReceives(Maps<space_type>& maps,
-                    thrust::host_vector<real_t>& recv_buf)
+  void postReceives(Maps<space_type>& maps, gt::gtensor<real_t, 1>& recv_buf)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -460,21 +460,21 @@ struct CudaBnd
     int mm = maps.me - maps.mb;
 
     maps.patt->recv_cnt = 0;
-    auto p_recv = recv_buf.begin();
+    auto p_recv = recv_buf.data();
     for (int r = 0; r < sub->mpi_size; r++) {
       if (r != sub->mpi_rank && ri[r].n_recv_entries) {
-        MPI_Irecv(&*p_recv, ri[r].n_recv * mm, mpi_dtype, r, 0, ddc_->obj.comm,
+        MPI_Irecv(p_recv, ri[r].n_recv * mm, mpi_dtype, r, 0, ddc_->obj.comm,
                   &maps.patt->recv_req[maps.patt->recv_cnt++]);
         p_recv += ri[r].n_recv * mm;
       }
     }
-    assert(p_recv == recv_buf.end());
+    assert(p_recv == recv_buf.data() + recv_buf.size());
   }
 
   // ----------------------------------------------------------------------
   // postSends
 
-  void postSends(Maps<space_type>& maps, thrust::host_vector<real_t>& send_buf)
+  void postSends(Maps<space_type>& maps, gt::gtensor<real_t, 1>& send_buf)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -483,15 +483,15 @@ struct CudaBnd
     int mm = maps.me - maps.mb;
 
     maps.patt->send_cnt = 0;
-    auto p_send = send_buf.begin();
+    auto p_send = send_buf.data();
     for (int r = 0; r < sub->mpi_size; r++) {
       if (r != sub->mpi_rank && ri[r].n_send_entries) {
-        MPI_Isend(&*p_send, ri[r].n_send * mm, mpi_dtype, r, 0, ddc_->obj.comm,
+        MPI_Isend(p_send, ri[r].n_send * mm, mpi_dtype, r, 0, ddc_->obj.comm,
                   &maps.patt->send_req[maps.patt->send_cnt++]);
         p_send += ri[r].n_send * mm;
       }
     }
-    assert(p_send == send_buf.end());
+    assert(p_send == send_buf.data() + send_buf.size());
   }
 
   void clear()
