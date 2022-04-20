@@ -16,11 +16,8 @@
 // ======================================================================
 // Maps
 
-template <typename R>
 struct Maps
 {
-  using real_t = R;
-
   template <typename GT>
   Maps(mrc_ddc* ddc, mrc_ddc_pattern2* patt2, int mb, int me, Int3 ib,
        const GT& gt)
@@ -280,7 +277,7 @@ struct CudaBnd
 
   template <typename T>
   void run(Mfields& mflds, int mb, int me, mrc_ddc_pattern2* patt2,
-           std::unordered_map<int, Maps<real_t>>& maps, T scatter)
+           std::unordered_map<int, Maps>& maps, T scatter)
   {
     // static int pr_ddc_run, pr_ddc_sync1, pr_ddc_sync2;
     // if (!pr_ddc_run) {
@@ -299,7 +296,7 @@ struct CudaBnd
     auto map = maps.find(key);
     if (map == maps.cend()) {
       auto pair = maps.emplace(std::make_pair(
-        key, Maps<real_t>{ddc_, patt2, mb, me, -mflds.ibn(), mflds.gt()}));
+        key, Maps{ddc_, patt2, mb, me, -mflds.ibn(), mflds.gt()}));
       map = pair.first;
     }
 
@@ -341,7 +338,7 @@ struct CudaBnd
   // ddc_run
 
   template <typename S>
-  void ddc_run(Maps<real_t>& maps, mrc_ddc_pattern2* patt2, int mb, int me,
+  void ddc_run(Maps& maps, mrc_ddc_pattern2* patt2, int mb, int me,
                Mfields& mflds, S scatter)
   {
     // static int pr_ddc0, pr_ddc1, pr_ddc2, pr_ddc3, pr_ddc4, pr_ddc5;
@@ -442,7 +439,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // postReceives
 
-  void postReceives(Maps<real_t>& maps, thrust::host_vector<real_t>& recv_buf)
+  void postReceives(Maps& maps, thrust::host_vector<real_t>& recv_buf)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -465,7 +462,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // postSends
 
-  void postSends(Maps<real_t>& maps, thrust::host_vector<real_t>& send_buf)
+  void postSends(Maps& maps, thrust::host_vector<real_t>& send_buf)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -493,6 +490,6 @@ struct CudaBnd
 
 private:
   mrc_ddc* ddc_;
-  std::unordered_map<int, Maps<real_t>> maps_add_;
-  std::unordered_map<int, Maps<real_t>> maps_fill_;
+  std::unordered_map<int, Maps> maps_add_;
+  std::unordered_map<int, Maps> maps_fill_;
 };
