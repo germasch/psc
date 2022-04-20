@@ -23,21 +23,23 @@ struct Maps
        const GT& gt)
     : patt{patt2}, mb{mb}, me{me}
   {
-    gt::gtensor<uint, 1> send, recv;
-    setup_remote_maps(send, recv, ddc, patt2, mb, me, ib, gt);
-    d_send.resize(send.size());
-    gt::copy(send, d_send);
-    d_recv.resize(recv.size());
-    gt::copy(recv, d_recv);
+    auto h_send = gt::host_mirror(d_send);
+    auto h_recv = gt::host_mirror(d_recv);
+    setup_remote_maps(h_send, h_recv, ddc, patt2, mb, me, ib, gt);
+    d_send.resize(h_send.size());
+    gt::copy(h_send, d_send);
+    d_recv.resize(h_recv.size());
+    gt::copy(h_recv, d_recv);
     // mem_bnd += allocated_bytes(d_send);
     // mem_bnd += allocated_bytes(d_recv);
 
-    gt::gtensor<uint, 1> local_send, local_recv;
-    setup_local_maps(local_send, local_recv, ddc, patt2, mb, me, ib, gt);
-    d_local_send.resize(local_send.size());
-    gt::copy(local_send, d_local_send);
-    d_local_recv.resize(local_recv.size());
-    gt::copy(local_recv, d_local_recv);
+    auto h_local_send = gt::host_mirror(d_local_send);
+    auto h_local_recv = gt::host_mirror(d_local_recv);
+    setup_local_maps(h_local_send, h_local_recv, ddc, patt2, mb, me, ib, gt);
+    d_local_send.resize(h_local_send.size());
+    gt::copy(h_local_send, d_local_send);
+    d_local_recv.resize(h_local_recv.size());
+    gt::copy(h_local_recv, d_local_recv);
     // mem_bnd += allocated_bytes(d_local_send);
     // mem_bnd += allocated_bytes(d_local_recv);
   }
