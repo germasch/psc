@@ -23,13 +23,15 @@ struct Maps
        const GT& gt)
     : patt{patt2}, mb{mb}, me{me}
   {
+    thrust::host_vector<uint> send, recv;
     setup_remote_maps(send, recv, ddc, patt2, mb, me, ib, gt);
-    setup_local_maps(local_send, local_recv, ddc, patt2, mb, me, ib, gt);
-
     d_send = send;
     mem_bnd += allocated_bytes(d_send);
     d_recv = recv;
     mem_bnd += allocated_bytes(d_recv);
+
+    thrust::host_vector<uint> local_send, local_recv;
+    setup_local_maps(local_send, local_recv, ddc, patt2, mb, me, ib, gt);
     d_local_send = local_send;
     mem_bnd += allocated_bytes(d_local_send);
     d_local_recv = local_recv;
@@ -139,10 +141,6 @@ struct Maps
       }
     }
   }
-
-private:
-  thrust::host_vector<uint> send, recv;
-  thrust::host_vector<uint> local_send, local_recv;
 
 public:
   psc::device_vector<uint> d_recv, d_send;
