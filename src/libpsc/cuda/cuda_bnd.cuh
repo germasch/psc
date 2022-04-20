@@ -23,18 +23,24 @@ struct Maps
        const GT& gt)
     : patt{patt2}, mb{mb}, me{me}
   {
-    thrust::host_vector<uint> send, recv;
+    gt::gtensor<uint, 1> send, recv;
     setup_remote_maps(send, recv, ddc, patt2, mb, me, ib, gt);
-    d_send = send;
+    d_send.resize(send.size());
+    thrust::copy(send.data(), send.data() + send.size(), d_send.begin());
     mem_bnd += allocated_bytes(d_send);
-    d_recv = recv;
+    d_recv.resize(recv.size());
+    thrust::copy(recv.data(), recv.data() + recv.size(), d_recv.begin());
     mem_bnd += allocated_bytes(d_recv);
 
-    thrust::host_vector<uint> local_send, local_recv;
+    gt::gtensor<uint, 1> local_send, local_recv;
     setup_local_maps(local_send, local_recv, ddc, patt2, mb, me, ib, gt);
-    d_local_send = local_send;
+    d_local_send.resize(local_send.size());
+    thrust::copy(local_send.data(), local_send.data() + local_send.size(),
+                 d_local_send.begin());
     mem_bnd += allocated_bytes(d_local_send);
-    d_local_recv = local_recv;
+    d_local_recv.resize(local_recv.size());
+    thrust::copy(local_recv.data(), local_recv.data() + local_recv.size(),
+                 d_local_recv.begin());
     mem_bnd += allocated_bytes(d_local_recv);
   }
 
@@ -53,10 +59,10 @@ struct Maps
   // setup_remote_maps
 
   template <typename GT>
-  static void setup_remote_maps(thrust::host_vector<uint>& map_send,
-                                thrust::host_vector<uint>& map_recv,
-                                mrc_ddc* ddc, struct mrc_ddc_pattern2* patt2,
-                                int mb, int me, Int3 ib, const GT& gt)
+  static void setup_remote_maps(gt::gtensor<uint, 1>& map_send,
+                                gt::gtensor<uint, 1>& map_recv, mrc_ddc* ddc,
+                                struct mrc_ddc_pattern2* patt2, int mb, int me,
+                                Int3 ib, const GT& gt)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc);
     struct mrc_ddc_rank_info* ri = patt2->ri;
@@ -89,10 +95,10 @@ struct Maps
   // setup_local_maps
 
   template <typename GT>
-  static void setup_local_maps(thrust::host_vector<uint>& map_send,
-                               thrust::host_vector<uint>& map_recv,
-                               mrc_ddc* ddc, struct mrc_ddc_pattern2* patt2,
-                               int mb, int me, Int3 ib, const GT& gt)
+  static void setup_local_maps(gt::gtensor<uint, 1>& map_send,
+                               gt::gtensor<uint, 1>& map_recv, mrc_ddc* ddc,
+                               struct mrc_ddc_pattern2* patt2, int mb, int me,
+                               Int3 ib, const GT& gt)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc);
     struct mrc_ddc_rank_info* ri = patt2->ri;
@@ -126,9 +132,8 @@ struct Maps
   }
 
   template <typename GT>
-  static void map_setup(thrust::host_vector<uint>& map, uint off, int mb,
-                        int me, int p, int ilo[3], int ihi[3], Int3 ib,
-                        const GT& gt)
+  static void map_setup(gt::gtensor<uint, 1>& map, uint off, int mb, int me,
+                        int p, int ilo[3], int ihi[3], Int3 ib, const GT& gt)
   {
     auto cur = &map[off];
     for (int m = mb; m < me; m++) {
