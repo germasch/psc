@@ -28,7 +28,6 @@ struct Maps
   {
     setup_remote_maps(send, recv, ddc, patt2, mb, me, ib, gt);
     setup_local_maps(local_send, local_recv, ddc, patt2, mb, me, ib, gt);
-    recv_buf.resize(recv.size());
 
     d_send = send;
     mem_bnd += allocated_bytes(d_send);
@@ -146,7 +145,6 @@ struct Maps
 
   thrust::host_vector<uint> send, recv;
   thrust::host_vector<uint> local_send, local_recv;
-  thrust::host_vector<real_t> recv_buf;
 
   psc::device_vector<uint> d_recv, d_send;
   psc::device_vector<uint> d_local_recv, d_local_send;
@@ -383,11 +381,13 @@ struct CudaBnd
     auto d_flds = mflds.gt().data();
     prof_barrier("ddc_run");
 
+    thrust::host_vector<real_t> recv_buf(maps.recv.size());
+    thrust::host_vector<real_t> send_buf(maps.send.size());
+
     // prof_start(pr_ddc1);
-    postReceives(maps);
+    postReceives(maps, recv_buf);
     // prof_stop(pr_ddc1);
 
-    thrust::host_vector<real_t> send_buf(maps.send.size());
     {
       psc::device_vector<real_t> d_send_buf(maps.send.size());
       // prof_start(pr_ddc2);
@@ -418,15 +418,14 @@ struct CudaBnd
     }
 
     {
-      psc::device_vector<real_t> d_recv_buf(maps.recv_buf.size());
+      psc::device_vector<real_t> d_recv_buf(maps.recv.size());
       // prof_start(pr_ddc7);
       MPI_Waitall(maps.patt->recv_cnt, maps.patt->recv_req,
                   MPI_STATUSES_IGNORE);
       // prof_stop(pr_ddc7);
 
       // prof_start(pr_ddc8);
-      thrust::copy(maps.recv_buf.begin(), maps.recv_buf.end(),
-                   d_recv_buf.begin());
+      thrust::copy(recv_buf.begin(), recv_buf.end(), d_recv_buf.begin());
       // prof_stop(pr_ddc8);
 
       // prof_start(pr_ddc9);
@@ -443,7 +442,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // postReceives
 
-  void postReceives(Maps<real_t>& maps)
+  void postReceives(Maps<real_t>& maps, thrust::host_vector<real_t>& recv_buf)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -452,7 +451,7 @@ struct CudaBnd
     int mm = maps.me - maps.mb;
 
     maps.patt->recv_cnt = 0;
-    auto p_recv = maps.recv_buf.begin();
+    auto p_recv = recv_buf.begin();
     for (int r = 0; r < sub->mpi_size; r++) {
       if (r != sub->mpi_rank && ri[r].n_recv_entries) {
         MPI_Irecv(&*p_recv, ri[r].n_recv * mm, mpi_dtype, r, 0, ddc_->obj.comm,
@@ -460,7 +459,7 @@ struct CudaBnd
         p_recv += ri[r].n_recv * mm;
       }
     }
-    assert(p_recv == maps.recv_buf.end());
+    assert(p_recv == recv_buf.end());
   }
 
   // ----------------------------------------------------------------------
