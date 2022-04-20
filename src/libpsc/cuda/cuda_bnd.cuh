@@ -16,8 +16,11 @@
 // ======================================================================
 // Maps
 
+template <typename S>
 struct Maps
 {
+  using space_type = S;
+
   template <typename GT>
   Maps(mrc_ddc* ddc, mrc_ddc_pattern2* patt2, int mb, int me, Int3 ib,
        const GT& gt)
@@ -148,8 +151,8 @@ struct Maps
   }
 
 public:
-  gt::gtensor_device<uint, 1> d_recv, d_send;
-  gt::gtensor_device<uint, 1> d_local_recv, d_local_send;
+  gt::gtensor<uint, 1, space_type> d_recv, d_send;
+  gt::gtensor<uint, 1, space_type> d_local_recv, d_local_send;
 
   mrc_ddc_pattern2* patt;
   int mb, me;
@@ -187,6 +190,7 @@ struct CudaBnd
 {
   using Mfields = MF;
   using real_t = typename Mfields::real_t;
+  using space_type = gt::space::device;
 
   // ======================================================================
   // Scatter
@@ -282,7 +286,7 @@ struct CudaBnd
 
   template <typename T>
   void run(Mfields& mflds, int mb, int me, mrc_ddc_pattern2* patt2,
-           std::unordered_map<int, Maps>& maps, T scatter)
+           std::unordered_map<int, Maps<space_type>>& maps, T scatter)
   {
     // static int pr_ddc_run, pr_ddc_sync1, pr_ddc_sync2;
     // if (!pr_ddc_run) {
@@ -301,7 +305,7 @@ struct CudaBnd
     auto map = maps.find(key);
     if (map == maps.cend()) {
       auto pair = maps.emplace(std::make_pair(
-        key, Maps{ddc_, patt2, mb, me, -mflds.ibn(), mflds.gt()}));
+        key, Maps<space_type>{ddc_, patt2, mb, me, -mflds.ibn(), mflds.gt()}));
       map = pair.first;
     }
 
@@ -343,7 +347,7 @@ struct CudaBnd
   // ddc_run
 
   template <typename S>
-  void ddc_run(Maps& maps, mrc_ddc_pattern2* patt2, int mb, int me,
+  void ddc_run(Maps<space_type>& maps, mrc_ddc_pattern2* patt2, int mb, int me,
                Mfields& mflds, S scatter)
   {
     // static int pr_ddc0, pr_ddc1, pr_ddc2, pr_ddc3, pr_ddc4, pr_ddc5;
@@ -446,7 +450,8 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // postReceives
 
-  void postReceives(Maps& maps, thrust::host_vector<real_t>& recv_buf)
+  void postReceives(Maps<space_type>& maps,
+                    thrust::host_vector<real_t>& recv_buf)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -469,7 +474,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // postSends
 
-  void postSends(Maps& maps, thrust::host_vector<real_t>& send_buf)
+  void postSends(Maps<space_type>& maps, thrust::host_vector<real_t>& send_buf)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -497,6 +502,6 @@ struct CudaBnd
 
 private:
   mrc_ddc* ddc_;
-  std::unordered_map<int, Maps> maps_add_;
-  std::unordered_map<int, Maps> maps_fill_;
+  std::unordered_map<int, Maps<space_type>> maps_add_;
+  std::unordered_map<int, Maps<space_type>> maps_fill_;
 };
