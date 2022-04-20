@@ -140,9 +140,11 @@ struct Maps
     }
   }
 
+private:
   thrust::host_vector<uint> send, recv;
   thrust::host_vector<uint> local_send, local_recv;
 
+public:
   psc::device_vector<uint> d_recv, d_send;
   psc::device_vector<uint> d_local_recv, d_local_send;
 
@@ -378,15 +380,15 @@ struct CudaBnd
     auto d_flds = mflds.gt().data();
     prof_barrier("ddc_run");
 
-    thrust::host_vector<real_t> recv_buf(maps.recv.size());
-    thrust::host_vector<real_t> send_buf(maps.send.size());
+    thrust::host_vector<real_t> recv_buf(maps.d_recv.size());
+    thrust::host_vector<real_t> send_buf(maps.d_send.size());
 
     // prof_start(pr_ddc1);
     postReceives(maps, recv_buf);
     // prof_stop(pr_ddc1);
 
     {
-      psc::device_vector<real_t> d_send_buf(maps.send.size());
+      psc::device_vector<real_t> d_send_buf(send_buf.size());
       // prof_start(pr_ddc2);
       thrust::gather(maps.d_send.begin(), maps.d_send.end(), d_flds,
                      d_send_buf.begin());
@@ -415,7 +417,7 @@ struct CudaBnd
     }
 
     {
-      psc::device_vector<real_t> d_recv_buf(maps.recv.size());
+      psc::device_vector<real_t> d_recv_buf(recv_buf.size());
       // prof_start(pr_ddc7);
       MPI_Waitall(maps.patt->recv_cnt, maps.patt->recv_req,
                   MPI_STATUSES_IGNORE);
