@@ -28,7 +28,6 @@ struct Maps
   {
     setup_remote_maps(send, recv, ddc, patt2, mb, me, ib, gt);
     setup_local_maps(local_send, local_recv, ddc, patt2, mb, me, ib, gt);
-    send_buf.resize(send.size());
     recv_buf.resize(recv.size());
 
     d_send = send;
@@ -147,7 +146,6 @@ struct Maps
 
   thrust::host_vector<uint> send, recv;
   thrust::host_vector<uint> local_send, local_recv;
-  thrust::host_vector<real_t> send_buf;
   thrust::host_vector<real_t> recv_buf;
 
   psc::device_vector<uint> d_recv, d_send;
@@ -389,20 +387,21 @@ struct CudaBnd
     postReceives(maps);
     // prof_stop(pr_ddc1);
 
+    thrust::host_vector<real_t> send_buf(maps.send.size());
     {
-      psc::device_vector<real_t> d_send_buf(maps.send_buf.size());
+      psc::device_vector<real_t> d_send_buf(maps.send.size());
       // prof_start(pr_ddc2);
       thrust::gather(maps.d_send.begin(), maps.d_send.end(), d_flds,
                      d_send_buf.begin());
       // prof_stop(pr_ddc2);
 
       // prof_start(pr_ddc3);
-      thrust::copy(d_send_buf.begin(), d_send_buf.end(), maps.send_buf.begin());
+      thrust::copy(d_send_buf.begin(), d_send_buf.end(), send_buf.begin());
       // prof_stop(pr_ddc3);
     }
 
     // prof_start(pr_ddc4);
-    postSends(maps);
+    postSends(maps, send_buf);
     // prof_stop(pr_ddc4);
 
     // local part
@@ -467,7 +466,7 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // postSends
 
-  void postSends(Maps<real_t>& maps)
+  void postSends(Maps<real_t>& maps, thrust::host_vector<real_t>& send_buf)
   {
     struct mrc_ddc_multi* sub = mrc_ddc_multi(ddc_);
     struct mrc_ddc_rank_info* ri = maps.patt->ri;
@@ -476,7 +475,7 @@ struct CudaBnd
     int mm = maps.me - maps.mb;
 
     maps.patt->send_cnt = 0;
-    auto p_send = maps.send_buf.begin();
+    auto p_send = send_buf.begin();
     for (int r = 0; r < sub->mpi_size; r++) {
       if (r != sub->mpi_rank && ri[r].n_send_entries) {
         MPI_Isend(&*p_send, ri[r].n_send * mm, mpi_dtype, r, 0, ddc_->obj.comm,
@@ -484,7 +483,7 @@ struct CudaBnd
         p_send += ri[r].n_send * mm;
       }
     }
-    assert(p_send == maps.send_buf.end());
+    assert(p_send == send_buf.end());
   }
 
   void clear()
