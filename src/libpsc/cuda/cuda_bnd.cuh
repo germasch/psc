@@ -26,22 +26,20 @@ struct Maps
     gt::gtensor<uint, 1> send, recv;
     setup_remote_maps(send, recv, ddc, patt2, mb, me, ib, gt);
     d_send.resize(send.size());
-    thrust::copy(send.data(), send.data() + send.size(), d_send.begin());
-    mem_bnd += allocated_bytes(d_send);
+    gt::copy(send, d_send);
     d_recv.resize(recv.size());
-    thrust::copy(recv.data(), recv.data() + recv.size(), d_recv.begin());
-    mem_bnd += allocated_bytes(d_recv);
+    gt::copy(recv, d_recv);
+    // mem_bnd += allocated_bytes(d_send);
+    // mem_bnd += allocated_bytes(d_recv);
 
     gt::gtensor<uint, 1> local_send, local_recv;
     setup_local_maps(local_send, local_recv, ddc, patt2, mb, me, ib, gt);
     d_local_send.resize(local_send.size());
-    thrust::copy(local_send.data(), local_send.data() + local_send.size(),
-                 d_local_send.begin());
-    mem_bnd += allocated_bytes(d_local_send);
+    gt::copy(local_send, d_local_send);
     d_local_recv.resize(local_recv.size());
-    thrust::copy(local_recv.data(), local_recv.data() + local_recv.size(),
-                 d_local_recv.begin());
-    mem_bnd += allocated_bytes(d_local_recv);
+    gt::copy(local_recv, d_local_recv);
+    // mem_bnd += allocated_bytes(d_local_send);
+    // mem_bnd += allocated_bytes(d_local_recv);
   }
 
   Maps(const Maps&) = delete;
@@ -49,10 +47,10 @@ struct Maps
 
   ~Maps()
   {
-    mem_bnd -= allocated_bytes(d_send);
-    mem_bnd -= allocated_bytes(d_recv);
-    mem_bnd -= allocated_bytes(d_local_send);
-    mem_bnd -= allocated_bytes(d_local_recv);
+    // mem_bnd -= allocated_bytes(d_send);
+    // mem_bnd -= allocated_bytes(d_recv);
+    // mem_bnd -= allocated_bytes(d_local_send);
+    // mem_bnd -= allocated_bytes(d_local_recv);
   }
 
   // ----------------------------------------------------------------------
@@ -148,8 +146,8 @@ struct Maps
   }
 
 public:
-  psc::device_vector<uint> d_recv, d_send;
-  psc::device_vector<uint> d_local_recv, d_local_send;
+  gt::gtensor_device<uint, 1> d_recv, d_send;
+  gt::gtensor_device<uint, 1> d_local_recv, d_local_send;
 
   mrc_ddc_pattern2* patt;
   int mb, me;
@@ -203,7 +201,7 @@ struct CudaBnd
       }
     }
 
-    void operator()(const psc::device_vector<uint>& map,
+    void operator()(const gt::gtensor_device<uint, 1>& map,
                     const psc::device_vector<real_t>& buf,
                     thrust::device_ptr<real_t> d_flds)
     {
@@ -227,20 +225,20 @@ struct CudaBnd
       thrust::scatter(buf.begin(), buf.end(), map.begin(), h_flds.begin());
     }
 
-    void operator()(const psc::device_vector<uint>& map,
+    void operator()(const gt::gtensor_device<uint, 1>& map,
                     const psc::device_vector<real_t>& buf,
                     thrust::device_ptr<real_t> d_flds)
     {
 #if 1
-      thrust::scatter(buf.begin(), buf.end(), map.begin(), d_flds);
+      thrust::scatter(buf.begin(), buf.end(), map.data(), d_flds);
 #else
       if (buf.empty())
         return;
 
       const int THREADS_PER_BLOCK = 256;
       dim3 dimGrid((buf.size() + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
-      k_scatter<<<dimGrid, THREADS_PER_BLOCK>>>(
-        buf.data().get(), map.data().get(), d_flds.get(), buf.size());
+      k_scatter<<<dimGrid, THREADS_PER_BLOCK>>>(buf.data().get(), map.data(),
+                                                d_flds.get(), buf.size());
       cuda_sync_if_enabled();
 #endif
     }
@@ -393,7 +391,8 @@ struct CudaBnd
     {
       psc::device_vector<real_t> d_send_buf(send_buf.size());
       // prof_start(pr_ddc2);
-      thrust::gather(maps.d_send.begin(), maps.d_send.end(), d_flds,
+      thrust::gather(maps.d_send.data(),
+                     maps.d_send.data() + maps.d_send.size(), d_flds,
                      d_send_buf.begin());
       // prof_stop(pr_ddc2);
 
@@ -410,8 +409,9 @@ struct CudaBnd
     {
       psc::device_vector<real_t> d_local_buf(maps.d_local_send.size());
       // prof_start(pr_ddc5);
-      thrust::gather(maps.d_local_send.begin(), maps.d_local_send.end(), d_flds,
-                     d_local_buf.begin());
+      thrust::gather(maps.d_local_send.data(),
+                     maps.d_local_send.data() + maps.d_local_send.size(),
+                     d_flds, d_local_buf.begin());
       // prof_stop(pr_ddc5);
 
       // prof_start(pr_ddc6);
