@@ -234,26 +234,6 @@ extern std::size_t mem_bnd;
 
 #define mrc_ddc_multi(ddc) mrc_to_subobj(ddc, struct mrc_ddc_multi)
 
-template <typename real_t>
-__global__ static void k_scatter(const real_t* buf, const uint* map,
-                                 real_t* flds, unsigned int size)
-{
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i < size) {
-    flds[map[i]] = buf[i];
-  }
-}
-
-template <typename real_t>
-__global__ static void k_scatter_add(const real_t* buf, const uint* map,
-                                     real_t* flds, unsigned int size)
-{
-  int i = threadIdx.x + blockIdx.x * blockDim.x;
-  if (i < size) {
-    atomicAdd(&flds[map[i]], buf[i]);
-  }
-}
-
 // ======================================================================
 // CudaBnd
 
@@ -270,34 +250,23 @@ struct CudaBnd
   struct ScatterAdd
   {
     void operator()(const gt::gtensor<uint, 1>& map,
-                    const gt::gtensor<real_t, 1>& buf,
-                    thrust::host_vector<real_t>& h_flds)
+                    const gt::gtensor<real_t, 1>& buf, real_t* h_flds)
     {
-      for (size_t i = 0; i < map.size(); i++) {
-        h_flds[map[i]] += buf[i];
-      }
+      psc::bnd::scatter_add(buf, map, h_flds);
     }
 
     void operator()(const gt::gtensor_device<uint, 1>& map,
                     const gt::gtensor_device<real_t, 1>& buf,
                     thrust::device_ptr<real_t> d_flds)
     {
-      if (buf.size() == 0)
-        return;
-
-      const int THREADS_PER_BLOCK = 256;
-      dim3 dimGrid((buf.size() + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
-      k_scatter_add<<<dimGrid, THREADS_PER_BLOCK>>>(
-        buf.data().get(), map.data().get(), d_flds.get(), buf.size());
-      cuda_sync_if_enabled();
+      psc::bnd::scatter_add(buf, map, d_flds);
     }
   };
 
   struct Scatter
   {
     void operator()(const gt::gtensor<uint, 1>& map,
-                    const gt::gtensor<real_t, 1>& buf,
-                    thrust::host_vector<real_t>& h_flds)
+                    const gt::gtensor<real_t, 1>& buf, real_t* h_flds)
     {
       psc::bnd::scatter(buf, map, h_flds);
     }
@@ -306,18 +275,7 @@ struct CudaBnd
                     const gt::gtensor_device<real_t, 1>& buf,
                     thrust::device_ptr<real_t> d_flds)
     {
-#if 1
       psc::bnd::scatter(buf, map, d_flds);
-#else
-      if (buf.empty())
-        return;
-
-      const int THREADS_PER_BLOCK = 256;
-      dim3 dimGrid((buf.size() + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
-      k_scatter<<<dimGrid, THREADS_PER_BLOCK>>>(buf.data().get(), map.data(),
-                                                d_flds.get(), buf.size());
-      cuda_sync_if_enabled();
-#endif
     }
   };
 
