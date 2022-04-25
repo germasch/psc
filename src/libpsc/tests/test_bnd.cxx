@@ -11,6 +11,31 @@
 #include "psc_fields_single.h"
 #include "psc_fields_c.h"
 
+// ======================================================================
+// gtensor scatter etc
+
+TEST(gtensor, scatter)
+{
+  gt::gtensor<double, 1> buf = {1., 2., 3.};
+  gt::gtensor<uint, 1> map = {2, 0, 4};
+  gt::gtensor<double, 1> result = gt::zeros<double>({5});
+
+  psc::bnd::scatter(buf, map, result);
+
+  EXPECT_EQ(result, (gt::gtensor<double, 1>{2., 0., 1., 0., 3.}));
+}
+
+TEST(gtensor, scatter_add)
+{
+  gt::gtensor<double, 1> buf = {1., 2., 3.};
+  gt::gtensor<uint, 1> map = {2, 0, 4};
+  gt::gtensor<double, 1> result = {1., 1., 1., 1., 1.};
+
+  psc::bnd::scatter_add(buf, map, result);
+
+  EXPECT_EQ(result, (gt::gtensor<double, 1>{3., 1., 2., 1., 4.}));
+}
+
 static Grid_t make_grid(Int3 gdims, Vec3<double> length)
 {
   auto domain = Grid_t::Domain{gdims, length, {}, {1, 2, 1}};

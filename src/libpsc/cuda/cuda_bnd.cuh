@@ -14,6 +14,78 @@
 #include <thrust/sort.h>
 
 // ======================================================================
+// gtensor scatter etc
+
+namespace psc
+{
+namespace bnd
+{
+
+template <typename T, typename TI, typename R>
+void scatter(const gt::gtensor<T, 1>& buf, const gt::gtensor<TI, 1>& map,
+             R& result)
+{
+  int n = buf.size();
+  assert(map.size() == n);
+  for (int i = 0; i < n; i++) {
+    result[map[i]] = buf[i];
+  }
+}
+
+#ifdef USE_CUDA
+
+template <typename T, typename TI, typename R>
+void scatter(const gt::gtensor_device<T, 1>& buf,
+             const gt::gtensor_device<TI, 1>& map, R& result)
+{
+  thrust::scatter(buf.data(), buf.data() + buf.size(), map.data(), result);
+}
+
+#endif
+
+template <typename T, typename TI, typename R>
+void scatter_add(const gt::gtensor<T, 1>& buf, const gt::gtensor<TI, 1>& map,
+                 R& result)
+{
+  int n = buf.size();
+  assert(map.size() == n);
+  for (int i = 0; i < n; i++) {
+    result[map[i]] += buf[i];
+  }
+}
+
+#ifdef USE_CUDA
+
+template <typename real_t>
+__global__ static void k_scatter_add(const real_t* buf, const uint* map,
+                                     real_t* flds, unsigned int size)
+{
+  int i = threadIdx.x + blockIdx.x * blockDim.x;
+  if (i < size) {
+    atomicAdd(&flds[map[i]], buf[i]);
+  }
+}
+
+template <typename T, typename TI, typename R>
+void scatter_add(const gt::gtensor_device<T, 1>& buf,
+                 const gt::gtensor_device<TI, 1>& map, R& result)
+{
+  if (buf.size() == 0)
+    return;
+
+  const int THREADS_PER_BLOCK = 256;
+  dim3 dimGrid((buf.size() + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
+  k_scatter_add<<<dimGrid, THREADS_PER_BLOCK>>>(
+    buf.data().get(), map.data().get(), result.get(), buf.size());
+  cuda_sync_if_enabled();
+}
+
+#endif
+
+} // namespace bnd
+} // namespace psc
+
+// ======================================================================
 // Maps
 
 template <typename S>
@@ -227,8 +299,7 @@ struct CudaBnd
                     const gt::gtensor<real_t, 1>& buf,
                     thrust::host_vector<real_t>& h_flds)
     {
-      thrust::scatter(buf.data(), buf.data() + buf.size(), map.data(),
-                      h_flds.begin());
+      psc::bnd::scatter(buf, map, h_flds);
     }
 
     void operator()(const gt::gtensor_device<uint, 1>& map,
@@ -236,7 +307,7 @@ struct CudaBnd
                     thrust::device_ptr<real_t> d_flds)
     {
 #if 1
-      thrust::scatter(buf.data(), buf.data() + buf.size(), map.data(), d_flds);
+      psc::bnd::scatter(buf, map, d_flds);
 #else
       if (buf.empty())
         return;
@@ -284,9 +355,9 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // run
 
-  template <typename T>
+  template <typename F>
   void run(Mfields& mflds, int mb, int me, mrc_ddc_pattern2* patt2,
-           std::unordered_map<int, Maps<space_type>>& maps, T scatter)
+           std::unordered_map<int, Maps<space_type>>& maps, F&& scatter)
   {
     // static int pr_ddc_run, pr_ddc_sync1, pr_ddc_sync2;
     // if (!pr_ddc_run) {
@@ -310,7 +381,7 @@ struct CudaBnd
     }
 
     // prof_start(pr_ddc_run);
-    ddc_run(map->second, patt2, mb, me, mflds, scatter);
+    ddc_run(map->second, patt2, mb, me, mflds, std::forward<F>(scatter));
     // prof_stop(pr_ddc_run);
 
 #if 0
@@ -346,9 +417,9 @@ struct CudaBnd
   // ----------------------------------------------------------------------
   // ddc_run
 
-  template <typename S>
+  template <typename F>
   void ddc_run(Maps<space_type>& maps, mrc_ddc_pattern2* patt2, int mb, int me,
-               Mfields& mflds, S scatter)
+               Mfields& mflds, F&& scatter)
   {
     // static int pr_ddc0, pr_ddc1, pr_ddc2, pr_ddc3, pr_ddc4, pr_ddc5;
     // static int pr_ddc6, pr_ddc7, pr_ddc8, pr_ddc9, pr_ddc10;
