@@ -22,7 +22,28 @@ namespace bnd
 {
 
 template <typename T, typename TI, typename R>
-void scatter(const gt::gtensor<T, 1>& buf, const gt::gtensor<TI, 1>& map,
+void gather(const gt::gtensor<TI, 1>& map, R& buf, gt::gtensor<T, 1>& result)
+{
+  int n = buf.size();
+  assert(map.size() == n);
+  for (int i = 0; i < n; i++) {
+    result[i] = buf[map[i]];
+  }
+}
+
+#ifdef USE_CUDA
+
+template <typename T, typename TI, typename R>
+void gather(const gt::gtensor_device<TI, 1>& map, R& buf,
+            gt::gtensor_device<T, 1>& result)
+{
+  thrust::gather(map.data(), map.data() + map.size(), buf, result.data());
+}
+
+#endif
+
+template <typename T, typename TI, typename R>
+void scatter(const gt::gtensor<TI, 1>& map, const gt::gtensor<T, 1>& buf,
              R& result)
 {
   int n = buf.size();
@@ -35,16 +56,16 @@ void scatter(const gt::gtensor<T, 1>& buf, const gt::gtensor<TI, 1>& map,
 #ifdef USE_CUDA
 
 template <typename T, typename TI, typename R>
-void scatter(const gt::gtensor_device<T, 1>& buf,
-             const gt::gtensor_device<TI, 1>& map, R& result)
+void scatter(const gt::gtensor_device<TI, 1>& map,
+             const gt::gtensor_device<T, 1>& buf, R& result)
 {
-  thrust::scatter(buf.data(), buf.data() + buf.size(), map.data(), result);
+  thrust::scatter(map.data(), map.data() + map.size(), buf.data(), result);
 }
 
 #endif
 
 template <typename T, typename TI, typename R>
-void scatter_add(const gt::gtensor<T, 1>& buf, const gt::gtensor<TI, 1>& map,
+void scatter_add(const gt::gtensor<TI, 1>& map, const gt::gtensor<T, 1>& buf,
                  R& result)
 {
   int n = buf.size();
@@ -67,10 +88,10 @@ __global__ static void k_scatter_add(const real_t* buf, const uint* map,
 }
 
 template <typename T, typename TI, typename R>
-void scatter_add(const gt::gtensor_device<T, 1>& buf,
-                 const gt::gtensor_device<TI, 1>& map, R& result)
+void scatter_add(const gt::gtensor_device<TI, 1>& map,
+                 const gt::gtensor_device<T, 1>& buf, R& result)
 {
-  if (buf.size() == 0)
+  if (map.size() == 0)
     return;
 
   const int THREADS_PER_BLOCK = 256;
@@ -252,14 +273,14 @@ struct CudaBnd
     void operator()(const gt::gtensor<uint, 1>& map,
                     const gt::gtensor<real_t, 1>& buf, real_t* h_flds)
     {
-      psc::bnd::scatter_add(buf, map, h_flds);
+      psc::bnd::scatter_add(map, buf, h_flds);
     }
 
     void operator()(const gt::gtensor_device<uint, 1>& map,
                     const gt::gtensor_device<real_t, 1>& buf,
                     thrust::device_ptr<real_t> d_flds)
     {
-      psc::bnd::scatter_add(buf, map, d_flds);
+      psc::bnd::scatter_add(map, buf, d_flds);
     }
   };
 
@@ -268,14 +289,14 @@ struct CudaBnd
     void operator()(const gt::gtensor<uint, 1>& map,
                     const gt::gtensor<real_t, 1>& buf, real_t* h_flds)
     {
-      psc::bnd::scatter(buf, map, h_flds);
+      psc::bnd::scatter(map, buf, h_flds);
     }
 
     void operator()(const gt::gtensor_device<uint, 1>& map,
                     const gt::gtensor_device<real_t, 1>& buf,
                     thrust::device_ptr<real_t> d_flds)
     {
-      psc::bnd::scatter(buf, map, d_flds);
+      psc::bnd::scatter(map, buf, d_flds);
     }
   };
 
@@ -400,7 +421,7 @@ struct CudaBnd
     thrust::host_vector<real_t> h_flds{d_flds, d_flds + cmflds.n_fields * cmflds.n_cells};
 
     postReceives(maps);
-    thrust::gather(maps.send.begin(), maps.send.end(), h_flds.begin(), maps.send_buf.begin());
+    psc::bnd::gather(maps.send, h_flds, maps.send_buf.data());
     postSends(maps);
 
     MPI_Waitall(maps.patt->recv_cnt, maps.patt->recv_req, MPI_STATUSES_IGNORE);
@@ -408,8 +429,7 @@ struct CudaBnd
     MPI_Waitall(maps.patt->send_cnt, maps.patt->send_req, MPI_STATUSES_IGNORE);
 
     // local part
-    thrust::gather(maps.local_send.begin(), maps.local_send.end(), h_flds.begin(),
-		   maps.local_buf.begin());
+    psc::bnd::gather(maps.local_send, h_flds, maps.local_buf.data());
     scatter(maps.local_recv, maps.local_buf, h_flds);
     thrust::copy(h_flds.begin(), h_flds.end(), d_flds);
 #else
@@ -427,9 +447,7 @@ struct CudaBnd
 
     {
       // prof_start(pr_ddc2);
-      thrust::gather(maps.d_send.data(),
-                     maps.d_send.data() + maps.d_send.size(), d_flds,
-                     d_send_buf.data());
+      psc::bnd::gather(maps.d_send, d_flds, d_send_buf);
       // prof_stop(pr_ddc2);
 
       // prof_start(pr_ddc3);
@@ -445,9 +463,7 @@ struct CudaBnd
     {
       gt::gtensor<real_t, 1, space_type> d_local_buf(maps.d_local_send.size());
       // prof_start(pr_ddc5);
-      thrust::gather(maps.d_local_send.data(),
-                     maps.d_local_send.data() + maps.d_local_send.size(),
-                     d_flds, d_local_buf.data());
+      psc::bnd::gather(maps.d_local_send, d_flds, d_local_buf);
       // prof_stop(pr_ddc5);
 
       // prof_start(pr_ddc6);

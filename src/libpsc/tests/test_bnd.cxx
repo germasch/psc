@@ -20,7 +20,7 @@ TEST(gtensor, scatter)
   gt::gtensor<uint, 1> map = {2, 0, 4};
   gt::gtensor<double, 1> result = gt::zeros<double>({5});
 
-  psc::bnd::scatter(buf, map, result);
+  psc::bnd::scatter(map, buf, result);
 
   EXPECT_EQ(result, (gt::gtensor<double, 1>{2., 0., 1., 0., 3.}));
 }
@@ -31,9 +31,20 @@ TEST(gtensor, scatter_add)
   gt::gtensor<uint, 1> map = {2, 0, 4};
   gt::gtensor<double, 1> result = {1., 1., 1., 1., 1.};
 
-  psc::bnd::scatter_add(buf, map, result);
+  psc::bnd::scatter_add(map, buf, result);
 
   EXPECT_EQ(result, (gt::gtensor<double, 1>{3., 1., 2., 1., 4.}));
+}
+
+TEST(gtensor, gather)
+{
+  gt::gtensor<double, 1> buf = {1., 2., 3., 4., 5.};
+  gt::gtensor<uint, 1> map = {2, 0, 4};
+  gt::gtensor<double, 1> result = gt::zeros<double>({3});
+
+  psc::bnd::gather(map, buf, result);
+
+  EXPECT_EQ(result, (gt::gtensor<double, 1>{3., 1., 5.}));
 }
 
 static Grid_t make_grid(Int3 gdims, Vec3<double> length)
