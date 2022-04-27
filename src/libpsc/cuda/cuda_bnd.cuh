@@ -272,35 +272,19 @@ struct CudaBnd
 
   struct ScatterAdd
   {
-    template <typename R>
-    void operator()(const gt::gtensor<uint, 1>& map,
-                    const gt::gtensor<real_t, 1>& buf, R& h_flds)
+    template <typename M, typename INP, typename OUT>
+    void operator()(const M& map, const INP& inp, OUT& out)
     {
-      psc::bnd::scatter_add(map, buf, h_flds);
-    }
-
-    template <typename R>
-    void operator()(const gt::gtensor_device<uint, 1>& map,
-                    const gt::gtensor_device<real_t, 1>& buf, R& d_flds)
-    {
-      psc::bnd::scatter_add(map, buf, d_flds);
+      psc::bnd::scatter_add(map, inp, out);
     }
   };
 
   struct Scatter
   {
-    template <typename R>
-    void operator()(const gt::gtensor<uint, 1>& map,
-                    const gt::gtensor<real_t, 1>& buf, R& h_flds)
+    template <typename M, typename INP, typename OUT>
+    void operator()(const M& map, const INP& inp, OUT& out)
     {
-      psc::bnd::scatter(map, buf, h_flds);
-    }
-
-    template <typename R>
-    void operator()(const gt::gtensor_device<uint, 1>& map,
-                    const gt::gtensor_device<real_t, 1>& buf, R& d_flds)
-    {
-      psc::bnd::scatter(map, buf, d_flds);
+      psc::bnd::scatter(map, inp, out);
     }
   };
 
