@@ -37,7 +37,9 @@ template <typename T, typename TI, typename R>
 void gather(const gt::gtensor_device<TI, 1>& map, R& buf,
             gt::gtensor_device<T, 1>& result)
 {
-  thrust::gather(map.data(), map.data() + map.size(), buf, result.data());
+  thrust::gather(map.data(), map.data() + map.size(),
+                 &buf[0], // FIXME, buf.data() or something would be nicer
+                 result.data());
 }
 
 #endif
@@ -59,7 +61,7 @@ template <typename T, typename TI, typename R>
 void scatter(const gt::gtensor_device<TI, 1>& map,
              const gt::gtensor_device<T, 1>& buf, R& result)
 {
-  thrust::scatter(map.data(), map.data() + map.size(), buf.data(), result);
+  thrust::scatter(map.data(), map.data() + map.size(), buf.data(), &result[0]);
 }
 
 #endif
@@ -97,7 +99,7 @@ void scatter_add(const gt::gtensor_device<TI, 1>& map,
   const int THREADS_PER_BLOCK = 256;
   dim3 dimGrid((buf.size() + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK);
   k_scatter_add<<<dimGrid, THREADS_PER_BLOCK>>>(
-    buf.data().get(), map.data().get(), result.get(), buf.size());
+    buf.data().get(), map.data().get(), (&result[0]).get(), buf.size());
   cuda_sync_if_enabled();
 }
 
@@ -270,15 +272,16 @@ struct CudaBnd
 
   struct ScatterAdd
   {
+    template <typename R>
     void operator()(const gt::gtensor<uint, 1>& map,
-                    const gt::gtensor<real_t, 1>& buf, real_t* h_flds)
+                    const gt::gtensor<real_t, 1>& buf, R& h_flds)
     {
       psc::bnd::scatter_add(map, buf, h_flds);
     }
 
+    template <typename R>
     void operator()(const gt::gtensor_device<uint, 1>& map,
-                    const gt::gtensor_device<real_t, 1>& buf,
-                    thrust::device_ptr<real_t> d_flds)
+                    const gt::gtensor_device<real_t, 1>& buf, R& d_flds)
     {
       psc::bnd::scatter_add(map, buf, d_flds);
     }
@@ -286,15 +289,16 @@ struct CudaBnd
 
   struct Scatter
   {
+    template <typename R>
     void operator()(const gt::gtensor<uint, 1>& map,
-                    const gt::gtensor<real_t, 1>& buf, real_t* h_flds)
+                    const gt::gtensor<real_t, 1>& buf, R& h_flds)
     {
       psc::bnd::scatter(map, buf, h_flds);
     }
 
+    template <typename R>
     void operator()(const gt::gtensor_device<uint, 1>& map,
-                    const gt::gtensor_device<real_t, 1>& buf,
-                    thrust::device_ptr<real_t> d_flds)
+                    const gt::gtensor_device<real_t, 1>& buf, R& d_flds)
     {
       psc::bnd::scatter(map, buf, d_flds);
     }
@@ -433,7 +437,7 @@ struct CudaBnd
     scatter(maps.local_recv, maps.local_buf, h_flds);
     thrust::copy(h_flds.begin(), h_flds.end(), d_flds);
 #else
-    auto d_flds = mflds.gt().data();
+    auto d_flds = gt::flatten(mflds.gt());
     prof_barrier("ddc_run");
 
     gt::gtensor<real_t, 1, space_type> d_send_buf(maps.d_send.size());
