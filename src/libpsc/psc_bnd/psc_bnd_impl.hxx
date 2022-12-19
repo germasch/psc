@@ -9,8 +9,13 @@
 #include <mrc_profile.h>
 #include <mrc_ddc.h>
 
+namespace psc
+{
+namespace bnd
+{
+
 template <typename S>
-struct BndContext
+struct bnd_context
 {
   using storage_type = S;
 
@@ -19,19 +24,18 @@ struct BndContext
 };
 
 template <typename MF>
-struct Bnd_ : BndBase
+class internal
 {
-  using Mfields = MF;
-  using MfieldsHost = hostMirror_t<Mfields>;
-  using real_t = typename Mfields::real_t;
-  using storage_type = typename Mfields::Storage;
-  using storage_host_type = typename MfieldsHost::Storage;
-  using BndCtx = BndContext<storage_host_type>;
+public:
+  using real_t = typename MF::real_t;
+  using storage_type = typename MF::Storage;
+  using bnd_context_type = bnd_context<storage_type>;
 
   // ----------------------------------------------------------------------
   // ctor
 
-  Bnd_(const Grid_t& grid, const int ibn[3])
+  internal(const Grid_t& grid, const int ibn[3])
+    : balance_generation_cnt_{psc_balance_generation_cnt}
   {
     static struct mrc_ddc_funcs ddc_funcs = {
       .copy_to_buf = copy_to_buf,
@@ -46,13 +50,12 @@ struct Bnd_ : BndBase
     mrc_ddc_set_param_int(ddc_, "size_of_type", sizeof(real_t));
     assert(ibn[0] > 0 || ibn[1] > 0 || ibn[2] > 0);
     mrc_ddc_setup(ddc_);
-    balance_generation_cnt_ = psc_balance_generation_cnt;
   }
 
   // ----------------------------------------------------------------------
   // dtor
 
-  ~Bnd_() { mrc_ddc_destroy(ddc_); }
+  ~internal() { mrc_ddc_destroy(ddc_); }
 
   // ----------------------------------------------------------------------
   // reset
@@ -60,8 +63,8 @@ struct Bnd_ : BndBase
   void reset(const Grid_t& grid)
   {
     // FIXME, not really a pretty way of doing this
-    this->~Bnd_();
-    new (this) Bnd_(grid, grid.ibn);
+    this->~internal();
+    new (this) internal(grid, grid.ibn);
   }
 
   // ----------------------------------------------------------------------
@@ -80,38 +83,30 @@ struct Bnd_ : BndBase
     // rather then box
     auto&& h_mflds_gt = gt::host_mirror(mflds_gt);
     gt::copy(mflds_gt, h_mflds_gt);
-    BndCtx ctx{h_mflds_gt, ib};
+    bnd_context_type ctx{h_mflds_gt, ib};
     mrc_ddc_add_ghosts(ddc_, mb, me, &ctx);
     gt::copy(h_mflds_gt, mflds_gt);
-  }
-
-  void add_ghosts(Mfields& mflds, int mb, int me)
-  {
-    add_ghosts(mflds.grid(), mflds.storage(), mflds.ib(), mb, me);
   }
 
   // ----------------------------------------------------------------------
   // fill_ghosts
 
-  void fill_ghosts(storage_type& mflds_gt, const Int3& ib, int mb, int me)
+  void fill_ghosts(const Grid_t& grid, storage_type& mflds_gt, const Int3& ib,
+                   int mb, int me)
   {
+    if (psc_balance_generation_cnt != balance_generation_cnt_) {
+      balance_generation_cnt_ = psc_balance_generation_cnt;
+      reset(grid);
+    }
+
     // FIXME
     // I don't think we need as many points, and only stencil star
     // rather then box
     auto&& h_mflds_gt = gt::host_mirror(mflds_gt);
     gt::copy(mflds_gt, h_mflds_gt);
-    BndCtx ctx{h_mflds_gt, ib};
+    bnd_context_type ctx{h_mflds_gt, ib};
     mrc_ddc_fill_ghosts(ddc_, mb, me, &ctx);
     gt::copy(h_mflds_gt, mflds_gt);
-  }
-
-  void fill_ghosts(Mfields& mflds, int mb, int me)
-  {
-    if (psc_balance_generation_cnt != balance_generation_cnt_) {
-      balance_generation_cnt_ = psc_balance_generation_cnt;
-      reset(mflds.grid());
-    }
-    fill_ghosts(mflds.storage(), mflds.ib(), mb, me);
   }
 
   // ----------------------------------------------------------------------
@@ -120,7 +115,7 @@ struct Bnd_ : BndBase
   static void copy_to_buf(int mb, int me, int p, int ilo[3], int ihi[3],
                           void* _buf, void* _ctx)
   {
-    BndCtx* ctx = static_cast<BndCtx*>(_ctx);
+    bnd_context_type* ctx = static_cast<bnd_context_type*>(_ctx);
     real_t* buf = static_cast<real_t*>(_buf);
     const Int3& ib = ctx->ib;
 
@@ -139,7 +134,7 @@ struct Bnd_ : BndBase
   static void add_from_buf(int mb, int me, int p, int ilo[3], int ihi[3],
                            void* _buf, void* _ctx)
   {
-    BndCtx* ctx = static_cast<BndCtx*>(_ctx);
+    bnd_context_type* ctx = static_cast<bnd_context_type*>(_ctx);
     real_t* buf = static_cast<real_t*>(_buf);
     const Int3& ib = ctx->ib;
 
@@ -158,7 +153,7 @@ struct Bnd_ : BndBase
   static void copy_from_buf(int mb, int me, int p, int ilo[3], int ihi[3],
                             void* _buf, void* _ctx)
   {
-    BndCtx* ctx = static_cast<BndCtx*>(_ctx);
+    bnd_context_type* ctx = static_cast<bnd_context_type*>(_ctx);
     real_t* buf = static_cast<real_t*>(_buf);
     const Int3& ib = ctx->ib;
 
@@ -176,5 +171,65 @@ struct Bnd_ : BndBase
 
 private:
   mrc_ddc* ddc_;
+  int balance_generation_cnt_;
+};
+
+} // namespace bnd
+} // namespace psc
+
+template <typename MF>
+struct Bnd_ : BndBase
+{
+  using Mfields = MF;
+  using real_t = typename Mfields::real_t;
+  using storage_type = typename Mfields::Storage;
+
+  // ----------------------------------------------------------------------
+  // ctor
+
+  Bnd_(const Grid_t& grid, const int ibn[3])
+    : bnd_{grid, ibn}, balance_generation_cnt_{psc_balance_generation_cnt}
+  {}
+
+  // ----------------------------------------------------------------------
+  // reset
+
+  void reset(const Grid_t& grid)
+  {
+    // FIXME, not really a pretty way of doing this
+    this->~Bnd_();
+    new (this) Bnd_(grid, grid.ibn);
+  }
+
+  // ----------------------------------------------------------------------
+  // add_ghosts
+
+  void add_ghosts(const Grid_t& grid, storage_type& mflds_gt, const Int3& ib,
+                  int mb, int me)
+  {
+    bnd_.add_ghosts(grid, mflds_gt, ib, mb, me);
+  }
+
+  void add_ghosts(Mfields& mflds, int mb, int me)
+  {
+    bnd_.add_ghosts(mflds.grid(), mflds.storage(), mflds.ib(), mb, me);
+  }
+
+  // ----------------------------------------------------------------------
+  // fill_ghosts
+
+  void fill_ghosts(const Grid_t& grid, storage_type& mflds_gt, const Int3& ib,
+                   int mb, int me)
+  {
+    bnd_.fill_ghosts(grid, mflds_gt, ib, mb, me);
+  }
+
+  void fill_ghosts(Mfields& mflds, int mb, int me)
+  {
+    bnd_.fill_ghosts(mflds.grid(), mflds.storage(), mflds.ib(), mb, me);
+  }
+
+private:
+  psc::bnd::internal<Mfields> bnd_;
   int balance_generation_cnt_;
 };
