@@ -159,7 +159,8 @@ private:
 //
 // deriving from this class adds the result field mres_
 
-template <typename Derived, typename MF, typename Bnd = Bnd_<MF>>
+template <typename Derived, typename MF,
+          typename Bnd = psc::bnd::internal<typename MF::Storage>>
 class ItemMomentCRTP : public MFexpression<Derived>
 {
 public:
