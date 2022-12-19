@@ -37,11 +37,12 @@ inline std::vector<std::string> addKindSuffix(
 // ======================================================================
 // ItemMomentBnd
 
-template <typename Mfields, typename Bnd = Bnd_<Mfields>>
+template <typename Mfields>
 class ItemMomentBnd
 {
 public:
   using storage_type = typename Mfields::Storage;
+  using bnd_internal_type = psc::bnd::internal<storage_type>;
 
   ItemMomentBnd(const Grid_t& grid) : bnd_{grid, grid.ibn} {}
 
@@ -151,7 +152,7 @@ private:
   }
 
 private:
-  Bnd bnd_;
+  bnd_internal_type bnd_;
 };
 
 // ======================================================================
@@ -159,8 +160,7 @@ private:
 //
 // deriving from this class adds the result field mres_
 
-template <typename Derived, typename MF,
-          typename Bnd = psc::bnd::internal<typename MF::Storage>>
+template <typename Derived, typename MF>
 class ItemMomentCRTP : public MFexpression<Derived>
 {
 public:
@@ -194,6 +194,6 @@ protected:
 protected:
   storage_type mres_gt_;
   Int3 mres_ib_;
-  ItemMomentBnd<Mfields, Bnd> bnd_;
+  ItemMomentBnd<Mfields> bnd_;
   std::vector<std::string> comp_names_;
 };
