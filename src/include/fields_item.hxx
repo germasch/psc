@@ -179,8 +179,10 @@ public:
 
 protected:
   ItemMomentCRTP(const Grid_t& grid)
-    : mres_{grid, Derived::n_comps_impl(grid), grid.ibn},
-      mres_gt_{mres_.storage()},
+    : mres_gt_{gt::shape(grid.ldims[0] + 2 * grid.ibn[0],
+                         grid.ldims[1] + 2 * grid.ibn[1],
+                         grid.ldims[2] + 2 * grid.ibn[2],
+                         Derived::n_comps_impl(grid), grid.n_patches())},
       mres_ib_{-grid.ibn},
       bnd_{grid},
       comp_names_{Derived::comp_names_impl(grid)}
@@ -189,8 +191,7 @@ protected:
   }
 
 protected:
-  Mfields mres_;
-  storage_type& mres_gt_;
+  storage_type mres_gt_;
   Int3 mres_ib_;
   ItemMomentBnd<Mfields, Bnd> bnd_;
   std::vector<std::string> comp_names_;
