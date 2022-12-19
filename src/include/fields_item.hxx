@@ -37,11 +37,11 @@ inline std::vector<std::string> addKindSuffix(
 // ======================================================================
 // ItemMomentBnd
 
-template <typename Mfields>
+template <typename S>
 class ItemMomentBnd
 {
 public:
-  using storage_type = typename Mfields::Storage;
+  using storage_type = S;
   using bnd_internal_type = psc::bnd::internal<storage_type>;
 
   ItemMomentBnd(const Grid_t& grid) : bnd_{grid, grid.ibn} {}
@@ -164,9 +164,9 @@ template <typename Derived, typename MF>
 class ItemMomentCRTP : public MFexpression<Derived>
 {
 public:
-  using Mfields = MF;
-  using Real = typename Mfields::real_t;
-  using storage_type = typename Mfields::Storage;
+  using real_t = typename MF::real_t;
+  using space_type = typename MF::space;
+  using storage_type = gt::gtensor<real_t, 5, space_type>;
 
   int n_comps() { return comp_names_.size(); }
   const std::vector<std::string>& comp_names() { return comp_names_; }
@@ -194,6 +194,6 @@ protected:
 protected:
   storage_type mres_gt_;
   Int3 mres_ib_;
-  ItemMomentBnd<Mfields> bnd_;
+  ItemMomentBnd<storage_type> bnd_;
   std::vector<std::string> comp_names_;
 };
