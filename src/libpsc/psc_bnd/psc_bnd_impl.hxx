@@ -23,12 +23,12 @@ struct bnd_context
   const Int3& ib;
 };
 
-template <typename MF>
+template <typename S>
 class internal
 {
 public:
-  using real_t = typename MF::real_t;
-  using storage_type = typename MF::Storage;
+  using storage_type = S;
+  using real_t = typename storage_type::value_type;
   using bnd_context_type = bnd_context<storage_type>;
 
   // ----------------------------------------------------------------------
@@ -230,6 +230,6 @@ struct Bnd_ : BndBase
   }
 
 private:
-  psc::bnd::internal<Mfields> bnd_;
+  psc::bnd::internal<storage_type> bnd_;
   int balance_generation_cnt_;
 };
