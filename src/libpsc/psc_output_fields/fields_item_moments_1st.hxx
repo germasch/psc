@@ -44,12 +44,6 @@ public:
   template <typename MP>
   explicit Moment_n_1st(const MP& mprts) : Base{mprts.grid()}
   {
-    update(mprts);
-  }
-
-  template <typename MP>
-  void update(const MP& mprts)
-  {
     Base::mres_gt_.view() = 0.f;
     moment_type{}(Base::mres_gt_, Base::mres_ib_, mprts);
     Base::bnd_.add_ghosts(mprts.grid(), Base::mres_gt_, Base::mres_ib_);

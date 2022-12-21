@@ -29,8 +29,7 @@ struct Moment_rho_1st_nc_cuda
 
   Moment_rho_1st_nc_cuda(const Grid_t& grid)
     : mres_{grid, n_comps(grid), grid.ibn}, bnd_{grid, grid.ibn}
-  {
-  }
+  {}
 
   void operator()(Mparticles& mprts)
   {
@@ -71,18 +70,8 @@ public:
     return addKindSuffix({"n"}, grid.kinds);
   }
 
-  explicit Moment_n_1st_cuda(const Grid_t& grid)
-    : Base{grid}, bnd_{grid, grid.ibn}
-  {
-  }
-
   explicit Moment_n_1st_cuda(const Mparticles& mprts)
     : Base{mprts.grid()}, bnd_{mprts.grid(), mprts.grid().ibn}
-  {
-    update(mprts);
-  }
-
-  void update(const Mparticles& mprts)
   {
     static int pr, pr_1, pr_2;
     if (!pr) {
@@ -139,8 +128,7 @@ public:
 
   explicit Moment_1st_cuda(const Grid_t& grid)
     : Base{grid}, bnd_{grid, grid.ibn}
-  {
-  }
+  {}
 
   explicit Moment_1st_cuda(const Mparticles& mprts)
     : Base{mprts.grid()}, bnd_{mprts.grid(), mprts.grid().ibn}
