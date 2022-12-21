@@ -40,7 +40,6 @@ void write_checkpoint(const Grid_t& grid, Mparticles& mprts,
   writer.close();
 #else
   std::cerr << "write_checkpoint not available without adios2" << std::endl;
-  std::abort();
 #endif
   prof_stop(pr);
 }
