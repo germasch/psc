@@ -21,7 +21,7 @@ struct Moment_rho_1st_nc_cuda
 
   constexpr static const char* name = "rho_1st_nc";
   static int n_comps(const Grid_t&) { return 1; }
-  static std::vector<std::string> fld_names()
+  static std::vector<std::string> comp_names_impl()
   {
     return {"rho_nc_cuda"};
   } // FIXME
@@ -29,7 +29,8 @@ struct Moment_rho_1st_nc_cuda
 
   Moment_rho_1st_nc_cuda(const Grid_t& grid)
     : mres_{grid, n_comps(grid), grid.ibn}, bnd_{grid, grid.ibn}
-  {}
+  {
+  }
 
   void operator()(Mparticles& mprts)
   {
@@ -66,22 +67,22 @@ public:
   constexpr static int n_moments = 1;
   static char const* name() { return "n_1st_cuda"; }
 
-  static int n_comps(const Grid_t& grid)
+  static int n_comps_impl(const Grid_t& grid)
   {
     return n_moments * grid.kinds.size();
   }
 
-  static std::vector<std::string> comp_names(const Grid_t& grid)
+  static std::vector<std::string> comp_names_impl(const Grid_t& grid)
   {
     return addKindSuffix({"n"}, grid.kinds);
   }
 
-  int n_comps() const { return Base::mres_.n_comps(); }
   Int3 ibn() const { return {}; }
 
   explicit Moment_n_1st_cuda(const Grid_t& grid)
     : Base{grid}, bnd_{grid, grid.ibn}
-  {}
+  {
+  }
 
   explicit Moment_n_1st_cuda(const Mparticles& mprts)
     : Base{mprts.grid()}, bnd_{mprts.grid(), mprts.grid().ibn}
@@ -145,18 +146,17 @@ public:
   using space = gt::space::device;
 
   constexpr static int n_moments = 13;
-  static char const* name() { return "all_1st"; }
-
-  static int n_comps(const Grid_t& grid)
+  static std::string name() { return "all_1st"; }
+  static int n_comps_impl(const Grid_t& grid)
   {
     return n_moments * grid.kinds.size();
   }
 
-  std::vector<std::string> comp_names()
+  static std::vector<std::string> comp_names_impl(const Grid_t& grid)
   {
     return addKindSuffix({"rho", "jx", "jy", "jz", "px", "py", "pz", "txx",
                           "tyy", "tzz", "txy", "tyz", "tzx"},
-                         Base::grid().kinds);
+                         grid.kinds);
   }
 
   int n_comps() const { return Base::mres_.n_comps(); }
@@ -164,7 +164,8 @@ public:
 
   explicit Moment_1st_cuda(const Grid_t& grid)
     : Base{grid}, bnd_{grid, grid.ibn}
-  {}
+  {
+  }
 
   explicit Moment_1st_cuda(const Mparticles& mprts)
     : Base{mprts.grid()}, bnd_{mprts.grid(), mprts.grid().ibn}
