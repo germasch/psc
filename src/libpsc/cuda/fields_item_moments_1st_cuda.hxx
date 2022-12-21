@@ -66,17 +66,16 @@ public:
   constexpr static int n_moments = 1;
   static char const* name() { return "n_1st_cuda"; }
 
-  static int n_comps(const Grid_t& grid)
+  static int n_comps_impl(const Grid_t& grid)
   {
     return n_moments * grid.kinds.size();
   }
 
-  static std::vector<std::string> comp_names(const Grid_t& grid)
+  static std::vector<std::string> comp_names_impl(const Grid_t& grid)
   {
     return addKindSuffix({"n"}, grid.kinds);
   }
 
-  int n_comps() const { return Base::mres_.n_comps(); }
   Int3 ibn() const { return {}; }
 
   explicit Moment_n_1st_cuda(const Grid_t& grid)
