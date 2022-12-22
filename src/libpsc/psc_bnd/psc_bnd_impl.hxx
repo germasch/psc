@@ -4,7 +4,6 @@
 #include "psc.h"
 #include "fields.hxx"
 #include "bnd.hxx"
-#include "balance.hxx"
 
 #include <mrc_profile.h>
 #include <mrc_ddc.h>
@@ -150,7 +149,4 @@ struct Bnd_ : BndBase
     .copy_from_buf = copy_from_buf,
     .add_from_buf = add_from_buf,
   };
-
-private:
-  int balance_generation_cnt_;
 };
