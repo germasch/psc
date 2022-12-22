@@ -14,21 +14,21 @@ struct cuda_mparticles;
 
 template <typename _Mparticles, typename dim>
 struct Moment_rho_1st_nc_cuda
-  : ItemMomentCRTP<Moment_rho_1st_nc_cuda<_Mparticles, dim>, MfieldsCuda>
 {
-  using Base =
-    ItemMomentCRTP<Moment_rho_1st_nc_cuda<_Mparticles, dim>, MfieldsCuda>;
   using Mparticles = _Mparticles;
   using Mfields = MfieldsCuda;
   using Bnd = BndCuda3<Mfields>;
 
   static std::string name_impl() { return "rho_1st_nc"; }
-  static std::vector<std::string> comp_names_impl(const Grid_t& grid)
+  static int n_comps(const Grid_t&) { return 1; }
+  static std::vector<std::string> comp_names_impl()
   {
-    return {"rho"};
-  }
+    return {"rho_nc_cuda"};
+  } // FIXME
+  constexpr static int flags = 0;
 
-  Moment_rho_1st_nc_cuda(const Grid_t& grid) : Base{grid}, bnd_{grid, grid.ibn}
+  Moment_rho_1st_nc_cuda(const Grid_t& grid)
+    : mres_{grid, n_comps(grid), grid.ibn}, bnd_{grid, grid.ibn}
   {
   }
 
@@ -36,17 +36,18 @@ struct Moment_rho_1st_nc_cuda
   {
     auto& cmprts = *mprts.cmprts();
 
-    Base::mres_.gt().view() = 0.;
+    mres_.gt().view() = 0.;
     CudaMoments1stNcRho<cuda_mparticles<typename Mparticles::BS>, dim> cmoments;
-    cmoments(cmprts, Base::mres_.storage(), Base::mres_.ib());
-    bnd_.add_ghosts(Base::mres_, 0, Base::mres_.n_comps());
+    cmoments(cmprts, mres_.storage(), mres_.ib());
+    bnd_.add_ghosts(mres_, 0, mres_.n_comps());
   }
 
-  Mfields& result() { return Base::mres_; }
+  Mfields& result() { return mres_; }
 
-  auto gt() { return view_interior(Base::mres_.gt(), Base::mres_.ibn()); }
+  auto gt() { return view_interior(mres_.gt(), mres_.ibn()); }
 
 private:
+  Mfields mres_;
   Bnd bnd_;
 };
 
