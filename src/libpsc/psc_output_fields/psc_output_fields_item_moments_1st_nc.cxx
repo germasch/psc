@@ -43,7 +43,7 @@ struct Moment_rho_1st_nc : ItemMomentCRTP<Moment_rho_1st_nc<MF, D>, MF>
   auto operator()(const Mparticles& mprts)
   {
     Int3 ib = -mprts.grid().ibn;
-    auto mres = psc::mflds::zeros<real_t>(mprts.grid(), 1, -ib);
+    auto mres = psc::mflds::zeros<real_t>(mprts.grid(), 1, ib);
     moment_type{}(mres, ib, mprts);
     Base::bnd_.add_ghosts(mprts.grid(), mres, ib);
     return mres;
