@@ -44,12 +44,13 @@ public:
   explicit Moment_rho_2nd_nc(const Grid_t& grid) : Base{grid} {}
 
   template <typename Mparticles>
-  auto& operator()(const Mparticles& mprts)
+  auto operator()(const Mparticles& mprts)
   {
-    Base::mres_gt_.view() = 0.f;
-    moment_type{}(Base::mres_gt_, Base::mres_ib_, mprts);
-    Base::bnd_.add_ghosts(mprts.grid(), Base::mres_gt_, Base::mres_ib_);
-    return Base::mres_gt_;
+    Int3 ib = -mprts.grid().ibn;
+    auto mres = psc::mflds::zeros<real_t>(mprts.grid(), 1, -ib);
+    moment_type{}(mres, ib, mprts);
+    Base::bnd_.add_ghosts(mprts.grid(), mres, ib);
+    return mres;
   }
 
   auto storage() = delete;
