@@ -14,23 +14,10 @@ class Moment_n_1st : public ItemMomentCRTP<Moment_n_1st<MF, D>, MF>
 {
 public:
   using Base = ItemMomentCRTP<Moment_n_1st<MF, D>, MF>;
-  using Mfields = MF;
-  using real_t = typename Mfields::real_t;
-  using dim_t = D;
   using moment_type =
-    psc::moment::moment_n<psc::deposit::code::Deposit1stCc, dim_t>;
+    psc::moment::moment_n<psc::deposit::code::Deposit1stCc, D>;
 
-  explicit Moment_n_1st(const Grid_t& grid) : Base{grid} {}
-
-  template <typename Mparticles>
-  auto operator()(const Mparticles& mprts)
-  {
-    Int3 ib = -mprts.grid().ibn;
-    auto mres = psc::mflds::zeros<real_t>(mprts.grid(), Base::n_comps(), ib);
-    moment_type{}(mres, ib, mprts);
-    Base::bnd_.add_ghosts(mprts.grid(), mres, ib);
-    return mres;
-  }
+  using Base::Base;
 };
 
 // ======================================================================
@@ -41,23 +28,10 @@ class Moment_v_1st : public ItemMomentCRTP<Moment_v_1st<MF, D>, MF>
 {
 public:
   using Base = ItemMomentCRTP<Moment_v_1st<MF, D>, MF>;
-  using Mfields = MF;
-  using dim_t = D;
-  using real_t = typename Mfields::real_t;
   using moment_type =
-    psc::moment::moment_v<psc::deposit::code::Deposit1stCc, dim_t>;
+    psc::moment::moment_v<psc::deposit::code::Deposit1stCc, D>;
 
-  explicit Moment_v_1st(const Grid_t& grid) : Base{grid} {}
-
-  template <typename Mparticles>
-  auto operator()(const Mparticles& mprts)
-  {
-    Int3 ib = -mprts.grid().ibn;
-    auto mres = psc::mflds::zeros<real_t>(mprts.grid(), Base::n_comps(), ib);
-    moment_type{}(mres, ib, mprts);
-    Base::bnd_.add_ghosts(mprts.grid(), mres, ib);
-    return mres;
-  }
+  using Base::Base;
 };
 
 // ======================================================================
