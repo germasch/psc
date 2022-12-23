@@ -304,7 +304,7 @@ public:
     using real_t = R;
 
     psc::moment::deposit_1st_cc<dim_t>(
-      Base::mres_.storage(), Base::mres_.ib(), h_mprts,
+      Base::mres_gt_, Base::mres_ib_, h_mprts,
       [&](auto& deposit_one, const auto& prt) {
         int mm = prt.kind() * n_moments;
         real_t vxi[3];
