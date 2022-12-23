@@ -20,7 +20,7 @@ struct BndCuda3 : BndBase
   BndCuda3(const Grid_t& grid, const int ibn[3]);
   ~BndCuda3();
 
-  void clear();
+  static void clear();
 
   void add_ghosts(Mfields& mflds, int mb, int me);
   void fill_ghosts(Mfields& mflds, int mb, int me);
