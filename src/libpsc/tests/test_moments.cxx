@@ -109,6 +109,7 @@ TYPED_TEST(MomentTest, Moment_n_1)
   using real_t = typename base_type::real_t;
   using Moment = Moment_n_1st<Mfields, dim_t>;
 
+  EXPECT_EQ(Moment::name(), "n_1st");
   auto& mprts = this->make_mprts({{5., 5., 5.}, {0., 0., 1.}, this->w, 0});
   const auto& grid = this->grid();
 

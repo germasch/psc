@@ -121,6 +121,11 @@ class moment_n
 public:
   using dim_t = D;
 
+  static std::string name()
+  {
+    return "n" + DepositCode<void, void>::name_suffix();
+  }
+
   template <typename MFLDS_GT, typename MP>
   void operator()(MFLDS_GT& mflds_gt, const Int3& ib, const MP& mprts)
   {
