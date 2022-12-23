@@ -144,9 +144,12 @@ struct Bnd_ : BndBase
     }
   }
 
-  constexpr static struct mrc_ddc_funcs ddc_funcs = {
+  constexpr static mrc_ddc_funcs ddc_funcs = {
     .copy_to_buf = copy_to_buf,
     .copy_from_buf = copy_from_buf,
     .add_from_buf = add_from_buf,
   };
 };
+
+template <typename MF>
+constexpr mrc_ddc_funcs Bnd_<MF>::ddc_funcs;
