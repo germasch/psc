@@ -20,12 +20,16 @@ public:
   using moment_type =
     psc::moment::moment_n<psc::deposit::code::Deposit1stCc, dim_t>;
 
-  template <typename MP>
-  explicit Moment_n_1st(const MP& mprts) : Base{mprts.grid()}
+  explicit Moment_n_1st(const Grid_t& grid) : Base{grid} {}
+
+  template <typename Mparticles>
+  auto operator()(const Mparticles& mprts)
   {
-    Base::mres_gt_.view() = 0.f;
-    moment_type{}(Base::mres_gt_, Base::mres_ib_, mprts);
-    Base::bnd_.add_ghosts(mprts.grid(), Base::mres_gt_, Base::mres_ib_);
+    Int3 ib = -mprts.grid().ibn;
+    auto mres = psc::mflds::zeros<real_t>(mprts.grid(), Base::n_comps(), ib);
+    moment_type{}(mres, ib, mprts);
+    Base::bnd_.add_ghosts(mprts.grid(), mres, ib);
+    return mres;
   }
 };
 
@@ -43,12 +47,16 @@ public:
   using moment_type =
     psc::moment::moment_v<psc::deposit::code::Deposit1stCc, dim_t>;
 
+  explicit Moment_v_1st(const Grid_t& grid) : Base{grid} {}
+
   template <typename Mparticles>
-  explicit Moment_v_1st(const Mparticles& mprts) : Base{mprts.grid()}
+  auto operator()(const Mparticles& mprts)
   {
-    Base::mres_gt_.view() = 0.f;
-    moment_type{}(Base::mres_gt_, Base::mres_ib_, mprts);
-    Base::bnd_.add_ghosts(mprts.grid(), Base::mres_gt_, Base::mres_ib_);
+    Int3 ib = -mprts.grid().ibn;
+    auto mres = psc::mflds::zeros<real_t>(mprts.grid(), Base::n_comps(), ib);
+    moment_type{}(mres, ib, mprts);
+    Base::bnd_.add_ghosts(mprts.grid(), mres, ib);
+    return mres;
   }
 };
 
