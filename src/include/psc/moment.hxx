@@ -150,7 +150,7 @@ public:
   static std::string name() { return "rho" + DepositCode<float, D>::suffix(); }
   static std::vector<std::string> comp_names(const Grid_t::Kinds& kinds)
   {
-    return addKindSuffix({"rho"}, kinds);
+    return {"rho"};
   }
 
   template <typename MFLDS_GT, typename MP>
