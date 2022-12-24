@@ -60,7 +60,7 @@ struct ChecksCuda
 
     Moment_t item_rho{grid};
     item_rho(mprts);
-    rho_m_gt_ = psc::interior(item_rho.storage(), item_rho.ib());
+    rho_m_gt_ = psc::mflds::interior(grid, item_rho.storage());
   }
 
   void continuity_after_particle_push(Mparticles& mprts,
@@ -77,7 +77,7 @@ struct ChecksCuda
 
     auto item_divj = Item_divj<MfieldsStateCuda>(mflds);
 
-    auto d_rho_p = psc::interior(item_rho.storage(), item_rho.ib());
+    auto d_rho_p = psc::mflds::interior(grid, item_rho.storage());
     auto&& rho_p = gt::host_mirror(d_rho_p);
     auto&& rho_m = gt::host_mirror(rho_m_gt_);
     auto&& h_divj = gt::host_mirror(item_divj.gt());
@@ -143,7 +143,7 @@ struct ChecksCuda
     item_rho(mflds);
     auto item_dive = Item_dive<MfieldsStateCuda>(mflds);
 
-    auto d_rho = psc::interior(item_rho.storage(), item_rho.ib());
+    auto d_rho = psc::mflds::interior(grid, item_rho.storage());
     auto&& rho = gt::host_mirror(d_rho);
     auto&& dive = gt::host_mirror(item_dive.gt());
     gt::copy(gt::eval(d_rho), rho);

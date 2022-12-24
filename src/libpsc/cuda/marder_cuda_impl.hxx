@@ -114,7 +114,7 @@ struct MarderCuda : MarderBase
       io_.end_step();
     }
 
-    psc::interior(res_.gt(), res_.ib()) = dive - rho;
+    psc::mflds::interior(grid, res_.gt()) = dive - rho;
     bnd_mf_.fill_ghosts(res_, 0, 1);
   }
 
@@ -152,7 +152,7 @@ struct MarderCuda : MarderBase
     bnd_.fill_ghosts(mflds, EX, EX + 3);
 
     item_rho_(mprts);
-    auto&& rho = psc::interior(item_rho_.storage(), item_rho_.ib());
+    auto&& rho = psc::mflds::interior(mflds.grid(), item_rho_.storage());
 
     for (int i = 0; i < loop_; i++) {
       calc_aid_fields(mflds, rho);
