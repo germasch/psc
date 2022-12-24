@@ -196,6 +196,6 @@ protected:
   Int3 mres_ib_;
   ItemMomentBnd<Mfields, Bnd> bnd_;
 
-private:
+  // private:
   Mfields mres_;
 };
