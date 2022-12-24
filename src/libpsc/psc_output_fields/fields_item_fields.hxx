@@ -16,8 +16,7 @@ template <typename MfieldsState>
 class Item_jeh
 {
 public:
-  using Real = typename MfieldsState::real_t;
-  using value_type = Real;
+  using value_type = typename MfieldsState::real_t;
   using space = typename MfieldsState::space;
 
   static std::string name() { return "jeh"; }
@@ -154,6 +153,8 @@ static auto grad_ec(const E& fld, const Grid_t& grid)
 class Item_dive
 {
 public:
+  using value_type = typename Mfields::real_t;
+
   static char const* name() { return "dive"; }
   static int n_comps() { return 1; }
   static std::vector<std::string> comp_names() { return {"dive"}; }
@@ -161,8 +162,8 @@ public:
   template <typename MfieldsState>
   auto operator()(MfieldsState& mflds) const
   {
-    return psc::item::div_nc(mflds.gt().view(_all, _all, _all, _s(EX, EX + 3)),
-                             mflds.grid());
+    return psc::item::div_nc(
+      mflds.storage().view(_all, _all, _all, _s(EX, EX + 3)), mflds.grid());
   }
 };
 
@@ -174,6 +175,8 @@ public:
 class Item_divj
 {
 public:
+  using value_type = typename Mfields::real_t;
+
   static char const* name() { return "divj"; }
   static int n_comps() { return 1; }
   static std::vector<std::string> comp_names() { return {"divj"}; }
@@ -182,7 +185,7 @@ public:
   auto operator()(MfieldsState& mflds) const
   {
     return psc::item::div_nc(
-      mflds.gt().view(_all, _all, _all, _s(JXI, JXI + 3)), mflds.grid());
+      mflds.storage().view(_all, _all, _all, _s(JXI, JXI + 3)), mflds.grid());
   }
 };
 
@@ -193,7 +196,7 @@ template <typename Mfields>
 class Item_grad
 {
 public:
-  using Real = typename Mfields::real_t;
+  using value_type = typename Mfields::real_t;
 
   static char const* name() { return "grad"; }
   static int n_comps() { return 3; }
@@ -202,12 +205,8 @@ public:
     return {"gradx", "grady", "gradz"};
   }
 
-  Item_grad(Mfields& mflds) : mflds_{mflds} {}
-
-  const Grid_t& grid() const { return mflds_.grid(); }
-
-  auto gt() const { return psc::item::grad_ec(mflds_.gt(), mflds_.grid()); }
-
-private:
-  Mfields& mflds_;
+  auto operator()(Mfields& mflds) const
+  {
+    return psc::item::grad_ec(mflds.storage(), mflds.grid());
+  }
 };
