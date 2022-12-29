@@ -123,6 +123,10 @@ class MarderCommon {
   using Bnd = BND;
   using real_t = typename Mfields::real_t;
 
+  // FIXME: checkpointing won't properly restore state
+  // FIXME: if the subclass creates objects, it'd be cleaner to have them
+  // be part of the subclass
+
   MarderCommon(const Grid_t& grid, real_t diffusion, int loop, bool dump) :
       grid_{grid},
       diffusion_{diffusion},
@@ -136,6 +140,19 @@ class MarderCommon {
       io_.open("marder");
     }
   }
+
+  // ----------------------------------------------------------------------
+  // print_max
+
+  static void print_max(Mfields& mf)
+  {
+    real_t max_err = gt::norm_linf(mf.storage());
+    MPI_Allreduce(MPI_IN_PLACE, &max_err, 1,
+                  Mfields_traits<Mfields>::mpi_dtype(), MPI_MAX,
+                  mf.grid().comm());
+    mpi_printf(mf.grid().comm(), "marder: err %g\n", max_err);
+  }
+
 
 //private:
   const Grid_t& grid_;
@@ -170,14 +187,7 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
   using Base::res_;
   using Base::io_;
 
-  Marder_(const Grid_t& grid, real_t diffusion, int loop, bool dump)
-    : Base{grid, diffusion, loop, dump}
-  {
-  }
-
-  // FIXME: checkpointing won't properly restore state
-  // FIXME: if the subclass creates objects, it'd be cleaner to have them
-  // be part of the subclass
+  using Base::Base;
 
   // ----------------------------------------------------------------------
   // calc_aid_fields
@@ -224,18 +234,6 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
   }
 
   // ----------------------------------------------------------------------
-  // max
-
-  static void print_max(Mfields& mf)
-  {
-    real_t max_err = gt::norm_linf(mf.storage());
-    MPI_Allreduce(MPI_IN_PLACE, &max_err, 1,
-                  Mfields_traits<Mfields>::mpi_dtype(), MPI_MAX,
-                  mf.grid().comm());
-    mpi_printf(mf.grid().comm(), "marder: err %g\n", max_err);
-  }
-
-  // ----------------------------------------------------------------------
   // correct
   //
   // Do the modified marder correction (See eq.(5, 7, 9, 10) in Mardahl and
@@ -272,7 +270,7 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
 
     for (int i = 0; i < loop_; i++) {
       calc_aid_fields(mflds);
-      print_max(res_);
+      Base::print_max(res_);
       correct(mflds);
       bnd_.fill_ghosts(mflds, EX, EX + 3);
     }
