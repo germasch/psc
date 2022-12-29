@@ -127,14 +127,25 @@ class MarderCommon {
       grid_{grid},
       diffusion_{diffusion},
       loop_{loop},
-      dump_{dump}
-      {}
+      dump_{dump},
+      bnd_{grid, grid.ibn},
+      rho_{grid, 1, grid.ibn},
+      res_{grid, 1, grid.ibn}
+  {
+    if (dump_) {
+      io_.open("marder");
+    }
+  }
 
 //private:
   const Grid_t& grid_;
   real_t diffusion_; //< diffusion coefficient for Marder correction
   int loop_;         //< execute this many relaxation steps in a loop
   bool dump_;        //< dump div_E, rho
+  Bnd bnd_;
+  Mfields rho_;
+  Mfields res_;
+  WriterMRC io_; //< for debug dumping
 };
 
 template <typename _Mparticles, typename _MfieldsState, typename _Mfields,
@@ -154,16 +165,14 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
   using Base::dump_;
   using Base::loop_;
   using Base::diffusion_;
+  using Base::bnd_;
+  using Base::rho_;
+  using Base::res_;
+  using Base::io_;
 
   Marder_(const Grid_t& grid, real_t diffusion, int loop, bool dump)
-    : Base{grid, diffusion, loop, dump},
-      bnd_{grid, grid.ibn},
-      rho_{grid, 1, grid.ibn},
-      res_{grid, 1, grid.ibn}
+    : Base{grid, diffusion, loop, dump}
   {
-    if (dump_) {
-      io_.open("marder");
-    }
   }
 
   // FIXME: checkpointing won't properly restore state
@@ -268,12 +277,6 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
       bnd_.fill_ghosts(mflds, EX, EX + 3);
     }
   }
-
-  // private:
-  Bnd bnd_;
-  Mfields rho_;
-  Mfields res_;
-  WriterMRC io_; //< for debug dumping
 };
 
 #undef define_dxdydz

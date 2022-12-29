@@ -87,17 +87,14 @@ struct MarderCuda : public MarderCommon<MparticlesCuda<BS>, MfieldsStateCuda, Mf
   using Base::dump_;
   using Base::loop_;
   using Base::diffusion_;
+  using Base::bnd_;
+  using Base::rho_;
+  using Base::res_;
+  using Base::io_;
 
   MarderCuda(const Grid_t& grid, real_t diffusion, int loop, bool dump)
-    : Base{grid, diffusion, loop, dump},
-      bnd_{grid, grid.ibn},
-      rho_{grid, 1, grid.ibn},
-      res_{grid, 1, grid.ibn}
-  {
-    if (dump_) {
-      io_.open("marder");
-    }
-  }
+    : Base{grid, diffusion, loop, dump}
+  {}
 
   // FIXME: checkpointing won't properly restore state
   // FIXME: if the subclass creates objects, it'd be cleaner to have them
@@ -187,10 +184,4 @@ struct MarderCuda : public MarderCommon<MparticlesCuda<BS>, MfieldsStateCuda, Mf
     }
     prof_stop(pr);
   }
-
-  // private:
-  Bnd bnd_;
-  Mfields rho_;
-  Mfields res_;
-  WriterMRC io_; //< for debug dumping
 };
