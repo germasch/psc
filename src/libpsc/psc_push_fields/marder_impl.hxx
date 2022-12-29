@@ -122,6 +122,19 @@ class MarderCommon {
   using Item_rho_t = ITEM_RHO;
   using Bnd = BND;
   using real_t = typename Mfields::real_t;
+
+  MarderCommon(const Grid_t& grid, real_t diffusion, int loop, bool dump) :
+      grid_{grid},
+      diffusion_{diffusion},
+      loop_{loop},
+      dump_{dump}
+      {}
+
+//private:
+  const Grid_t& grid_;
+  real_t diffusion_; //< diffusion coefficient for Marder correction
+  int loop_;         //< execute this many relaxation steps in a loop
+  bool dump_;        //< dump div_E, rho
 };
 
 template <typename _Mparticles, typename _MfieldsState, typename _Mfields,
@@ -138,12 +151,12 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
   using Bnd = typename Base::Bnd;
   using real_t = typename Mfields::real_t;
   using Moment_t = typename Base::Item_rho_t;
+  using Base::dump_;
+  using Base::loop_;
+  using Base::diffusion_;
 
   Marder_(const Grid_t& grid, real_t diffusion, int loop, bool dump)
-    : grid_{grid},
-      diffusion_{diffusion},
-      loop_{loop},
-      dump_{dump},
+    : Base{grid, diffusion, loop, dump},
       bnd_{grid, grid.ibn},
       rho_{grid, 1, grid.ibn},
       res_{grid, 1, grid.ibn}
@@ -257,11 +270,6 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
   }
 
   // private:
-  real_t diffusion_; //< diffusion coefficient for Marder correction
-  int loop_;         //< execute this many relaxation steps in a loop
-  bool dump_;        //< dump div_E, rho
-
-  const Grid_t& grid_;
   Bnd bnd_;
   Mfields rho_;
   Mfields res_;

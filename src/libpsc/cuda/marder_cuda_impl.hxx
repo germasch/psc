@@ -81,14 +81,15 @@ struct MarderCuda : public MarderCommon<MparticlesCuda<BS>, MfieldsStateCuda, Mf
   using MfieldsState = typename Base::MfieldsState;
   using Mfields = typename Base::Mfields;
   using dim_t = typename Base::dim_t;
+  using Bnd = typename Base::Bnd;
   using real_t = typename Mfields::real_t;
   using Moment_t = typename Base::Item_rho_t;
+  using Base::dump_;
+  using Base::loop_;
+  using Base::diffusion_;
 
   MarderCuda(const Grid_t& grid, real_t diffusion, int loop, bool dump)
-    : grid_{grid},
-      diffusion_{diffusion},
-      loop_{loop},
-      dump_{dump},
+    : Base{grid, diffusion, loop, dump},
       bnd_{grid, grid.ibn},
       rho_{grid, 1, grid.ibn},
       res_{grid, 1, grid.ibn}
@@ -188,11 +189,6 @@ struct MarderCuda : public MarderCommon<MparticlesCuda<BS>, MfieldsStateCuda, Mf
   }
 
   // private:
-  const Grid_t& grid_;
-  real_t diffusion_; //< diffusion coefficient for Marder correction
-  int loop_;         //< execute this many relaxation steps in a loop
-  bool dump_;        //< dump div_E, rho
-
   Bnd bnd_;
   Mfields rho_;
   Mfields res_;
