@@ -153,6 +153,31 @@ class MarderCommon {
     mpi_printf(mf.grid().comm(), "marder: err %g\n", max_err);
   }
 
+  // ----------------------------------------------------------------------
+  // calc_aid_fields
+
+  template <typename E>
+  void calc_aid_fields(MfieldsState& mflds, const E& rho)
+  {
+    const auto& grid = mflds.grid();
+    auto item_dive = Item_dive<MfieldsState>{};
+    auto dive = psc::mflds::interior(grid, item_dive(mflds));
+
+    if (dump_) {
+      static int cnt;
+      io_.begin_step(cnt, cnt); // ppsc->timestep, ppsc->timestep * ppsc->dt);
+      cnt++;
+      io_.write(rho, grid, "rho", {"rho"});
+      io_.write(dive, grid, "dive", {"dive"});
+      io_.end_step();
+    }
+
+    auto& res = res_.storage();
+
+    psc::mflds::interior(grid, res) = dive - rho;
+    // FIXME, why is this necessary?
+    bnd_.fill_ghosts(res_, 0, 1);
+  }
 
 //private:
   const Grid_t& grid_;
@@ -190,32 +215,6 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
   using Base::Base;
 
   // ----------------------------------------------------------------------
-  // calc_aid_fields
-
-  template <typename E>
-  void calc_aid_fields(MfieldsState& mflds, const E& rho)
-  {
-    const auto& grid = mflds.grid();
-    auto item_dive = Item_dive<MfieldsState>{};
-    auto dive = psc::mflds::interior(grid, item_dive(mflds));
-
-    if (dump_) {
-      static int cnt;
-      io_.begin_step(cnt, cnt); // ppsc->timestep, ppsc->timestep * ppsc->dt);
-      cnt++;
-      io_.write(rho, grid, "rho", {"rho"});
-      io_.write(dive, grid, "dive", {"dive"});
-      io_.end_step();
-    }
-
-    auto& res = res_.storage();
-
-    psc::mflds::interior(grid, res) = dive - rho;
-    // FIXME, why is this necessary?
-    bnd_.fill_ghosts(res_, 0, 1);
-  }
-
-  // ----------------------------------------------------------------------
   // correct
   //
   // Do the modified marder correction (See eq.(5, 7, 9, 10) in Mardahl and
@@ -251,7 +250,7 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
     bnd_.fill_ghosts(mflds, EX, EX + 3);
 
     for (int i = 0; i < loop_; i++) {
-      calc_aid_fields(mflds, rho_.storage());
+      Base::calc_aid_fields(mflds, rho_.storage());
       Base::print_max(res_);
       correct(mflds);
       bnd_.fill_ghosts(mflds, EX, EX + 3);
