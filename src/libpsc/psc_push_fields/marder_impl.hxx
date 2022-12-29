@@ -192,7 +192,8 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
   // ----------------------------------------------------------------------
   // calc_aid_fields
 
-  void calc_aid_fields(MfieldsState& mflds)
+  template <typename E>
+  void calc_aid_fields(MfieldsState& mflds, const E& rho)
   {
     const auto& grid = mflds.grid();
     auto item_dive = Item_dive<MfieldsState>{};
@@ -202,7 +203,7 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
       static int cnt;
       io_.begin_step(cnt, cnt); // ppsc->timestep, ppsc->timestep * ppsc->dt);
       cnt++;
-      io_.write(rho_.gt(), grid, "rho", {"rho"});
+      io_.write(rho, grid, "rho", {"rho"});
       io_.write(dive, grid, "dive", {"dive"});
       io_.end_step();
     }
@@ -228,7 +229,7 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
                         _s(bnd[2], -bnd[2])) =
       res_.storage().view(_s(bnd[0], -bnd[0]), _s(bnd[1], -bnd[1]),
                           _s(bnd[2], -bnd[2])) -
-      rho_.storage().view(_all, _all, _all);
+      rho.view(_all, _all, _all);
     // FIXME, why is this necessary?
     bnd_.fill_ghosts(res_, 0, 1);
   }
@@ -269,7 +270,7 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
     bnd_.fill_ghosts(mflds, EX, EX + 3);
 
     for (int i = 0; i < loop_; i++) {
-      calc_aid_fields(mflds);
+      calc_aid_fields(mflds, rho_.storage());
       Base::print_max(res_);
       correct(mflds);
       bnd_.fill_ghosts(mflds, EX, EX + 3);
