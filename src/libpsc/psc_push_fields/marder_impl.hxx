@@ -112,9 +112,11 @@ inline void correct(MfieldsState& mflds, Mfields& mf,
 } // namespace marder
 } // namespace psc
 
-template <typename MP, typename MFS, typename MF, typename D, typename ITEM_RHO, typename BND>
-class MarderCommon {
- public:
+template <typename MP, typename MFS, typename MF, typename D, typename ITEM_RHO,
+          typename BND>
+class MarderCommon
+{
+public:
   using Mparticles = MP;
   using MfieldsState = MFS;
   using Mfields = MF;
@@ -127,8 +129,8 @@ class MarderCommon {
   // FIXME: if the subclass creates objects, it'd be cleaner to have them
   // be part of the subclass
 
-  MarderCommon(const Grid_t& grid, real_t diffusion, int loop, bool dump) :
-      grid_{grid},
+  MarderCommon(const Grid_t& grid, real_t diffusion, int loop, bool dump)
+    : grid_{grid},
       diffusion_{diffusion},
       loop_{loop},
       dump_{dump},
@@ -179,41 +181,6 @@ class MarderCommon {
     bnd_.fill_ghosts(res_, 0, 1);
   }
 
-//private:
-  const Grid_t& grid_;
-  real_t diffusion_; //< diffusion coefficient for Marder correction
-  int loop_;         //< execute this many relaxation steps in a loop
-  bool dump_;        //< dump div_E, rho
-  Bnd bnd_;
-  Mfields rho_;
-  Mfields res_;
-  WriterMRC io_; //< for debug dumping
-};
-
-template <typename _Mparticles, typename _MfieldsState, typename _Mfields,
-          typename D>
-struct Marder_ : public MarderCommon<_Mparticles, _MfieldsState, _Mfields, D,
-Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
-{
-  using Base = MarderCommon<_Mparticles, _MfieldsState, _Mfields, D,
-    Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>;
-  using Mparticles = typename Base::Mparticles;
-  using MfieldsState = typename Base::MfieldsState;
-  using Mfields = typename Base::Mfields;
-  using dim_t = typename Base::dim_t;
-  using Bnd = typename Base::Bnd;
-  using real_t = typename Mfields::real_t;
-  using Moment_t = typename Base::Item_rho_t;
-  using Base::dump_;
-  using Base::loop_;
-  using Base::diffusion_;
-  using Base::bnd_;
-  using Base::rho_;
-  using Base::res_;
-  using Base::io_;
-
-  using Base::Base;
-
   // ----------------------------------------------------------------------
   // correct
   //
@@ -236,6 +203,43 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
     psc::marder::correct(mflds, res_, diffusion);
   }
 
+  // private:
+  const Grid_t& grid_;
+  real_t diffusion_; //< diffusion coefficient for Marder correction
+  int loop_;         //< execute this many relaxation steps in a loop
+  bool dump_;        //< dump div_E, rho
+  Bnd bnd_;
+  Mfields rho_;
+  Mfields res_;
+  WriterMRC io_; //< for debug dumping
+};
+
+template <typename _Mparticles, typename _MfieldsState, typename _Mfields,
+          typename D>
+struct Marder_
+  : public MarderCommon<_Mparticles, _MfieldsState, _Mfields, D,
+                        Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
+{
+  using Base =
+    MarderCommon<_Mparticles, _MfieldsState, _Mfields, D,
+                 Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>;
+  using Mparticles = typename Base::Mparticles;
+  using MfieldsState = typename Base::MfieldsState;
+  using Mfields = typename Base::Mfields;
+  using dim_t = typename Base::dim_t;
+  using Bnd = typename Base::Bnd;
+  using real_t = typename Mfields::real_t;
+  using Moment_t = typename Base::Item_rho_t;
+  using Base::bnd_;
+  using Base::diffusion_;
+  using Base::dump_;
+  using Base::io_;
+  using Base::loop_;
+  using Base::res_;
+  using Base::rho_;
+
+  using Base::Base;
+
   // ----------------------------------------------------------------------
   // operator()
 
@@ -252,7 +256,7 @@ Moment_rho_1st_nc<typename _Mfields::Storage, D>, Bnd_>
     for (int i = 0; i < loop_; i++) {
       Base::calc_aid_fields(mflds, rho_.storage());
       Base::print_max(res_);
-      correct(mflds);
+      Base::correct(mflds);
       bnd_.fill_ghosts(mflds, EX, EX + 3);
     }
   }
