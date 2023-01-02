@@ -69,8 +69,9 @@ struct mem_fraction
 };
 
 template <typename Mparticles>
-struct mem_fraction<Mparticles, gt::meta::void_t<decltype(
-                                  std::declval<Mparticles>().mem_fraction())>>
+struct mem_fraction<
+  Mparticles,
+  gt::meta::void_t<decltype(std::declval<Mparticles>().mem_fraction())>>
 {
   static double get(const Mparticles& mprts)
   {
@@ -167,7 +168,6 @@ struct Psc
       collision_{collision},
       checks_{checks},
       marder_{marder},
-      bnd_{grid, grid.ibn},
       bndp_{grid},
       diagnostics_{diagnostics},
       inject_particles_{inject_particles},
@@ -592,7 +592,10 @@ struct Psc
   // ----------------------------------------------------------------------
   // inject_particles
 
-  void inject_particles() { return this->inject_particles_(grid(), mprts_); }
+  void inject_particles()
+  {
+    return this->inject_particles_(grid(), mprts_);
+  }
 
 private:
   // ----------------------------------------------------------------------
@@ -687,7 +690,10 @@ private:
   // ----------------------------------------------------------------------
   // diagnostics
 
-  void diagnostics() { diagnostics_(mprts_, mflds_); }
+  void diagnostics()
+  {
+    diagnostics_(mprts_, mflds_);
+  }
 
   // ----------------------------------------------------------------------
   // print_status
@@ -706,7 +712,10 @@ private:
   }
 
 public:
-  const Grid_t& grid() { return *grid_; }
+  const Grid_t& grid()
+  {
+    return *grid_;
+  }
 
 private:
   double time_start_;
