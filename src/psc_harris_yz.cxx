@@ -116,7 +116,7 @@ using PscConfig = PscConfig1vbecCuda<Dim>;
 using PscConfig = PscConfig1vbecSingle<Dim>;
 #endif
 
-using Writer = WriterDefault; // can choose WriterMrc, WriterAdios2
+using Writer = WriterADIOS2; // can choose WriterMrc, WriterADIOS2
 
 // ----------------------------------------------------------------------
 
@@ -136,7 +136,7 @@ void setupParameters()
   // -- set some generic PSC parameters
   psc_params.nmax = 10000001; // 5001;
   psc_params.cfl = 0.99;
-  psc_params.write_checkpoint_every_step = 1000;
+  psc_params.write_checkpoint_every_step = 50;
   psc_params.stats_every = 1;
 
   // -- start from checkpoint:
@@ -147,7 +147,7 @@ void setupParameters()
   // FIXME: This parameter would be a good candidate to be provided
   // on the command line, rather than requiring recompilation when change.
 
-  // read_checkpoint_filename = "checkpoint_500.bp";
+  read_checkpoint_filename = "checkpoint_50.bp";
 
   // -- Set some parameters specific to this case
 
@@ -372,8 +372,8 @@ void run()
   // Set up various objects needed to run this case
 
   // -- Balance
-  psc_params.balance_interval = 500;
-  Balance balance{3};
+  psc_params.balance_interval = 20;
+  Balance balance{3, true};
 
   // -- Sort
   psc_params.sort_interval = 10;

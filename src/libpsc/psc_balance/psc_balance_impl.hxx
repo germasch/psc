@@ -257,6 +257,9 @@ public:
           n_prts_by_patch[p] + factor_fields_ * ldims[0] * ldims[1] * ldims[2];
         // mprintf("loads p %d %g %g ratio %g\n", p, loads[p], comp_time,
         // loads[p] / comp_time);
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        load = rank;
       } else {
         load = psc_balance_comp_time_by_patch[p];
       }
