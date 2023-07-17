@@ -8,45 +8,6 @@
 #include <kg/io.h>
 
 // ----------------------------------------------------------------------
-// write_checkpoint
-//
-
-template <typename Mparticles, typename MfieldsState>
-void write_checkpoint(const Grid_t& grid, Mparticles& mprts,
-                      MfieldsState& mflds)
-{
-  static int pr, pr_A;
-  if (!pr) {
-    pr = prof_register("cp_write", 1., 0, 0);
-    pr_A = prof_register("cp_write_barier", 1., 0, 0);
-  }
-
-  prof_start(pr);
-  mpi_printf(grid.comm(), "**** Writing checkpoint...\n");
-#if defined(PSC_HAVE_ADIOS2) && !defined(VPIC)
-  prof_start(pr_A);
-  MPI_Barrier(grid.comm()); // not really necessary
-  prof_stop(pr_A);
-
-  std::string filename =
-    "checkpoint_" + std::to_string(grid.timestep()) + ".bp";
-
-  mpi_printf(MPI_COMM_WORLD, "??? checkpoint IOAdios2 %p\n", &io);
-  writer = io.open(filename, kg::io::Mode::Write, grid.comm(), "checkpoint");
-  writer.beginStep(kg::io::StepMode::Append);
-  writer.put("grid", grid);
-  writer.put("mprts", mprts);
-  writer.put("mflds", mflds);
-  writer.endStep();
-  writer.close();
-#else
-  std::cerr << "write_checkpoint not available without adios2" << std::endl;
-  std::abort();
-#endif
-  prof_stop(pr);
-}
-
-// ----------------------------------------------------------------------
 // read_checkpoint
 //
 
@@ -121,6 +82,41 @@ public:
     }
 
     write_checkpoint(grid, mprts, mflds);
+  }
+
+  template <typename Mparticles, typename MfieldsState>
+  void write_checkpoint(const Grid_t& grid, Mparticles& mprts,
+                        MfieldsState& mflds)
+  {
+    static int pr, pr_A;
+    if (!pr) {
+      pr = prof_register("cp_write", 1., 0, 0);
+      pr_A = prof_register("cp_write_barier", 1., 0, 0);
+    }
+
+    prof_start(pr);
+    mpi_printf(grid.comm(), "**** Writing checkpoint...\n");
+#if defined(PSC_HAVE_ADIOS2) && !defined(VPIC)
+    prof_start(pr_A);
+    MPI_Barrier(grid.comm()); // not really necessary
+    prof_stop(pr_A);
+
+    std::string filename =
+      "checkpoint_" + std::to_string(grid.timestep()) + ".bp";
+
+    mpi_printf(MPI_COMM_WORLD, "??? checkpoint IOAdios2 %p\n", &io);
+    writer = io.open(filename, kg::io::Mode::Write, grid.comm(), "checkpoint");
+    writer.beginStep(kg::io::StepMode::Append);
+    writer.put("grid", grid);
+    writer.put("mprts", mprts);
+    writer.put("mflds", mflds);
+    writer.endStep();
+    writer.close();
+#else
+    std::cerr << "write_checkpoint not available without adios2" << std::endl;
+    std::abort();
+#endif
+    prof_stop(pr);
   }
 
 private:
