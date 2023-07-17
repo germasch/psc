@@ -31,12 +31,13 @@ void write_checkpoint(const Grid_t& grid, Mparticles& mprts,
   std::string filename =
     "checkpoint_" + std::to_string(grid.timestep()) + ".bp";
 
-  auto io = kg::io::IOAdios2{};
-  auto writer =
-    io.open(filename, kg::io::Mode::Write, grid.comm(), "checkpoint");
+  mpi_printf(MPI_COMM_WORLD, "??? checkpoint IOAdios2 %p\n", &io);
+  writer = io.open(filename, kg::io::Mode::Write, grid.comm(), "checkpoint");
+  writer.beginStep(kg::io::StepMode::Append);
   writer.put("grid", grid);
   writer.put("mprts", mprts);
   writer.put("mflds", mflds);
+  writer.endStep();
   writer.close();
 #else
   std::cerr << "write_checkpoint not available without adios2" << std::endl;
@@ -125,4 +126,8 @@ public:
 private:
   int interval_; // write checkpoint every so many steps
   bool first_time_ = true;
+#ifdef PSC_HAVE_ADIOS2
+  kg::io::IOAdios2 io;
+  kg::io::Engine writer;
+#endif
 };
